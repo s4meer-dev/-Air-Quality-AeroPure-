@@ -1,0 +1,12 @@
+feature,psi,status
+AH,2.9991,Significant Drift
+T,2.2805,Significant Drift
+NO2(GT),0.6939,Significant Drift
+current_air_quality_index,0.376,Significant Drift
+NOx(GT),0.3692,Significant Drift
+C6H6(GT),0.2374,Monitor
+PT08.S5(O3),0.0864,Stable
+PT08.S3(NOx),0.0697,Stable
+PT08.S1(CO),0.058,Stable
+CO(GT),0.0468,Stable
+RH,0.0413,Stable

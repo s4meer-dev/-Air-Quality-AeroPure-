@@ -1,0 +1,4 @@
+Comparison,Wilcoxon_Statistic,Wilcoxon_p_value,Paired_t_Statistic,Paired_t_p_value,Statistically_Significant (p<0.05)
+XGBoost vs OLS,768927.0,9.8913e-06,-5.608,2.3470e-08,True
+XGBoost vs Ridge,763578.0,3.3333e-06,-5.587,2.6531e-08,True
+XGBoost vs Random Forest,795941.0,1.1142e-03,-3.782,1.6037e-04,True

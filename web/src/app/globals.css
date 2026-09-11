@@ -1,0 +1,223 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+/* ── Design Tokens ────────────────────────────────────────────────────────── */
+:root {
+  --bg-void:      #050505;
+  --bg-deep:      #080808;
+  --bg-primary:   #0D0D0D;
+  --bg-card:      #111111;
+  --bg-elevated:  #151515;
+  --bg-raised:    #1B1B1B;
+  --bg-hover:     #202020;
+
+  --border-dim:   #1e1e1e;
+  --border:       #292929;
+  --border-mid:   #333333;
+
+  --text-primary: #F5F5F5;
+  --text-body:    #DEDEDE;
+  --text-muted:   #9A9A9A;
+  --text-faint:   #555555;
+
+  --gold-dim:     #C9A227;
+  --gold:         #D4AF37;
+  --gold-bright:  #E0C15A;
+  --gold-glow:    rgba(212, 175, 55, 0.25);
+  --gold-glow-sm: rgba(212, 175, 55, 0.12);
+
+  --red-deep:     #8B0000;
+  --red:          #B11226;
+  --red-bright:   #D62828;
+  --red-glow:     rgba(214, 40, 40, 0.3);
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background: var(--bg-void);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  line-height: 1.6;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
+
+/* ── Typography ───────────────────────────────────────────────────────────── */
+.font-orbitron { font-family: "Orbitron", sans-serif; }
+
+.text-gold    { color: var(--gold); }
+.text-gold-bright { color: var(--gold-bright); }
+.text-gold-dim    { color: var(--gold-dim); }
+.text-red     { color: var(--red-bright); }
+.text-muted   { color: var(--text-muted); }
+
+/* ── Cards ────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.card-gold {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.card-gold::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: linear-gradient(180deg, var(--gold-dim), var(--gold-bright));
+  border-radius: 12px 0 0 12px;
+}
+
+.card-red {
+  background: linear-gradient(135deg, #120000 0%, #1a0000 100%);
+  border: 1px solid var(--red);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, var(--gold-dim) 0%, var(--gold) 100%);
+  color: #050505;
+  font-weight: 700;
+  font-family: "Inter", sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px var(--gold-glow-sm);
+  text-decoration: none;
+}
+.btn-gold:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px var(--gold-glow);
+}
+.btn-gold:active { transform: translateY(0); }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.btn-ghost:hover {
+  border-color: var(--gold-dim);
+  color: var(--gold);
+}
+
+/* ── Gold divider ─────────────────────────────────────────────────────────── */
+.gold-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  border: none;
+  margin: 1.5rem 0;
+}
+
+/* ── Inputs ───────────────────────────────────────────────────────────────── */
+.input-dark {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  padding: 0.85rem 1.1rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.input-dark::placeholder { color: var(--text-faint); }
+.input-dark:focus {
+  border-color: var(--gold-dim);
+  box-shadow: 0 0 0 3px var(--gold-glow-sm);
+}
+
+/* ── Demo mode badge ──────────────────────────────────────────────────────── */
+.demo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(201,162,39,0.12);
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+}
+
+/* ── Risk tier colors ─────────────────────────────────────────────────────── */
+.risk-hazardous { color: var(--red-bright); }
+.risk-elevated  { color: #E8A020; }
+.risk-moderate  { color: var(--gold); }
+.risk-low       { color: var(--gold-bright); }
+
+/* ── Hazard pulsing glow ──────────────────────────────────────────────────── */
+@keyframes hazard-glow {
+  0%, 100% { box-shadow: 0 0 20px var(--red-glow), 0 4px 16px rgba(0,0,0,0.5); }
+  50%       { box-shadow: 0 0 45px rgba(214,40,40,0.55), 0 4px 24px rgba(0,0,0,0.6); }
+}
+.hazard-pulse { animation: hazard-glow 3s ease-in-out infinite; }
+
+/* ── Number display ───────────────────────────────────────────────────────── */
+.aqi-hero {
+  font-family: "Orbitron", sans-serif;
+  font-size: clamp(4rem, 12vw, 7rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 40px currentColor;
+}
+
+/* ── Section label ────────────────────────────────────────────────────────── */
+.section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+/* ── Recharts overrides (applied globally) ────────────────────────────────── */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: #1e1e1e !important;
+}
+.recharts-tooltip-wrapper { outline: none; }

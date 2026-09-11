@@ -1,0 +1,28 @@
+{
+  "pca_explained_variance_first3": 0.8728,
+  "k_selected": 3,
+  "silhouette_scores": {
+    "2": 0.3366,
+    "3": 0.2261,
+    "4": 0.236,
+    "5": 0.2051,
+    "6": 0.2007
+  },
+  "dbscan_noise_points": 69,
+  "dbscan_noise_pct": 0.74,
+  "forecasting_experiment": {
+    "base_model": {
+      "rmse": 39.068,
+      "mae": 30.522,
+      "r2": 0.5094
+    },
+    "augmented_model": {
+      "rmse": 38.324,
+      "mae": 29.876,
+      "r2": 0.5279
+    },
+    "rmse_delta": -0.744,
+    "r2_delta": 0.0185,
+    "improvement": true
+  }
+}

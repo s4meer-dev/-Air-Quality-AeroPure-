@@ -1,0 +1,5 @@
+Model,Type,MAE,RMSE,R2,F1,ROC_AUC
+Linear Regression (OLS),Regression,49.008 ± 15.657,61.382 ± 17.071,-0.2641 ± 0.7461,-,-
+Ridge (alpha=500.0),Regression,33.728 ± 5.186,44.972 ± 6.483,0.3708 ± 0.0877,-,-
+Lasso (alpha=1.0),Regression,33.062 ± 5.087,44.642 ± 6.499,0.3834 ± 0.0523,-,-
+Logistic Regression (C=0.01),Classification,-,-,-,0.5397 ± 0.0561,0.7948 ± 0.0585
