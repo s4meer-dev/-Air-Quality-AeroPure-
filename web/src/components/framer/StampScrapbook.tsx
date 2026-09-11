@@ -21,6 +21,7 @@ export interface StampItem {
     alt?: string;
   };
   title?: string;
+  code?: string;
   caption?: string;
   description?: string;
   continentId?: string;
@@ -132,7 +133,7 @@ function StampCard(props: any) {
       transform: `rotateY(${facing}deg) translateZ(${radius}px)`,
       transformStyle: "preserve-3d",
     },
-    children: _jsx(motion.button, {
+    children: _jsxs(motion.button, {
       type: "button",
       "aria-label": `Open stamp: ${stamp.title ?? `Stamp ${index + 1}`}`,
       onClick: () => {
@@ -149,35 +150,156 @@ function StampCard(props: any) {
         background: "transparent",
         cursor: "pointer",
         display: "block",
+        position: "relative",
       },
-      children: stamp.image?.src
-        ? _jsx(motion.img, {
-            src: stamp.image.src,
-            srcSet: stamp.image.srcSet,
-            alt: stamp.image.alt ?? stamp.title ?? "",
-            draggable: false,
-            style: {
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              pointerEvents: "none",
-              filter: isStatic ? (shadow ? "drop-shadow(0 16px 24px rgba(4, 9, 22, 0.4))" : undefined) : imageFilter,
-            },
-          })
-        : _jsx("div", {
-            style: {
-              width: "100%",
-              height: "100%",
-              borderRadius: 6,
-              border: "2px dashed rgba(120, 100, 80, 0.5)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 12,
-              color: "rgba(120, 100, 80, 0.8)",
-            },
-            children: "Add image",
-          }),
+      children: [
+        stamp.image?.src
+          ? _jsx(motion.img, {
+              src: stamp.image.src,
+              srcSet: stamp.image.srcSet,
+              alt: stamp.image.alt ?? stamp.title ?? "",
+              draggable: false,
+              style: {
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                pointerEvents: "none",
+                filter: isStatic ? (shadow ? "drop-shadow(0 16px 24px rgba(4, 9, 22, 0.4))" : undefined) : imageFilter,
+              },
+            })
+          : _jsx("div", {
+              style: {
+                width: "100%",
+                height: "100%",
+                borderRadius: 6,
+                border: "2px dashed rgba(120, 100, 80, 0.5)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12,
+                color: "rgba(120, 100, 80, 0.8)",
+              },
+              children: "Add image",
+            }),
+
+        // Prominent Continent Plaque on the Face of the Stamp
+        _jsxs("div", {
+          style: {
+            position: "absolute",
+            bottom: "8%",
+            left: "8%",
+            right: "8%",
+            background: "rgba(247, 240, 225, 0.95)",
+            border: "1.5px solid #2B2119",
+            borderRadius: 3,
+            padding: "8px 6px 6px",
+            textAlign: "center",
+            boxShadow: "0 4px 14px rgba(0,0,0,0.6)",
+            pointerEvents: "none",
+            transform: "translateZ(10px)",
+          },
+          children: [
+            _jsx("div", {
+              style: {
+                fontFamily: "Georgia, 'Times New Roman', serif",
+                fontSize: "clamp(13px, 2.2vw, 17px)",
+                fontWeight: 900,
+                letterSpacing: "0.1em",
+                color: "#2B2119",
+                textTransform: "uppercase",
+                lineHeight: 1.1,
+              },
+              children: stamp.title ?? "CONTINENT",
+            }),
+            _jsx("div", {
+              style: {
+                fontSize: "9px",
+                fontFamily: "monospace",
+                letterSpacing: "0.12em",
+                color: "#6B5842",
+                fontWeight: 700,
+                marginTop: 3,
+                textTransform: "uppercase",
+              },
+              children: stamp.caption ?? "AEROPURE GLOBAL",
+            }),
+          ],
+        }),
+
+        // Top Stamp Header Badges (Denomination & Air Post)
+        _jsxs("div", {
+          style: {
+            position: "absolute",
+            top: "8%",
+            left: "8%",
+            right: "8%",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            pointerEvents: "none",
+            transform: "translateZ(10px)",
+          },
+          children: [
+            _jsx("span", {
+              style: {
+                fontFamily: "monospace",
+                fontWeight: 900,
+                fontSize: "10px",
+                background: "rgba(20, 18, 16, 0.9)",
+                color: "#D4AF37",
+                padding: "2px 6px",
+                borderRadius: 2,
+                border: "1px solid rgba(212, 175, 55, 0.4)",
+                letterSpacing: "0.08em",
+              },
+              children: stamp.code ?? `0${index + 1}`,
+            }),
+            _jsx("span", {
+              style: {
+                fontFamily: "Georgia, serif",
+                fontWeight: 800,
+                fontSize: "10px",
+                color: "#2B2119",
+                background: "rgba(247, 240, 225, 0.9)",
+                padding: "2px 6px",
+                border: "1px solid #7A6A53",
+                borderRadius: 2,
+                letterSpacing: "0.05em",
+              },
+              children: "AIR POST",
+            }),
+          ],
+        }),
+
+        // Circular Postmark Cancellation Watermark
+        _jsxs("div", {
+          style: {
+            position: "absolute",
+            top: "20%",
+            right: "10%",
+            width: 48,
+            height: 48,
+            borderRadius: "50%",
+            border: "1.5px dashed rgba(43, 33, 25, 0.5)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            transform: "rotate(-14deg)",
+            pointerEvents: "none",
+            color: "rgba(43, 33, 25, 0.65)",
+            fontSize: "7px",
+            fontFamily: "monospace",
+            lineHeight: 1.1,
+            background: "rgba(247, 240, 225, 0.15)",
+          },
+          children: [
+            _jsx("span", { children: "AEROPURE" }),
+            _jsx("span", { style: { fontWeight: "bold" }, children: "2026" }),
+            _jsx("span", { children: "GLOBAL" }),
+          ],
+        }),
+      ],
     }),
   });
 }
