@@ -1,94 +1,265 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
-import SearchHero from "@/components/SearchHero";
+import HeroMap from "@/components/HeroMap";
+import DualSourcePanel from "@/components/DualSourcePanel";
+import ForecastTimeline, { ForecastPoint } from "@/components/ForecastTimeline";
+import RegimeCard from "@/components/RegimeCard";
+import ShapExplainer from "@/components/ShapExplainer";
+import WhatIfSimulator from "@/components/WhatIfSimulator";
+import DriftPanel from "@/components/DriftPanel";
+import ModelTrustPanel from "@/components/ModelTrustPanel";
 import ResponsibleAI from "@/components/ResponsibleAI";
-import { Wind, Cpu, Database } from "lucide-react";
-
-export const metadata = {
-  title: "AeroPure — Know Tomorrow's Air. Today.",
-  description: "Search any city and area for AI-powered next-day air quality intelligence. Powered by XGBoost & SHAP explainability.",
-};
-
-const FEATURES = [
-  {
-    icon: <Wind size={24} color="var(--gold)" />,
-    title: "24-Hour AI Forecast",
-    desc: "XGBoost ML model generates next-day AQI Proxy forecasts across 6 time steps using atmospheric sensor patterns.",
-  },
-  {
-    icon: <Cpu size={24} color="var(--gold)" />,
-    title: "SHAP Explainability",
-    desc: "Every prediction comes with exact SHAP feature contributions. Understand which pollutants drove the result.",
-  },
-  {
-    icon: <Database size={24} color="var(--gold)" />,
-    title: "Drift & Model Health",
-    desc: "Population Stability Index (PSI) monitoring detects distribution shifts and flags retraining requirements.",
-  },
-];
+import DemoModeBanner from "@/components/DemoModeBanner";
+import { getArea, Area } from "@/lib/locations";
+import { aeropureClient, PredictResponse, ExplainResponse, DriftResponse } from "@/lib/aeropure-client";
+import { buildForecastInput, FORECAST_OFFSETS } from "@/lib/demo-inputs";
 
 export default function HomePage() {
+  const [citySlug, setCitySlug] = useState("hyderabad");
+  const [areaSlug, setAreaSlug] = useState("gachibowli");
+
+  const [currentAreaObj, setCurrentAreaObj] = useState<Area | null>(() => getArea("hyderabad", "gachibowli") ?? null);
+
+  // Weather State
+  const [weatherState, setWeatherState] = useState<{
+    available: boolean;
+    temp?: number;
+    humidity?: number;
+    windSpeed?: number;
+    condition?: string;
+    description?: string;
+    error?: string;
+  }>({ available: false });
+
+  // External Pollution State (OpenWeather)
+  const [externalPollution, setExternalPollution] = useState<{
+    aqi: number;
+    co: number;
+    no2: number;
+    o3: number;
+    so2: number;
+    pm2_5: number;
+    pm10: number;
+  } | null>(null);
+
+  // AeroPure ML States
+  const [prediction, setPrediction] = useState<PredictResponse | null>(null);
+  const [timeline, setTimeline] = useState<ForecastPoint[]>([]);
+  const [explanation, setExplanation] = useState<ExplainResponse | null>(null);
+  const [drift, setDrift] = useState<DriftResponse | null>(null);
+
+  // Fetch OpenWeather Data
+  const fetchWeather = useCallback(async (lat: number, lon: number) => {
+    try {
+      const res = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
+      const json = await res.json();
+      if (json.available && json.weather) {
+        setWeatherState({
+          available: true,
+          temp: json.weather.temp,
+          humidity: json.weather.humidity,
+          windSpeed: json.weather.wind_speed,
+          condition: json.weather.condition,
+          description: json.weather.description,
+        });
+      } else {
+        setWeatherState({ available: false, error: json.error ?? "OpenWeather API Key Pending Activation (401)" });
+      }
+
+      // External Pollution Reference
+      const pRes = await fetch(`/api/pollution?lat=${lat}&lon=${lon}`);
+      const pJson = await pRes.json();
+      if (pJson.available && pJson.pollution) {
+        setExternalPollution(pJson.pollution);
+      } else {
+        setExternalPollution(null);
+      }
+    } catch {
+      setWeatherState({ available: false, error: "Network Error Fetching OpenWeather" });
+    }
+  }, []);
+
+  // Fetch AeroPure ML Model Outputs
+  const fetchModelOutputs = useCallback(async (area: Area) => {
+    const now = new Date();
+    const currentInput = buildForecastInput(area, 0, now);
+
+    try {
+      // 1. Predict
+      const predRes = await aeropureClient.predict(currentInput);
+      setPrediction(predRes);
+
+      // 2. Timeline (6 forecast points)
+      const fcTimeline = await Promise.all(
+        FORECAST_OFFSETS.map(async (offset) => {
+          const inp = buildForecastInput(area, offset, now);
+          const res = await aeropureClient.predict(inp);
+          return {
+            hourOffset: offset,
+            label: offset === 0 ? "Now" : `+${offset}h`,
+            time: new Date(now.getTime() + offset * 3600 * 1000).toLocaleTimeString("en-IN", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            predicted_aqi_proxy: res.predicted_aqi_proxy,
+            hazard_probability: res.hazard_probability,
+            hazardous: res.hazardous,
+            risk_category: res.risk_category,
+            pollution_regime: res.pollution_regime,
+          };
+        })
+      );
+      setTimeline(fcTimeline);
+
+      // 3. Explain (SHAP)
+      const expRes = await aeropureClient.explain(currentInput);
+      setExplanation(expRes);
+
+      // 4. Drift
+      const driftRes = await aeropureClient.drift();
+      setDrift(driftRes);
+    } catch (err) {
+      console.error("ML Model Fetch Error:", err);
+    }
+  }, []);
+
+  // Handle Location Selection
+  const handleSelectArea = useCallback(
+    (newCitySlug: string, newAreaSlug: string) => {
+      setCitySlug(newCitySlug);
+      setAreaSlug(newAreaSlug);
+      const area = getArea(newCitySlug, newAreaSlug);
+      if (area) {
+        setCurrentAreaObj(area);
+        fetchWeather(area.lat, area.lon);
+        fetchModelOutputs(area);
+      }
+    },
+    [fetchWeather, fetchModelOutputs]
+  );
+
+  // Initial Load & Updates
+  useEffect(() => {
+    let isMounted = true;
+    const targetArea = getArea(citySlug, areaSlug);
+    if (!targetArea) return;
+
+    const area: Area = targetArea;
+    const now = new Date();
+    const currentInput = buildForecastInput(area, 0, now);
+
+    async function loadData() {
+      // 1. Weather Context
+      try {
+        const [wRes, pRes] = await Promise.all([
+          fetch(`/api/weather?lat=${area.lat}&lon=${area.lon}`).then((r) => r.json()).catch(() => ({ available: false })),
+          fetch(`/api/pollution?lat=${area.lat}&lon=${area.lon}`).then((r) => r.json()).catch(() => ({ available: false })),
+        ]);
+        if (!isMounted) return;
+        if (wRes.available && wRes.weather) {
+          setWeatherState({
+            available: true,
+            temp: wRes.weather.temp,
+            humidity: wRes.weather.humidity,
+            windSpeed: wRes.weather.wind_speed,
+            condition: wRes.weather.condition,
+            description: wRes.weather.description,
+          });
+        } else {
+          setWeatherState({ available: false, error: wRes.error ?? "OpenWeather API Key Pending Activation (401)" });
+        }
+        if (pRes.available && pRes.pollution) {
+          setExternalPollution(pRes.pollution);
+        } else {
+          setExternalPollution(null);
+        }
+      } catch {
+        if (isMounted) setWeatherState({ available: false, error: "Network Error Fetching OpenWeather" });
+      }
+
+      // 2. AeroPure ML Outputs
+      try {
+        const [predRes, expRes, driftRes, fcTimeline] = await Promise.all([
+          aeropureClient.predict(currentInput),
+          aeropureClient.explain(currentInput),
+          aeropureClient.drift(),
+          Promise.all(
+            FORECAST_OFFSETS.map(async (offset) => {
+              const inp = buildForecastInput(area, offset, now);
+              const res = await aeropureClient.predict(inp);
+              return {
+                hourOffset: offset,
+                label: offset === 0 ? "Now" : `+${offset}h`,
+                time: new Date(now.getTime() + offset * 3600 * 1000).toLocaleTimeString("en-IN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                }),
+                predicted_aqi_proxy: res.predicted_aqi_proxy,
+                hazard_probability: res.hazard_probability,
+                hazardous: res.hazardous,
+                risk_category: res.risk_category,
+                pollution_regime: res.pollution_regime,
+              };
+            })
+          ),
+        ]);
+
+        if (!isMounted) return;
+        setPrediction(predRes);
+        setExplanation(expRes);
+        setDrift(driftRes);
+        setTimeline(fcTimeline);
+      } catch (err) {
+        console.error("ML Model Fetch Error:", err);
+      }
+    }
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [citySlug, areaSlug]);
+
   return (
-    <div style={{ minHeight: "100dvh", background: "var(--bg-void)" }}>
+    <div style={{ minHeight: "100dvh", background: "var(--bg-void)", color: "var(--text-primary)" }}>
       <Navbar />
 
-      {/* Hero */}
-      <section
-        style={{
-          minHeight: "calc(100dvh - 64px)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "4rem 1.5rem 2rem",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Background atmospheric glow */}
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            top: "15%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 700,
-            height: 400,
-            background: "radial-gradient(ellipse at center, rgba(201,162,39,0.06) 0%, transparent 70%)",
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* Brand wordmark */}
-        <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-          <div
+      <main style={{ maxWidth: 1280, margin: "0 auto", padding: "2rem 1.5rem 4rem" }}>
+        {/* Phase 4 Hero Branding */}
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <span
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.6rem",
-              background: "rgba(201,162,39,0.06)",
-              border: "1px solid rgba(201,162,39,0.2)",
+              fontFamily: "Orbitron, sans-serif",
+              fontSize: "0.72rem",
+              fontWeight: 700,
+              letterSpacing: "0.18em",
+              color: "var(--gold)",
+              background: "rgba(201,162,39,0.08)",
+              border: "1px solid var(--gold-dim)",
+              padding: "0.35rem 1rem",
               borderRadius: 30,
-              padding: "0.35rem 1rem 0.35rem 0.7rem",
-              marginBottom: "1.5rem",
+              display: "inline-block",
+              marginBottom: "1rem",
             }}
           >
-            <Wind size={16} color="var(--gold)" />
-            <span style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.12em", color: "var(--gold)" }}>
-              AI CLIMATE INTELLIGENCE PLATFORM
-            </span>
-          </div>
+            ATMOSPHERIC & AIR QUALITY INTELLIGENCE PLATFORM
+          </span>
 
           <h1
             style={{
               fontFamily: "Orbitron, sans-serif",
-              fontSize: "clamp(2.8rem, 8vw, 5.5rem)",
+              fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
               fontWeight: 900,
               color: "var(--gold)",
-              letterSpacing: "0.05em",
+              letterSpacing: "0.04em",
               lineHeight: 1,
-              marginBottom: "0.75rem",
-              textShadow: "0 0 60px rgba(212,175,55,0.3)",
+              marginBottom: "0.5rem",
+              textShadow: "0 0 50px rgba(201,162,39,0.25)",
             }}
           >
             AEROPURE
@@ -96,104 +267,102 @@ export default function HomePage() {
 
           <p
             style={{
-              fontSize: "clamp(1.2rem, 3.5vw, 1.8rem)",
+              fontSize: "clamp(1.1rem, 2.5vw, 1.4rem)",
               fontWeight: 300,
-              color: "var(--text-primary)",
               letterSpacing: "0.02em",
               marginBottom: "0.5rem",
             }}
           >
-            Know Tomorrow&apos;s Air.{" "}
-            <span style={{ color: "var(--gold)", fontWeight: 600 }}>Today.</span>
+            KNOW TOMORROW&apos;S AIR. <span style={{ color: "var(--gold)", fontWeight: 600 }}>TODAY.</span>
           </p>
 
-          <p
-            style={{
-              fontSize: "clamp(0.88rem, 2vw, 1.05rem)",
-              color: "var(--text-muted)",
-              maxWidth: 560,
-              margin: "0 auto 2.5rem",
-              lineHeight: 1.7,
-            }}
-          >
-            Search any supported city and area to explore air-quality intelligence,
-            predictive risk, and atmospheric conditions.
+          <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", maxWidth: 640, margin: "0 auto" }}>
+            Model-driven air-quality intelligence combining pollutant observations, environmental conditions, and historical patterns.
           </p>
         </div>
 
-        {/* Search Box */}
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 640,
-            background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            borderRadius: 16,
-            padding: "2rem",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
-          }}
-        >
-          <SearchHero />
-        </div>
+        {/* Phase 4 Hero Map Viewport */}
+        <section style={{ marginBottom: "2.5rem" }}>
+          <HeroMap
+            selectedArea={areaSlug}
+            currentAreaObj={currentAreaObj}
+            onSelectArea={handleSelectArea}
+            weatherState={weatherState}
+            onRetryWeather={() => currentAreaObj && fetchWeather(currentAreaObj.lat, currentAreaObj.lon)}
+          />
+        </section>
 
-        {/* Demo mode notice */}
-        <p
-          style={{
-            marginTop: "1.5rem",
-            fontSize: "0.75rem",
-            color: "var(--text-faint)",
-            textAlign: "center",
-          }}
-        >
-          Demo Mode — All forecasts use the validated AeroPure XGBoost ML pipeline.
-          Live sensor integration not configured.
-        </p>
-      </section>
+        {/* Demo Mode Notice */}
+        <DemoModeBanner />
 
-      {/* Feature strip */}
-      <section
-        style={{
-          background: "var(--bg-primary)",
-          borderTop: "1px solid var(--border-dim)",
-          borderBottom: "1px solid var(--border-dim)",
-          padding: "3rem 1.5rem",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1100,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "2rem",
-          }}
-        >
-          {FEATURES.map((f) => (
-            <div key={f.title} style={{ display: "flex", gap: "1.2rem", alignItems: "flex-start" }}>
-              <div
-                style={{
-                  background: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 10,
-                  padding: "0.75rem",
-                  flexShrink: 0,
-                }}
-              >
-                {f.icon}
-              </div>
-              <div>
-                <p style={{ fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.4rem" }}>{f.title}</p>
-                <p style={{ fontSize: "0.83rem", color: "var(--text-muted)", lineHeight: 1.65 }}>{f.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+        {/* Phase 5 & 7 Dual-Source Presentation */}
+        <section id="forecast">
+          <DualSourcePanel
+            weatherState={weatherState}
+            prediction={prediction}
+            externalPollution={externalPollution}
+            onRetryWeather={() => currentAreaObj && fetchWeather(currentAreaObj.lat, currentAreaObj.lon)}
+          />
+        </section>
 
-      {/* Footer */}
-      <section style={{ maxWidth: 900, margin: "0 auto", padding: "2rem 1.5rem 3rem" }}>
-        <ResponsibleAI />
-      </section>
+        {/* Phase 6 Model-Estimated Forecast Timeline */}
+        {timeline.length > 0 && (
+          <section style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 14, padding: "1.5rem", marginBottom: "2.5rem" }}>
+            <ForecastTimeline timeline={timeline} />
+            <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "1rem", textAlign: "right" }}>
+              * Methodological Note: Forecast points represent discrete model inference under available observation/state assumptions.
+            </p>
+          </section>
+        )}
+
+        {/* Phase 10 Atmospheric Regime */}
+        {prediction && (
+          <section style={{ marginBottom: "2.5rem" }}>
+            <RegimeCard regime={prediction.pollution_regime} />
+          </section>
+        )}
+
+        {/* Phase 9 SHAP Model Contribution Analysis */}
+        {explanation && (
+          <section id="explainability" style={{ marginBottom: "2.5rem" }}>
+            <ShapExplainer
+              positiveContributors={explanation.top_positive_contributors}
+              negativeContributors={explanation.top_negative_contributors}
+              summary={explanation.explanation_summary}
+              baseValue={explanation.base_expected_value}
+            />
+          </section>
+        )}
+
+        {/* Phase 11 What-If Scenario Analysis */}
+        <section style={{ marginBottom: "2.5rem" }}>
+          <WhatIfSimulator />
+        </section>
+
+        {/* Phase 12 Drift Governance */}
+        {drift && (
+          <section id="governance" style={{ marginBottom: "2.5rem" }}>
+            <DriftPanel
+              driftStatus={drift.drift_status}
+              meanPsi={drift.mean_psi}
+              retrainingFlagged={drift.retraining_flagged}
+              recommendation={drift.recommendation}
+              significantDriftFeatures={drift.significant_drift_features}
+              psiByFeature={drift.psi_by_feature}
+            />
+          </section>
+        )}
+
+        {/* Phase 13 Model Trust Panel */}
+        <section style={{ marginBottom: "2.5rem" }}>
+          <ModelTrustPanel />
+        </section>
+
+        {/* Phase 14 Methodology & Responsible AI */}
+        <section id="methodology">
+          <ResponsibleAI />
+        </section>
+      </main>
     </div>
   );
 }
