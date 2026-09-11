@@ -73,11 +73,11 @@ export default function StampScrapbookContinent({ onSelectContinent }: Props) {
         background: "radial-gradient(ellipse at center, #0e0e0e 0%, #040404 100%)",
         border: "1px solid var(--border-gold)",
         borderRadius: 24,
-        padding: "3rem 1rem 2.5rem",
+        padding: "3.5rem 1.5rem 3.5rem",
         marginBottom: "3rem",
         boxShadow: "0 30px 100px rgba(0,0,0,0.95)",
         position: "relative",
-        overflow: "hidden",
+        overflow: "visible",
         width: "100%",
       }}
     >
@@ -152,16 +152,18 @@ export default function StampScrapbookContinent({ onSelectContinent }: Props) {
         </p>
       </div>
 
-      {/* Broad Panoramic Framer StampScrapbook 3D Carousel */}
-      <div style={{ minHeight: 640, height: 640, width: "100%", position: "relative", zIndex: 5 }}>
+      {/* Broad Panoramic Framer StampScrapbook 3D Carousel with zero cut-off */}
+      <div style={{ minHeight: 700, height: 700, width: "100%", position: "relative", zIndex: 5, overflow: "visible" }}>
         <StampScrapbook
           stamps={CONTINENT_STAMPS}
-          stampHeight={380}
-          spread={1.35}
+          stampHeight={350}
+          spread={1.3}
+          tilt={-4}
+          scrollTilt={false}
           autoRotate={true}
-          speed={7}
+          speed={6}
           cursorSteer={true}
-          hoverSpeed={24}
+          hoverSpeed={20}
           onSelectContinent={onSelectContinent}
         />
       </div>
