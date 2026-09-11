@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import HeroMap from "@/components/HeroMap";
-import HoneycombSelector from "@/components/HoneycombSelector";
+import GlobalGeospatialExplorer from "@/components/GlobalGeospatialExplorer";
 import DualSourcePanel from "@/components/DualSourcePanel";
 import ForecastTimeline, { ForecastPoint } from "@/components/ForecastTimeline";
 import RegimeCard from "@/components/RegimeCard";
@@ -282,12 +282,12 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Primary Honeycomb Geospatial Location Index */}
+        {/* Global Geographic Intelligence Explorer (Earth -> Continent -> Country -> State -> City -> Area) */}
         <section id="location-index" style={{ marginBottom: "2.5rem" }}>
-          <HoneycombSelector
+          <GlobalGeospatialExplorer
             selectedCitySlug={citySlug}
             selectedAreaSlug={areaSlug}
-            onSelectLocation={handleSelectArea}
+            onSelectFinalLocation={handleSelectArea}
           />
         </section>
 
