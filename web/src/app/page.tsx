@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import HeroMap from "@/components/HeroMap";
+import HoneycombSelector from "@/components/HoneycombSelector";
 import DualSourcePanel from "@/components/DualSourcePanel";
 import ForecastTimeline, { ForecastPoint } from "@/components/ForecastTimeline";
 import RegimeCard from "@/components/RegimeCard";
@@ -280,6 +281,15 @@ export default function HomePage() {
             Model-driven air-quality intelligence combining pollutant observations, environmental conditions, and historical patterns.
           </p>
         </div>
+
+        {/* Primary Honeycomb Geospatial Location Index */}
+        <section id="location-index" style={{ marginBottom: "2.5rem" }}>
+          <HoneycombSelector
+            selectedCitySlug={citySlug}
+            selectedAreaSlug={areaSlug}
+            onSelectLocation={handleSelectArea}
+          />
+        </section>
 
         {/* Phase 4 Hero Map Viewport */}
         <section style={{ marginBottom: "2.5rem" }}>
