@@ -4,11 +4,11 @@ import { usePathname } from "next/navigation";
 import { Wind } from "lucide-react";
 
 const NAV_LINKS = [
-  { href: "/", label: "CITY SEARCH" },
-  { href: "#forecast", label: "FORECAST" },
+  { href: "/", label: "GEOSPATIAL INDEX" },
+  { href: "#forecast", label: "ATMOSPHERE" },
   { href: "#explainability", label: "INTELLIGENCE" },
-  { href: "#model-health", label: "MODEL HEALTH" },
-  { href: "#methodology", label: "METHODOLOGY" },
+  { href: "#model-health", label: "INSTRUMENTATION" },
+  { href: "#methodology", label: "ARCHIVE" },
 ];
 
 export default function Navbar() {
@@ -20,17 +20,17 @@ export default function Navbar() {
         position: "sticky",
         top: 0,
         zIndex: 50,
-        background: "rgba(5,5,5,0.85)",
-        backdropFilter: "blur(16px)",
-        borderBottom: "1px solid #1e1e1e",
+        background: "rgba(7, 7, 7, 0.92)",
+        backdropFilter: "blur(18px)",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.10)",
       }}
     >
       <div
         style={{
-          maxWidth: 1280,
+          maxWidth: 1320,
           margin: "0 auto",
           padding: "0 1.5rem",
-          height: 64,
+          height: 60,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -38,19 +38,47 @@ export default function Navbar() {
         }}
       >
         {/* Brand */}
-        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-          <Wind size={22} color="var(--gold)" />
-          <span
+        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.65rem" }}>
+          <div
             style={{
-              fontFamily: "Orbitron, sans-serif",
-              fontSize: "1.1rem",
-              fontWeight: 700,
-              color: "var(--gold)",
-              letterSpacing: "0.12em",
+              width: 28,
+              height: 28,
+              borderRadius: 2,
+              background: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            AEROPURE
-          </span>
+            <Wind size={16} color="var(--air-white)" />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span
+              style={{
+                fontFamily: "Orbitron, sans-serif",
+                fontSize: "1.05rem",
+                fontWeight: 900,
+                color: "var(--air-white)",
+                letterSpacing: "0.14em",
+                lineHeight: 1,
+              }}
+            >
+              AEROPURE
+            </span>
+            <span
+              style={{
+                fontFamily: "JetBrains Mono, monospace",
+                fontSize: "0.55rem",
+                fontWeight: 600,
+                color: "var(--silver)",
+                letterSpacing: "0.18em",
+                marginTop: 2,
+              }}
+            >
+              ATMOSPHERIC RESEARCH
+            </span>
+          </div>
         </Link>
 
         {/* Nav links — hidden on mobile */}
@@ -58,7 +86,7 @@ export default function Navbar() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "0.25rem",
+            gap: "0.4rem",
             flex: 1,
             justifyContent: "center",
           }}
@@ -69,20 +97,27 @@ export default function Navbar() {
               key={link.href}
               href={link.href}
               style={{
-                fontSize: "0.72rem",
+                fontSize: "0.68rem",
+                fontFamily: "JetBrains Mono, monospace",
                 fontWeight: 600,
-                letterSpacing: "0.08em",
-                color: pathname === link.href ? "var(--gold)" : "var(--text-muted)",
-                padding: "0.4rem 0.8rem",
-                borderRadius: 6,
+                letterSpacing: "0.1em",
+                color: pathname === link.href ? "var(--air-white)" : "var(--silver)",
+                padding: "0.35rem 0.75rem",
+                borderRadius: 2,
+                border: pathname === link.href ? "1px solid rgba(255,255,255,0.2)" : "1px solid transparent",
                 textDecoration: "none",
-                transition: "color 0.15s ease",
+                transition: "all 0.15s ease",
               }}
-              onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "var(--gold-bright)")}
-              onMouseLeave={(e) =>
-                ((e.target as HTMLElement).style.color =
-                  pathname === link.href ? "var(--gold)" : "var(--text-muted)")
-              }
+              onMouseEnter={(e) => {
+                const el = e.target as HTMLElement;
+                el.style.color = "var(--air-white)";
+                el.style.borderColor = "rgba(255, 255, 255, 0.25)";
+              }}
+              onMouseLeave={(e) => {
+                const el = e.target as HTMLElement;
+                el.style.color = pathname === link.href ? "var(--air-white)" : "var(--silver)";
+                el.style.borderColor = pathname === link.href ? "rgba(255,255,255,0.2)" : "transparent";
+              }}
             >
               {link.label}
             </Link>
@@ -90,8 +125,17 @@ export default function Navbar() {
         </nav>
 
         {/* CTA */}
-        <Link href="/" className="btn-gold" style={{ fontSize: "0.78rem", padding: "0.5rem 1.2rem" }}>
-          CHECK AIR
+        <Link
+          href="#location-index"
+          className="btn-primary-mono"
+          style={{
+            fontSize: "0.74rem",
+            fontFamily: "JetBrains Mono, monospace",
+            padding: "0.45rem 1.1rem",
+            letterSpacing: "0.12em",
+          }}
+        >
+          SELECT REGION
         </Link>
       </div>
     </header>

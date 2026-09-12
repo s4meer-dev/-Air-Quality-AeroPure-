@@ -6,31 +6,63 @@ interface AqiDisplayProps {
   size?: "xl" | "lg" | "md";
 }
 
-function getRiskInfo(aqi: number): { tier: string; color: string; bgColor: string } {
-  if (aqi >= 180) return { tier: "ELEVATED HAZARDOUS", color: "var(--red-bright)", bgColor: "rgba(177,18,38,0.12)" };
-  if (aqi >= 120) return { tier: "ELEVATED", color: "#E8A020", bgColor: "rgba(232,160,32,0.1)" };
-  if (aqi >= 80)  return { tier: "MODERATE", color: "var(--gold)", bgColor: "rgba(212,175,55,0.1)" };
-  return              { tier: "LOW", color: "var(--gold-bright)", bgColor: "rgba(224,193,90,0.08)" };
+function getRiskInfo(aqi: number): { tier: string; color: string; border: string; bg: string; isHazard: boolean } {
+  if (aqi >= 180) {
+    return {
+      tier: "HAZARDOUS",
+      color: "var(--air-white)",
+      border: "2px solid var(--air-white)",
+      bg: "rgba(255, 255, 255, 0.08)",
+      isHazard: true,
+    };
+  }
+  if (aqi >= 120) {
+    return {
+      tier: "ELEVATED",
+      color: "var(--air-white)",
+      border: "1px solid var(--border-strong)",
+      bg: "rgba(255, 255, 255, 0.04)",
+      isHazard: false,
+    };
+  }
+  if (aqi >= 80) {
+    return {
+      tier: "MODERATE",
+      color: "var(--cloud)",
+      border: "1px solid var(--border-default)",
+      bg: "rgba(255, 255, 255, 0.02)",
+      isHazard: false,
+    };
+  }
+  return {
+    tier: "LOW POLLUTION",
+    color: "var(--mist)",
+    border: "1px solid var(--border-subtle)",
+    bg: "transparent",
+    isHazard: false,
+  };
 }
 
 export default function AqiDisplay({ value, label = "AQI Proxy", size = "xl" }: AqiDisplayProps) {
-  const { tier, color, bgColor } = getRiskInfo(value);
+  const { tier, color, border, bg, isHazard } = getRiskInfo(value);
 
-  const fontSize = size === "xl" ? "clamp(5rem,14vw,8rem)" : size === "lg" ? "4rem" : "2.4rem";
+  const fontSize = size === "xl" ? "clamp(4.5rem, 12vw, 7rem)" : size === "lg" ? "3.5rem" : "2.2rem";
 
   return (
     <div style={{ textAlign: "center" }}>
       <p className="section-label" style={{ marginBottom: "0.5rem" }}>{label}</p>
       <div
+        className={isHazard ? "hazard-pulse" : ""}
         style={{
           display: "inline-flex",
           flexDirection: "column",
           alignItems: "center",
           gap: "0.75rem",
-          background: bgColor,
-          border: `1px solid ${color}30`,
-          borderRadius: 16,
+          background: bg,
+          border,
+          borderRadius: 4,
           padding: "1.5rem 2.5rem",
+          boxShadow: isHazard ? "0 0 30px rgba(255, 255, 255, 0.15)" : "0 10px 30px rgba(0,0,0,0.6)",
         }}
       >
         <span
@@ -38,23 +70,26 @@ export default function AqiDisplay({ value, label = "AQI Proxy", size = "xl" }: 
             fontFamily: "Orbitron, sans-serif",
             fontSize,
             fontWeight: 900,
-            color,
+            color: "var(--air-white)",
             lineHeight: 1,
-            textShadow: `0 0 40px ${color}`,
+            letterSpacing: "-0.02em",
+            textShadow: "0 0 35px rgba(255, 255, 255, 0.25)",
           }}
         >
           {value.toFixed(1)}
         </span>
         <span
           style={{
-            fontSize: "0.72rem",
+            fontSize: "0.68rem",
+            fontFamily: "JetBrains Mono, monospace",
             fontWeight: 700,
             letterSpacing: "0.16em",
-            color,
-            background: `${color}18`,
-            border: `1px solid ${color}40`,
-            borderRadius: 20,
-            padding: "0.3rem 1rem",
+            background: isHazard ? "#FFFFFF" : "rgba(255, 255, 255, 0.06)",
+            color: isHazard ? "#000000" : color,
+            border: isHazard ? "1px solid #FFFFFF" : "1px solid var(--border-default)",
+            borderRadius: 2,
+            padding: "0.25rem 0.85rem",
+            textTransform: "uppercase",
           }}
         >
           {tier}

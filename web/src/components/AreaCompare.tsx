@@ -18,13 +18,6 @@ interface Props {
   cards: AreaCard[];
 }
 
-function getRiskColor(riskCategory: string): string {
-  if (riskCategory.toLowerCase().includes("hazard")) return "var(--red-bright)";
-  if (riskCategory.toLowerCase().includes("elevated")) return "#E8A020";
-  if (riskCategory.toLowerCase().includes("moderate")) return "var(--gold)";
-  return "var(--gold-bright)";
-}
-
 export default function AreaCompare({ city, cards }: Props) {
   if (!cards.length) return null;
 
@@ -35,7 +28,7 @@ export default function AreaCompare({ city, cards }: Props) {
   return (
     <div>
       <p className="section-label" style={{ marginBottom: "1rem" }}>
-        AREA COMPARISON — {city.name.toUpperCase()}
+        GEOSPATIAL COMPARISON — {city.name.toUpperCase()}
       </p>
       <div
         style={{
@@ -45,7 +38,6 @@ export default function AreaCompare({ city, cards }: Props) {
         }}
       >
         {sorted.map((card) => {
-          const color = getRiskColor(card.riskCategory);
           const isWorst = card.aqi === maxAqi;
           const isBest = card.aqi === minAqi && cards.length > 1;
           const TrendIcon = isWorst ? TrendingUp : isBest ? TrendingDown : Minus;
@@ -58,9 +50,9 @@ export default function AreaCompare({ city, cards }: Props) {
             >
               <div
                 style={{
-                  background: "var(--bg-card)",
-                  border: `1px solid ${isWorst ? "var(--red)30" : "var(--border)"}`,
-                  borderRadius: 12,
+                  background: isWorst ? "#161616" : "var(--bg-card)",
+                  border: isWorst ? "1px solid var(--border-strong)" : "1px solid var(--border-default)",
+                  borderRadius: 4,
                   padding: "1.1rem 1.3rem",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
@@ -68,49 +60,49 @@ export default function AreaCompare({ city, cards }: Props) {
                   overflow: "hidden",
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "var(--gold-dim)";
-                  (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
+                  (e.currentTarget as HTMLElement).style.borderColor = "var(--air-white)";
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = isWorst ? "var(--red)30" : "var(--border)";
+                  (e.currentTarget as HTMLElement).style.borderColor = isWorst ? "var(--border-strong)" : "var(--border-default)";
                   (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
                 }}
               >
-                {/* Gold left stripe */}
+                {/* Monochrome left stripe */}
                 <div style={{
-                  position: "absolute", top: 0, left: 0, width: 3, height: "100%",
-                  background: color, borderRadius: "12px 0 0 12px",
+                  position: "absolute", top: 0, left: 0, width: 2, height: "100%",
+                  background: isWorst ? "var(--air-white)" : "var(--steel)",
                 }} />
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text-body)", letterSpacing: "0.02em" }}>
+                  <p style={{ fontSize: "0.76rem", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "var(--cloud)", letterSpacing: "0.06em" }}>
                     {card.areaName.toUpperCase()}
                   </p>
-                  <TrendIcon size={15} color={color} />
+                  <TrendIcon size={14} color={isWorst ? "var(--air-white)" : "var(--silver)"} />
                 </div>
 
                 <p style={{
                   fontFamily: "Orbitron, sans-serif",
                   fontSize: "2.2rem", fontWeight: 900,
-                  color, lineHeight: 1, margin: "0.5rem 0 0.3rem",
-                  textShadow: `0 0 20px ${color}80`,
+                  color: "var(--air-white)", lineHeight: 1, margin: "0.5rem 0 0.3rem",
+                  textShadow: "0 0 20px rgba(255,255,255,0.2)",
                 }}>
                   {card.aqi.toFixed(0)}
                 </p>
 
-                <p style={{ fontSize: "0.72rem", fontWeight: 700, color, letterSpacing: "0.06em" }}>
-                  {card.riskCategory}
+                <p style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: isWorst ? "var(--air-white)" : "var(--silver)", letterSpacing: "0.08em" }}>
+                  {card.riskCategory.toUpperCase()}
                 </p>
-                <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
-                  Hazard: {(card.hazardProb * 100).toFixed(0)}%
+                <p style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", color: "var(--steel)", marginTop: "0.25rem" }}>
+                  HAZARD: {(card.hazardProb * 100).toFixed(0)}%
                 </p>
               </div>
             </Link>
           );
         })}
       </div>
-      <p style={{ fontSize: "0.7rem", color: "var(--text-faint)", marginTop: "0.75rem", textAlign: "center" }}>
-        Demo Mode — Values from AeroPure ML inference using regime-representative baselines. Click any area for full intelligence.
+      <p style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", color: "var(--steel)", marginTop: "0.75rem", textAlign: "center" }}>
+        Demo Mode — Values derived from validated model inference across regional clusters.
       </p>
     </div>
   );

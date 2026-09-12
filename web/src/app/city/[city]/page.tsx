@@ -77,14 +77,14 @@ export default async function CityPage({ params }: Props) {
         <nav style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "1.5rem", fontSize: "0.78rem", color: "var(--text-muted)" }}>
           <Link href="/" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Home</Link>
           <ChevronRight size={14} />
-          <span style={{ color: "var(--gold)" }}>{city.name}</span>
+          <span style={{ color: "var(--air-white)" }}>{city.name}</span>
         </nav>
 
         {/* City Header */}
         <div style={{ marginBottom: "2rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.5rem" }}>
-            <MapPin size={18} color="var(--gold)" />
-            <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.14em", color: "var(--gold)" }}>
+            <MapPin size={18} color="var(--air-white)" />
+            <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.14em", color: "var(--cloud)" }}>
               CITY ATMOSPHERIC OVERVIEW
             </span>
           </div>
@@ -93,16 +93,17 @@ export default async function CityPage({ params }: Props) {
               fontFamily: "Orbitron, sans-serif",
               fontSize: "clamp(2.2rem, 6vw, 3.8rem)",
               fontWeight: 900,
-              color: "var(--gold)",
+              color: "var(--air-white)",
               letterSpacing: "0.06em",
               lineHeight: 1,
               marginBottom: "0.5rem",
+              textShadow: "0 0 35px rgba(255,255,255,0.18)",
             }}
           >
             {city.name.toUpperCase()}
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.88rem" }}>
-            {city.country} · LAT: <span style={{ fontFamily: "monospace", color: "var(--gold)" }}>{city.lat.toFixed(4)}° N</span> | LON: <span style={{ fontFamily: "monospace", color: "var(--gold)" }}>{city.lon.toFixed(4)}° E</span> · {city.areas.length} locality zones
+            {city.country} · LAT: <span style={{ fontFamily: "monospace", color: "var(--cloud)" }}>{city.lat.toFixed(4)}° N</span> | LON: <span style={{ fontFamily: "monospace", color: "var(--cloud)" }}>{city.lon.toFixed(4)}° E</span> · {city.areas.length} locality zones
           </p>
         </div>
 
@@ -111,8 +112,8 @@ export default async function CityPage({ params }: Props) {
           <div
             style={{
               background: "var(--bg-card)",
-              border: "1px solid var(--border)",
-              borderRadius: 12,
+              border: "1px solid var(--border-default)",
+              borderRadius: 4,
               padding: "1rem 1.5rem",
               marginBottom: "2rem",
               display: "flex",
@@ -123,17 +124,17 @@ export default async function CityPage({ params }: Props) {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-              <span style={{ fontSize: "1.8rem", fontWeight: 800 }}>{weatherObj.temp}°C</span>
+              <span style={{ fontSize: "1.8rem", fontWeight: 800, color: "var(--air-white)" }}>{weatherObj.temp}°C</span>
               <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{weatherObj.condition} ({weatherObj.description})</span>
             </div>
 
             <div style={{ display: "flex", gap: "1.5rem", fontSize: "0.82rem", color: "var(--text-muted)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                <Droplets size={14} color="#4A90E2" />
+                <Droplets size={14} color="var(--silver)" />
                 <span>{weatherObj.humidity}% RH</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                <Wind size={14} color="var(--gold-bright)" />
+                <Wind size={14} color="var(--air-white)" />
                 <span>{weatherObj.wind_speed} m/s</span>
               </div>
             </div>
@@ -152,20 +153,20 @@ export default async function CityPage({ params }: Props) {
               marginBottom: "2.5rem",
             }}
           >
-            <div style={{ background: "var(--bg-card)", border: "1px solid var(--gold-dim)", borderRadius: 12, padding: "1.2rem" }}>
-              <span style={{ fontSize: "0.68rem", fontFamily: "Orbitron, sans-serif", fontWeight: 700, color: "var(--gold)" }}>HIGHEST AIR POLLUTION ZONE</span>
-              <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginTop: "0.3rem" }}>{worstArea?.areaName}</h3>
-              <p style={{ color: "var(--gold-bright)", fontWeight: 700, fontSize: "1.4rem", marginTop: "0.2rem" }}>{worstArea?.aqi.toFixed(1)} AQI Proxy</p>
-              <Link href={`/city/${city.slug}/${worstArea?.areaSlug}`} style={{ fontSize: "0.78rem", color: "var(--gold)", textDecoration: "underline", marginTop: "0.5rem", display: "inline-block" }}>
+            <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-strong)", borderRadius: 4, padding: "1.2rem" }}>
+              <span style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "var(--air-white)", letterSpacing: "0.08em" }}>HIGHEST AIR POLLUTION ZONE</span>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginTop: "0.3rem", color: "var(--air-white)" }}>{worstArea?.areaName}</h3>
+              <p style={{ color: "var(--air-white)", fontWeight: 700, fontSize: "1.4rem", marginTop: "0.2rem" }}>{worstArea?.aqi.toFixed(1)} AQI Proxy</p>
+              <Link href={`/city/${city.slug}/${worstArea?.areaSlug}`} style={{ fontSize: "0.78rem", color: "var(--cloud)", textDecoration: "underline", marginTop: "0.5rem", display: "inline-block" }}>
                 Inspect Locality Intelligence →
               </Link>
             </div>
 
-            <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: "1.2rem" }}>
-              <span style={{ fontSize: "0.68rem", fontFamily: "Orbitron, sans-serif", fontWeight: 700, color: "var(--text-muted)" }}>LOWEST AIR POLLUTION ZONE</span>
-              <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginTop: "0.3rem" }}>{bestArea?.areaName}</h3>
+            <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-default)", borderRadius: 4, padding: "1.2rem" }}>
+              <span style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em" }}>LOWEST AIR POLLUTION ZONE</span>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginTop: "0.3rem", color: "var(--cloud)" }}>{bestArea?.areaName}</h3>
               <p style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1.4rem", marginTop: "0.2rem" }}>{bestArea?.aqi.toFixed(1)} AQI Proxy</p>
-              <Link href={`/city/${city.slug}/${bestArea?.areaSlug}`} style={{ fontSize: "0.78rem", color: "var(--gold)", textDecoration: "underline", marginTop: "0.5rem", display: "inline-block" }}>
+              <Link href={`/city/${city.slug}/${bestArea?.areaSlug}`} style={{ fontSize: "0.78rem", color: "var(--cloud)", textDecoration: "underline", marginTop: "0.5rem", display: "inline-block" }}>
                 Inspect Locality Intelligence →
               </Link>
             </div>

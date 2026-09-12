@@ -65,9 +65,9 @@ export default function HoneycombSelector({
   return (
     <div
       style={{
-        background: "#080808",
-        border: "1px solid var(--border-gold)",
-        borderRadius: 16,
+        background: "#090909",
+        border: "1px solid var(--border-default)",
+        borderRadius: 4,
         padding: "1.8rem",
         marginBottom: "2.5rem",
         boxShadow: "0 20px 60px rgba(0,0,0,0.85)",
@@ -75,14 +75,14 @@ export default function HoneycombSelector({
         overflow: "hidden",
       }}
     >
-      {/* Background Hex Pattern Subtle Overlay */}
+      {/* Background Hex Pattern Subtle Monochrome Overlay */}
       <svg
         style={{
           position: "absolute",
           inset: 0,
           width: "100%",
           height: "100%",
-          opacity: 0.08,
+          opacity: 0.04,
           pointerEvents: "none",
         }}
       >
@@ -91,7 +91,7 @@ export default function HoneycombSelector({
             <path
               d="M28 0 L56 16 L56 48 L28 64 L0 48 L0 16 Z M28 48 L56 64 L56 96 L28 112 L0 96 L0 64 Z"
               fill="none"
-              stroke="var(--gold)"
+              stroke="#FFFFFF"
               strokeWidth="0.8"
             />
           </pattern>
@@ -108,7 +108,7 @@ export default function HoneycombSelector({
           flexWrap: "wrap",
           gap: "1rem",
           marginBottom: "1.5rem",
-          borderBottom: "1px solid var(--border)",
+          borderBottom: "1px solid var(--border-default)",
           paddingBottom: "1rem",
           position: "relative",
           zIndex: 5,
@@ -121,10 +121,10 @@ export default function HoneycombSelector({
               display: "flex",
               alignItems: "center",
               gap: "0.5rem",
-              fontSize: "0.75rem",
-              color: "var(--text-muted)",
-              marginBottom: "0.4rem",
-              fontFamily: "Orbitron, sans-serif",
+              fontSize: "0.72rem",
+              color: "var(--silver)",
+              marginBottom: "0.3rem",
+              fontFamily: "JetBrains Mono, monospace",
             }}
           >
             <button
@@ -135,101 +135,115 @@ export default function HoneycombSelector({
               style={{
                 background: "transparent",
                 border: "none",
-                color: level === "cities" ? "var(--gold)" : "var(--text-muted)",
+                color: level === "cities" ? "var(--air-white)" : "var(--silver)",
                 cursor: "pointer",
                 padding: 0,
-                fontSize: "0.75rem",
+                fontSize: "0.72rem",
                 fontWeight: 700,
                 letterSpacing: "0.1em",
                 display: "flex",
                 alignItems: "center",
-                gap: "0.3rem",
+                gap: "0.35rem",
               }}
             >
-              <Globe size={14} color="var(--gold)" />
-              INDIA GEOSPATIAL INDEX
+              <Globe size={13} color="var(--air-white)" />
+              GEOSPATIAL INDEX
             </button>
 
             {level === "areas" && (
               <>
-                <ChevronRight size={12} color="var(--text-muted)" />
-                <span style={{ color: "var(--gold)", fontWeight: 700 }}>
+                <ChevronRight size={11} color="var(--steel)" />
+                <span style={{ color: "var(--air-white)", fontWeight: 700 }}>
                   {activeCity.name.toUpperCase()}
                 </span>
               </>
             )}
           </div>
 
-          <h2
+          <h3
             style={{
               fontFamily: "Orbitron, sans-serif",
-              fontSize: "1.4rem",
-              fontWeight: 800,
-              color: "var(--gold-bright)",
-              letterSpacing: "0.04em",
+              fontSize: "1.25rem",
+              fontWeight: 900,
+              color: "var(--air-white)",
               margin: 0,
+              letterSpacing: "0.06em",
             }}
           >
-            {level === "cities" ? "SELECT A LOCATION" : `SELECT LOCALITY ZONE — ${activeCity.name.toUpperCase()}`}
-          </h2>
-          <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
             {level === "cities"
-              ? "Interactive Honeycomb index of State Capitals and Major Indian Metropolitan Hubs."
-              : `Curated locality zones in ${activeCity.name}, ${activeCity.state}.`}
-          </p>
+              ? "INDIAN GEOSPATIAL AIR INDEX"
+              : `${activeCity.name.toUpperCase()} LOCALITY NODES`}
+          </h3>
         </div>
 
-        {/* Action Controls & Filters */}
-        <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+        {/* Controls Toolbar */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
           {level === "areas" && (
             <button
-              onClick={() => setLevel("cities")}
+              onClick={() => {
+                setLevel("cities");
+                setSearchQuery("");
+              }}
               style={{
-                background: "rgba(201,162,39,0.1)",
-                border: "1px solid var(--gold-dim)",
-                color: "var(--gold)",
-                padding: "0.45rem 0.9rem",
-                borderRadius: 8,
-                fontSize: "0.78rem",
+                background: "rgba(255, 255, 255, 0.05)",
+                border: "1px solid var(--border-default)",
+                color: "var(--air-white)",
+                padding: "0.4rem 0.8rem",
+                borderRadius: 2,
+                fontSize: "0.72rem",
+                fontFamily: "JetBrains Mono, monospace",
+                fontWeight: 700,
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: "0.4rem",
-                fontWeight: 600,
+                gap: "0.3rem",
+                letterSpacing: "0.06em",
               }}
             >
-              <ArrowLeft size={14} /> BACK TO CITIES
+              <ArrowLeft size={12} /> BACK TO CITIES
             </button>
           )}
 
           {level === "cities" && (
-            <div style={{ display: "flex", background: "rgba(15,15,15,0.8)", border: "1px solid var(--border)", borderRadius: 8, padding: "2px" }}>
+            <div
+              style={{
+                display: "flex",
+                background: "rgba(20, 20, 20, 0.9)",
+                border: "1px solid var(--border-default)",
+                borderRadius: 2,
+                padding: "2px",
+              }}
+            >
               <button
                 onClick={() => setCategoryFilter("all")}
                 style={{
-                  background: categoryFilter === "all" ? "var(--gold-dim)" : "transparent",
-                  color: categoryFilter === "all" ? "var(--gold-bright)" : "var(--text-muted)",
+                  background: categoryFilter === "all" ? "var(--air-white)" : "transparent",
+                  color: categoryFilter === "all" ? "var(--void)" : "var(--silver)",
                   border: "none",
                   padding: "0.35rem 0.75rem",
-                  borderRadius: 6,
-                  fontSize: "0.72rem",
+                  borderRadius: 2,
+                  fontSize: "0.68rem",
+                  fontFamily: "JetBrains Mono, monospace",
                   fontWeight: 700,
                   cursor: "pointer",
+                  letterSpacing: "0.08em",
                 }}
               >
-                ALL (32)
+                ALL ({CITIES.length})
               </button>
               <button
                 onClick={() => setCategoryFilter("capitals")}
                 style={{
-                  background: categoryFilter === "capitals" ? "var(--gold-dim)" : "transparent",
-                  color: categoryFilter === "capitals" ? "var(--gold-bright)" : "var(--text-muted)",
+                  background: categoryFilter === "capitals" ? "var(--air-white)" : "transparent",
+                  color: categoryFilter === "capitals" ? "var(--void)" : "var(--silver)",
                   border: "none",
                   padding: "0.35rem 0.75rem",
-                  borderRadius: 6,
-                  fontSize: "0.72rem",
+                  borderRadius: 2,
+                  fontSize: "0.68rem",
+                  fontFamily: "JetBrains Mono, monospace",
                   fontWeight: 700,
                   cursor: "pointer",
+                  letterSpacing: "0.08em",
                 }}
               >
                 CAPITALS
@@ -237,17 +251,19 @@ export default function HoneycombSelector({
               <button
                 onClick={() => setCategoryFilter("major")}
                 style={{
-                  background: categoryFilter === "major" ? "var(--gold-dim)" : "transparent",
-                  color: categoryFilter === "major" ? "var(--gold-bright)" : "var(--text-muted)",
+                  background: categoryFilter === "major" ? "var(--air-white)" : "transparent",
+                  color: categoryFilter === "major" ? "var(--void)" : "var(--silver)",
                   border: "none",
                   padding: "0.35rem 0.75rem",
-                  borderRadius: 6,
-                  fontSize: "0.72rem",
+                  borderRadius: 2,
+                  fontSize: "0.68rem",
+                  fontFamily: "JetBrains Mono, monospace",
                   fontWeight: 700,
                   cursor: "pointer",
+                  letterSpacing: "0.08em",
                 }}
               >
-                MAJOR METROS
+                METROS
               </button>
             </div>
           )}
@@ -260,17 +276,18 @@ export default function HoneycombSelector({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
-                background: "rgba(10,10,10,0.9)",
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-                padding: "0.45rem 0.75rem 0.45rem 2rem",
-                color: "var(--text-primary)",
-                fontSize: "0.78rem",
+                background: "rgba(15, 15, 15, 0.95)",
+                border: "1px solid var(--border-default)",
+                borderRadius: 2,
+                padding: "0.4rem 0.75rem 0.4rem 1.8rem",
+                color: "var(--air-white)",
+                fontSize: "0.72rem",
+                fontFamily: "JetBrains Mono, monospace",
                 outline: "none",
-                width: "160px",
+                width: "150px",
               }}
             />
-            <Filter size={12} color="var(--gold)" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }} />
+            <Filter size={11} color="var(--silver)" style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)" }} />
           </div>
         </div>
       </div>
@@ -280,9 +297,9 @@ export default function HoneycombSelector({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-            gap: "1.2rem 0.8rem",
-            padding: "1rem 0",
+            gridTemplateColumns: "repeat(auto-fill, minmax(136px, 1fr))",
+            gap: "1.1rem 0.75rem",
+            padding: "0.8rem 0",
             position: "relative",
             zIndex: 5,
           }}
@@ -301,20 +318,20 @@ export default function HoneycombSelector({
                   aspectRatio: "1 / 1.15",
                   clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
                   background: isSelected
-                    ? "radial-gradient(circle, rgba(201,162,39,0.3) 0%, rgba(20,20,20,0.9) 100%)"
+                    ? "var(--air-white)"
                     : isCapital
-                    ? "radial-gradient(circle, rgba(30,30,30,0.95) 0%, rgba(14,14,14,0.95) 100%)"
-                    : "rgba(16,16,16,0.9)",
-                  border: "none",
+                    ? "var(--graphite)"
+                    : "var(--charcoal)",
+                  color: isSelected ? "var(--void)" : "var(--air-white)",
                   cursor: "pointer",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
-                  padding: "1rem 0.6rem",
+                  padding: "0.9rem 0.5rem",
                   textAlign: "center",
-                  transition: "all 0.25s ease-in-out",
-                  boxShadow: isSelected ? "0 0 20px rgba(201,162,39,0.4)" : "none",
+                  transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+                  boxShadow: isSelected ? "0 0 20px rgba(255, 255, 255, 0.28)" : "none",
                 }}
                 className="honeycomb-hex"
               >
@@ -325,10 +342,8 @@ export default function HoneycombSelector({
                     inset: 2,
                     clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
                     border: isSelected
-                      ? "2px solid var(--gold-bright)"
-                      : isCapital
-                      ? "1px solid rgba(201,162,39,0.4)"
-                      : "1px solid #282828",
+                      ? "2px solid #070707"
+                      : "1px solid rgba(255, 255, 255, 0.14)",
                     pointerEvents: "none",
                   }}
                 />
@@ -336,11 +351,11 @@ export default function HoneycombSelector({
                 {/* Badge Tag */}
                 <span
                   style={{
-                    fontSize: "0.58rem",
-                    fontFamily: "Orbitron, sans-serif",
+                    fontSize: "0.55rem",
+                    fontFamily: "JetBrains Mono, monospace",
                     fontWeight: 700,
-                    color: isCapital ? "var(--gold)" : "var(--text-muted)",
-                    letterSpacing: "0.08em",
+                    color: isSelected ? "#070707" : "var(--silver)",
+                    letterSpacing: "0.1em",
                     marginBottom: "0.2rem",
                     opacity: 0.9,
                   }}
@@ -352,9 +367,9 @@ export default function HoneycombSelector({
                 <h4
                   style={{
                     fontFamily: "Orbitron, sans-serif",
-                    fontSize: "0.85rem",
-                    fontWeight: 800,
-                    color: isSelected ? "var(--gold-bright)" : "var(--text-primary)",
+                    fontSize: "0.82rem",
+                    fontWeight: 900,
+                    color: isSelected ? "#070707" : "var(--air-white)",
                     margin: "0 0 0.15rem 0",
                     lineHeight: 1.1,
                   }}
@@ -365,9 +380,10 @@ export default function HoneycombSelector({
                 {/* State Name */}
                 <span
                   style={{
-                    fontSize: "0.64rem",
-                    color: "var(--text-muted)",
-                    maxWidth: "90%",
+                    fontSize: "0.6rem",
+                    fontFamily: "JetBrains Mono, monospace",
+                    color: isSelected ? "#242423" : "var(--silver)",
+                    maxWidth: "88%",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
@@ -379,9 +395,11 @@ export default function HoneycombSelector({
                 {/* Locality Count Indicator */}
                 <span
                   style={{
-                    fontSize: "0.58rem",
-                    color: "var(--gold-dim)",
-                    marginTop: "0.3rem",
+                    fontSize: "0.55rem",
+                    fontFamily: "JetBrains Mono, monospace",
+                    color: isSelected ? "#41413F" : "var(--steel)",
+                    marginTop: "0.25rem",
+                    letterSpacing: "0.06em",
                   }}
                 >
                   {city.areas.length} ZONES
@@ -398,16 +416,16 @@ export default function HoneycombSelector({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-              gap: "1.2rem 0.8rem",
-              padding: "1rem 0",
+              gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+              gap: "1.1rem 0.75rem",
+              padding: "0.8rem 0",
               position: "relative",
               zIndex: 5,
             }}
           >
             {filteredAreas.map((area) => {
-              const isSelectedArea = area.slug === selectedAreaSlug;
-              const isHazardousHint = area.defaultRegimeHint === 2;
+              const isSelected =
+                activeCitySlug === selectedCitySlug && area.slug === selectedAreaSlug;
 
               return (
                 <div
@@ -418,77 +436,91 @@ export default function HoneycombSelector({
                     width: "100%",
                     aspectRatio: "1 / 1.15",
                     clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-                    background: isSelectedArea
-                      ? "radial-gradient(circle, rgba(201,162,39,0.35) 0%, rgba(20,20,20,0.95) 100%)"
-                      : isHazardousHint
-                      ? "radial-gradient(circle, rgba(214,40,40,0.2) 0%, rgba(18,18,18,0.95) 100%)"
-                      : "rgba(18,18,18,0.9)",
+                    background: isSelected
+                      ? "var(--air-white)"
+                      : "var(--charcoal)",
+                    color: isSelected ? "var(--void)" : "var(--air-white)",
                     cursor: "pointer",
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: "1rem 0.6rem",
+                    padding: "0.9rem 0.5rem",
                     textAlign: "center",
-                    transition: "all 0.25s ease-in-out",
+                    transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+                    boxShadow: isSelected ? "0 0 20px rgba(255, 255, 255, 0.28)" : "none",
                   }}
                   className="honeycomb-hex"
                 >
-                  {/* Hex Inner Border */}
+                  {/* Hex Border Simulation */}
                   <div
                     style={{
                       position: "absolute",
                       inset: 2,
                       clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-                      border: isSelectedArea
-                        ? "2px solid var(--gold-bright)"
-                        : isHazardousHint
-                        ? "1px solid var(--red)"
-                        : "1px solid #333333",
+                      border: isSelected
+                        ? "2px solid #070707"
+                        : "1px solid rgba(255, 255, 255, 0.14)",
                       pointerEvents: "none",
                     }}
                   />
 
-                  <MapPin size={16} color={isSelectedArea ? "var(--gold-bright)" : isHazardousHint ? "var(--red-bright)" : "var(--gold)"} style={{ marginBottom: "0.2rem" }} />
+                  <MapPin
+                    size={13}
+                    color={isSelected ? "#070707" : "var(--silver)"}
+                    style={{ marginBottom: "0.2rem" }}
+                  />
 
                   {/* Locality Name */}
                   <h4
                     style={{
                       fontFamily: "Orbitron, sans-serif",
-                      fontSize: "0.85rem",
+                      fontSize: "0.8rem",
                       fontWeight: 800,
-                      color: isSelectedArea ? "var(--gold-bright)" : "var(--text-primary)",
-                      margin: "0 0 0.2rem 0",
-                      lineHeight: 1.15,
+                      color: isSelected ? "#070707" : "var(--air-white)",
+                      margin: "0 0 0.15rem 0",
+                      lineHeight: 1.1,
+                      maxWidth: "90%",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {area.name}
                   </h4>
 
                   {/* Coordinates */}
-                  <span style={{ fontSize: "0.62rem", fontFamily: "monospace", color: "var(--text-muted)" }}>
-                    {area.lat.toFixed(2)}°N, {area.lon.toFixed(2)}°E
-                  </span>
-
-                  {/* Regime / Hazard Status Hint */}
                   <span
                     style={{
                       fontSize: "0.58rem",
-                      fontFamily: "Orbitron, sans-serif",
-                      fontWeight: 700,
-                      marginTop: "0.3rem",
-                      color: isHazardousHint ? "var(--red-bright)" : "var(--gold-dim)",
+                      fontFamily: "JetBrains Mono, monospace",
+                      color: isSelected ? "#333333" : "var(--silver)",
+                      letterSpacing: "0.04em",
                     }}
                   >
-                    {isHazardousHint ? "ELEVATED RISK" : "VALIDATED ZONE"}
+                    {area.lat.toFixed(2)}°N, {area.lon.toFixed(2)}°E
+                  </span>
+
+                  {/* Indexing Status */}
+                  <span
+                    style={{
+                      fontSize: "0.55rem",
+                      fontFamily: "JetBrains Mono, monospace",
+                      fontWeight: 700,
+                      marginTop: "0.25rem",
+                      color: isSelected ? "#070707" : "var(--steel)",
+                      letterSpacing: "0.08em",
+                    }}
+                  >
+                    MONITORED
                   </span>
                 </div>
               );
             })}
           </div>
 
-          <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "1rem", textAlign: "right" }}>
-            * Note: Honeycomb nodes represent geospatial location indexing. Predictions are generated in real-time by AeroPure&apos;s XGBoost ML engine.
+          <p style={{ fontSize: "0.7rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)", marginTop: "1rem", textAlign: "right" }}>
+            * Hexagonal nodes represent geospatial location indexing. Real-time inference driven by AeroPure XGBoost ML engine.
           </p>
         </div>
       )}
@@ -496,9 +528,14 @@ export default function HoneycombSelector({
       {/* Embedded Custom CSS for Hexagon Hover Animations */}
       <style jsx>{`
         .honeycomb-hex:hover {
-          transform: scale(1.06);
-          filter: drop-shadow(0 0 12px rgba(201, 162, 39, 0.4));
+          transform: scale(1.05);
+          background: var(--silver) !important;
+          color: #070707 !important;
           z-index: 10;
+        }
+        .honeycomb-hex:hover h4,
+        .honeycomb-hex:hover span {
+          color: #070707 !important;
         }
       `}</style>
     </div>

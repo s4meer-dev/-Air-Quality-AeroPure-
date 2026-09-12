@@ -115,9 +115,9 @@ function StampCard(props: any) {
   const imageFilter = useTransform(angle, (value: number) => {
     const relative = ((((facing + value) % 360) + 540) % 360) - 180;
     const t = Math.abs(relative) / 180;
-    const brightness = 1 - 0.5 * Math.pow(t, 1.6);
-    return `brightness(${brightness.toFixed(3)})${
-      shadow ? " drop-shadow(0 16px 24px rgba(4, 9, 22, 0.4))" : ""
+    const brightness = (1 - 0.45 * Math.pow(t, 1.6)) * 0.9;
+    return `grayscale(100%) contrast(120%) brightness(${brightness.toFixed(3)})${
+      shadow ? " drop-shadow(0 16px 24px rgba(0, 0, 0, 0.75))" : ""
     }`;
   });
 
@@ -164,37 +164,37 @@ function StampCard(props: any) {
                 height: "100%",
                 objectFit: "contain",
                 pointerEvents: "none",
-                filter: isStatic ? (shadow ? "drop-shadow(0 16px 24px rgba(4, 9, 22, 0.4))" : undefined) : imageFilter,
+                filter: isStatic ? (shadow ? "grayscale(100%) contrast(120%) brightness(0.85) drop-shadow(0 16px 24px rgba(0, 0, 0, 0.75))" : "grayscale(100%)") : imageFilter,
               },
             })
           : _jsx("div", {
               style: {
                 width: "100%",
                 height: "100%",
-                borderRadius: 6,
-                border: "2px dashed rgba(120, 100, 80, 0.5)",
+                borderRadius: 4,
+                border: "1px dashed rgba(255, 255, 255, 0.2)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: 12,
-                color: "rgba(120, 100, 80, 0.8)",
+                color: "rgba(255, 255, 255, 0.5)",
               },
-              children: "Add image",
+              children: "Archive Image",
             }),
 
-        // Prominent Continent Plaque on the Face of the Stamp
+        // Prominent Continent Plaque on the Face of the Stamp (Monochrome Geographic Archive)
         _jsxs("div", {
           style: {
             position: "absolute",
             bottom: "11%",
             left: "10%",
             right: "10%",
-            background: "rgba(247, 240, 225, 0.96)",
-            border: "1.5px solid #2B2119",
-            borderRadius: 3,
-            padding: "6px 4px 5px",
+            background: "rgba(18, 18, 18, 0.95)",
+            border: "1px solid rgba(255, 255, 255, 0.35)",
+            borderRadius: 2,
+            padding: "6px 5px 5px",
             textAlign: "center",
-            boxShadow: "0 3px 10px rgba(0,0,0,0.5)",
+            boxShadow: "0 4px 14px rgba(0, 0, 0, 0.8)",
             pointerEvents: "none",
             transform: "translateZ(10px)",
             overflow: "hidden",
@@ -202,11 +202,11 @@ function StampCard(props: any) {
           children: [
             _jsx("div", {
               style: {
-                fontFamily: "Georgia, 'Times New Roman', serif",
-                fontSize: "clamp(12px, 1.8vw, 15px)",
+                fontFamily: "Orbitron, sans-serif",
+                fontSize: "clamp(11px, 1.7vw, 14px)",
                 fontWeight: 900,
-                letterSpacing: "0.08em",
-                color: "#2B2119",
+                letterSpacing: "0.14em",
+                color: "#F2F2F0",
                 textTransform: "uppercase",
                 lineHeight: 1.15,
                 whiteSpace: "nowrap",
@@ -217,23 +217,23 @@ function StampCard(props: any) {
             }),
             _jsx("div", {
               style: {
-                fontSize: "8px",
-                fontFamily: "monospace",
-                letterSpacing: "0.1em",
-                color: "#6B5842",
-                fontWeight: 700,
+                fontSize: "7.5px",
+                fontFamily: "JetBrains Mono, monospace",
+                letterSpacing: "0.12em",
+                color: "#929292",
+                fontWeight: 600,
                 marginTop: 2,
                 textTransform: "uppercase",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
               },
-              children: stamp.caption ?? "AEROPURE GLOBAL",
+              children: stamp.caption ?? "AEROPURE / GLOBAL ARCHIVE",
             }),
           ],
         }),
 
-        // Top Stamp Header Badges (Denomination & Air Post)
+        // Top Stamp Header Badges (Archive Code & Classification)
         _jsxs("div", {
           style: {
             position: "absolute",
@@ -249,60 +249,60 @@ function StampCard(props: any) {
           children: [
             _jsx("span", {
               style: {
-                fontFamily: "monospace",
-                fontWeight: 900,
-                fontSize: "10px",
-                background: "rgba(20, 18, 16, 0.9)",
-                color: "#D4AF37",
+                fontFamily: "JetBrains Mono, monospace",
+                fontWeight: 800,
+                fontSize: "9px",
+                background: "rgba(10, 10, 10, 0.92)",
+                color: "#F2F2F0",
                 padding: "2px 6px",
                 borderRadius: 2,
-                border: "1px solid rgba(212, 175, 55, 0.4)",
+                border: "1px solid rgba(255, 255, 255, 0.25)",
                 letterSpacing: "0.08em",
               },
               children: stamp.code ?? `0${index + 1}`,
             }),
             _jsx("span", {
               style: {
-                fontFamily: "Georgia, serif",
-                fontWeight: 800,
-                fontSize: "9px",
-                color: "#2B2119",
-                background: "rgba(247, 240, 225, 0.9)",
+                fontFamily: "JetBrains Mono, monospace",
+                fontWeight: 700,
+                fontSize: "8.5px",
+                color: "#D9D9D6",
+                background: "rgba(20, 20, 20, 0.9)",
                 padding: "2px 5px",
-                border: "1px solid #7A6A53",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
                 borderRadius: 2,
-                letterSpacing: "0.05em",
+                letterSpacing: "0.1em",
               },
-              children: "AIR POST",
+              children: "ARCHIVE",
             }),
           ],
         }),
 
-        // Circular Postmark Cancellation Watermark
+        // Circular Postmark Cancellation Watermark (Monochrome Scientific Stamp)
         _jsxs("div", {
           style: {
             position: "absolute",
-            top: "20%",
+            top: "18%",
             right: "10%",
-            width: 48,
-            height: 48,
+            width: 50,
+            height: 50,
             borderRadius: "50%",
-            border: "1.5px dashed rgba(43, 33, 25, 0.5)",
+            border: "1.5px dashed rgba(255, 255, 255, 0.4)",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            transform: "rotate(-14deg)",
+            transform: "rotate(-12deg)",
             pointerEvents: "none",
-            color: "rgba(43, 33, 25, 0.65)",
-            fontSize: "7px",
-            fontFamily: "monospace",
-            lineHeight: 1.1,
-            background: "rgba(247, 240, 225, 0.15)",
+            color: "rgba(255, 255, 255, 0.55)",
+            fontSize: "6.5px",
+            fontFamily: "JetBrains Mono, monospace",
+            lineHeight: 1.15,
+            background: "rgba(0, 0, 0, 0.4)",
           },
           children: [
             _jsx("span", { children: "AEROPURE" }),
-            _jsx("span", { style: { fontWeight: "bold" }, children: "2026" }),
+            _jsx("span", { style: { fontWeight: "bold" }, children: "ARCHIVE" }),
             _jsx("span", { children: "GLOBAL" }),
           ],
         }),
@@ -347,11 +347,11 @@ export default function StampScrapbook(props: StampScrapbookProps) {
     scrollTilt = true,
     scrollTiltStrength = 16,
     stampShadow = true,
-    panelColor = "#F7F0E1",
-    backdropColor = "rgba(7, 15, 35, 0.86)",
-    titleColor = "#2B2119",
-    textColor = "#2550D8",
-    accentColor = "#B5843B",
+    panelColor = "#161616",
+    backdropColor = "rgba(7, 7, 7, 0.94)",
+    titleColor = "#F2F2F0",
+    textColor = "#D9D9D6",
+    accentColor = "#929292",
     sealUrl,
     sealMonogram = "A",
     onSelectContinent,
@@ -787,13 +787,14 @@ export default function StampScrapbook(props: StampScrapbookProps) {
                             flexDirection: "column",
                             background: panelColor,
                             boxSizing: "border-box",
-                            borderRadius: 6,
-                            transform: "rotate(-1.5deg)",
-                            padding: viewportNarrow ? "30px 26px 26px" : "46px 44px 36px",
+                            borderRadius: 4,
+                            border: "1px solid rgba(255, 255, 255, 0.2)",
+                            padding: viewportNarrow ? "28px 22px 22px" : "40px 36px 30px",
                             width: "100%",
-                            minHeight: viewportNarrow ? undefined : 540,
+                            minHeight: viewportNarrow ? undefined : 520,
                             maxHeight: "100%",
                             overflow: "hidden",
+                            boxShadow: "0 25px 60px rgba(0, 0, 0, 0.9)",
                           },
                           children: [
                             _jsxs("div", {
@@ -806,11 +807,27 @@ export default function StampScrapbook(props: StampScrapbookProps) {
                                     _jsx("h3", {
                                       style: {
                                         margin: 0,
-                                        fontSize: viewportNarrow ? 26 : 32,
-                                        lineHeight: 1.08,
-                                        ...texturedInk(titleColor, 1, true),
+                                        fontSize: viewportNarrow ? 24 : 28,
+                                        fontFamily: "Orbitron, sans-serif",
+                                        fontWeight: 900,
+                                        letterSpacing: "0.1em",
+                                        color: titleColor,
+                                        textTransform: "uppercase",
+                                        lineHeight: 1.1,
                                       },
                                       children: openStampData.title ?? "Untitled",
+                                    }),
+                                    _jsx("span", {
+                                      style: {
+                                        display: "inline-block",
+                                        marginTop: 4,
+                                        fontSize: 10,
+                                        fontFamily: "JetBrains Mono, monospace",
+                                        color: "var(--silver)",
+                                        letterSpacing: "0.12em",
+                                        textTransform: "uppercase",
+                                      },
+                                      children: openStampData.caption ?? "AEROPURE GLOBAL ARCHIVE",
                                     }),
                                   ],
                                 }),
@@ -820,14 +837,13 @@ export default function StampScrapbook(props: StampScrapbookProps) {
                                   alt: openStampData.image?.alt ?? openStampData.title ?? "",
                                   draggable: false,
                                   style: {
-                                    height: viewportNarrow ? 132 : 180,
+                                    height: viewportNarrow ? 120 : 160,
                                     width: "auto",
                                     objectFit: "contain",
                                     flexShrink: 0,
-                                    marginTop: -18,
-                                    marginRight: -14,
-                                    transform: "rotate(-4deg)",
-                                    filter: "drop-shadow(0 1px 1.5px rgba(2, 6, 18, 0.28))",
+                                    marginTop: -10,
+                                    marginRight: -8,
+                                    filter: "grayscale(100%) contrast(120%) brightness(0.85) drop-shadow(0 6px 14px rgba(0,0,0,0.8))",
                                   },
                                 }),
                               ],
@@ -835,36 +851,38 @@ export default function StampScrapbook(props: StampScrapbookProps) {
                             openStampData.description &&
                               _jsx("p", {
                                 style: {
-                                  marginTop: "auto",
-                                  marginBottom: 0,
+                                  marginTop: "1.5rem",
+                                  marginBottom: "1rem",
                                   color: textColor,
-                                  fontFamily: "'Caveat', 'Segoe Script', 'Bradley Hand', cursive",
-                                  fontSize: viewportNarrow ? 21 : 24,
-                                  lineHeight: viewportNarrow ? "46px" : "54px",
-                                  ...ruledLines(viewportNarrow ? 46 : 54),
+                                  fontFamily: "JetBrains Mono, monospace",
+                                  fontSize: viewportNarrow ? 11 : 12.5,
+                                  lineHeight: "22px",
+                                  background: "rgba(0, 0, 0, 0.4)",
+                                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                                  borderRadius: 3,
+                                  padding: "12px 14px",
                                 },
-                                children: _jsx("span", {
-                                  style: texturedInk(textColor, 0.9),
-                                  children: openStampData.description,
-                                }),
+                                children: openStampData.description,
                               }),
                             onSelectContinent && openStampData.continentId && (
                               <button
                                 onClick={() => openStampData.continentId && onSelectContinent(openStampData.continentId)}
                                 style={{
-                                  marginTop: "1.2rem",
-                                  background: "var(--gold)",
-                                  color: "#050505",
-                                  border: "none",
-                                  borderRadius: 8,
+                                  marginTop: "auto",
+                                  background: "var(--air-white)",
+                                  color: "var(--void)",
+                                  border: "1px solid #FFFFFF",
+                                  borderRadius: 3,
                                   padding: "0.75rem 1.2rem",
-                                  fontSize: "0.88rem",
+                                  fontSize: "0.82rem",
                                   fontWeight: 800,
-                                  fontFamily: "Orbitron, sans-serif",
+                                  fontFamily: "JetBrains Mono, monospace",
+                                  letterSpacing: "0.12em",
                                   cursor: "pointer",
                                   width: "100%",
                                   textAlign: "center",
-                                  boxShadow: "0 4px 15px rgba(201,162,39,0.4)",
+                                  boxShadow: "0 4px 15px rgba(255, 255, 255, 0.2)",
+                                  textTransform: "uppercase",
                                 }}
                               >
                                 SELECT CONTINENT ({openStampData.title?.toUpperCase()}) →

@@ -91,14 +91,14 @@ export default async function AreaPage({ params }: Props) {
           <ChevronRight size={14} />
           <Link href={`/city/${city.slug}`} style={{ color: "var(--text-muted)", textDecoration: "none" }}>{city.name}</Link>
           <ChevronRight size={14} />
-          <span style={{ color: "var(--gold)" }}>{area.name}</span>
+          <span style={{ color: "var(--air-white)" }}>{area.name}</span>
         </nav>
 
         {/* Header */}
         <div style={{ marginBottom: "2rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.4rem" }}>
-            <MapPin size={16} color="var(--gold)" />
-            <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.72rem", color: "var(--gold)", fontWeight: 700, letterSpacing: "0.14em" }}>
+            <MapPin size={16} color="var(--air-white)" />
+            <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.72rem", color: "var(--cloud)", fontWeight: 700, letterSpacing: "0.14em" }}>
               LOCATION INTELLIGENCE
             </span>
           </div>
@@ -108,16 +108,17 @@ export default async function AreaPage({ params }: Props) {
               fontFamily: "Orbitron, sans-serif",
               fontSize: "clamp(2.2rem, 7vw, 4rem)",
               fontWeight: 900,
-              color: "var(--text-primary)",
+              color: "var(--air-white)",
               letterSpacing: "0.04em",
               lineHeight: 1.1,
               marginBottom: "0.4rem",
+              textShadow: "0 0 35px rgba(255,255,255,0.18)",
             }}
           >
             {area.name}
           </h1>
           <p style={{ fontSize: "1rem", color: "var(--text-muted)" }}>
-            {city.name}, {city.country} · LAT: <span style={{ fontFamily: "monospace", color: "var(--gold)" }}>{area.lat}° N</span> | LON: <span style={{ fontFamily: "monospace", color: "var(--gold)" }}>{area.lon}° E</span>
+            {city.name}, {city.country} · LAT: <span style={{ fontFamily: "monospace", color: "var(--cloud)" }}>{area.lat}° N</span> | LON: <span style={{ fontFamily: "monospace", color: "var(--cloud)" }}>{area.lon}° E</span>
           </p>
         </div>
 
@@ -133,7 +134,7 @@ export default async function AreaPage({ params }: Props) {
 
         {/* Forecast Timeline */}
         {timeline.length > 0 && (
-          <section style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 14, padding: "1.5rem", marginBottom: "2.5rem" }}>
+          <section style={{ background: "var(--bg-card)", border: "1px solid var(--border-default)", borderRadius: 4, padding: "1.5rem", marginBottom: "2.5rem" }}>
             <ForecastTimeline timeline={timeline} />
             <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "1rem", textAlign: "right" }}>
               * Methodological Note: Forecast points represent discrete model inference under available observation/state assumptions.

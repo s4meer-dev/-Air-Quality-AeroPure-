@@ -148,69 +148,71 @@ export default function GlobalGeospatialExplorer({
       setActiveCountryId(res.countryId);
       setActiveStateId(res.stateId);
       setActiveCitySlug(res.citySlug);
-      setLevel(5);
       onSelectFinalLocation(res.citySlug, res.areaSlug);
+      setLevel(5);
     }
   };
 
   return (
-    <div style={{ position: "relative" }}>
-      {/* GLOBAL SEARCH & QUICK JUMP HEADER */}
+    <div style={{ position: "relative", width: "100%" }}>
+      {/* ── GLOBAL HIERARCHY BREADCRUMB HEADER ─────────────────────────────── */}
       <div
         style={{
+          background: "rgba(14, 14, 14, 0.95)",
+          border: "1px solid var(--border-default)",
+          borderRadius: 4,
+          padding: "0.85rem 1.4rem",
+          marginBottom: "1.2rem",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
           gap: "1rem",
-          background: "#080808",
-          border: "1px solid var(--border-gold)",
-          borderRadius: 14,
-          padding: "1rem 1.4rem",
-          marginBottom: "1.5rem",
         }}
       >
-        {/* Continuous Interactive Breadcrumbs */}
+        {/* Step-by-Step Monospace Breadcrumb Bar */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             flexWrap: "wrap",
             gap: "0.4rem",
-            fontSize: "0.76rem",
-            fontFamily: "Orbitron, sans-serif",
-            fontWeight: 700,
+            fontSize: "0.72rem",
+            fontFamily: "JetBrains Mono, monospace",
           }}
         >
           <button
             onClick={() => setLevel(1)}
             style={{
-              background: level === 1 ? "rgba(201,162,39,0.15)" : "transparent",
-              border: level === 1 ? "1px solid var(--gold)" : "none",
-              color: level === 1 ? "var(--gold-bright)" : "var(--text-muted)",
+              background: level === 1 ? "rgba(255, 255, 255, 0.08)" : "transparent",
+              border: level === 1 ? "1px solid rgba(255, 255, 255, 0.3)" : "none",
+              color: level === 1 ? "var(--air-white)" : "var(--silver)",
               cursor: "pointer",
-              padding: "0.2rem 0.5rem",
-              borderRadius: 4,
+              padding: "0.25rem 0.6rem",
+              borderRadius: 2,
+              fontWeight: 700,
               display: "flex",
               alignItems: "center",
-              gap: "0.3rem",
+              gap: "0.35rem",
+              letterSpacing: "0.08em",
             }}
           >
-            <Globe size={13} color="var(--gold)" /> EARTH
+            <Globe size={13} color="var(--air-white)" /> EARTH
           </button>
 
           {level >= 2 && (
             <>
-              <ChevronRight size={12} color="var(--text-muted)" />
+              <ChevronRight size={11} color="var(--steel)" />
               <button
                 onClick={() => setLevel(2)}
                 style={{
-                  background: level === 2 ? "rgba(201,162,39,0.15)" : "transparent",
-                  border: level === 2 ? "1px solid var(--gold)" : "none",
-                  color: level === 2 ? "var(--gold-bright)" : "var(--text-muted)",
+                  background: level === 2 ? "rgba(255, 255, 255, 0.08)" : "transparent",
+                  border: level === 2 ? "1px solid rgba(255, 255, 255, 0.3)" : "none",
+                  color: level === 2 ? "var(--air-white)" : "var(--silver)",
                   cursor: "pointer",
-                  padding: "0.2rem 0.5rem",
-                  borderRadius: 4,
+                  padding: "0.25rem 0.6rem",
+                  borderRadius: 2,
+                  fontWeight: 700,
                 }}
               >
                 {activeContinent.name.toUpperCase()}
@@ -220,16 +222,17 @@ export default function GlobalGeospatialExplorer({
 
           {level >= 3 && (
             <>
-              <ChevronRight size={12} color="var(--text-muted)" />
+              <ChevronRight size={11} color="var(--steel)" />
               <button
                 onClick={() => setLevel(3)}
                 style={{
-                  background: level === 3 ? "rgba(201,162,39,0.15)" : "transparent",
-                  border: level === 3 ? "1px solid var(--gold)" : "none",
-                  color: level === 3 ? "var(--gold-bright)" : "var(--text-muted)",
+                  background: level === 3 ? "rgba(255, 255, 255, 0.08)" : "transparent",
+                  border: level === 3 ? "1px solid rgba(255, 255, 255, 0.3)" : "none",
+                  color: level === 3 ? "var(--air-white)" : "var(--silver)",
                   cursor: "pointer",
-                  padding: "0.2rem 0.5rem",
-                  borderRadius: 4,
+                  padding: "0.25rem 0.6rem",
+                  borderRadius: 2,
+                  fontWeight: 700,
                 }}
               >
                 {activeCountry.name.toUpperCase()}
@@ -239,16 +242,17 @@ export default function GlobalGeospatialExplorer({
 
           {level >= 4 && (
             <>
-              <ChevronRight size={12} color="var(--text-muted)" />
+              <ChevronRight size={11} color="var(--steel)" />
               <button
                 onClick={() => setLevel(4)}
                 style={{
-                  background: level === 4 ? "rgba(201,162,39,0.15)" : "transparent",
-                  border: level === 4 ? "1px solid var(--gold)" : "none",
-                  color: level === 4 ? "var(--gold-bright)" : "var(--text-muted)",
+                  background: level === 4 ? "rgba(255, 255, 255, 0.08)" : "transparent",
+                  border: level === 4 ? "1px solid rgba(255, 255, 255, 0.3)" : "none",
+                  color: level === 4 ? "var(--air-white)" : "var(--silver)",
                   cursor: "pointer",
-                  padding: "0.2rem 0.5rem",
-                  borderRadius: 4,
+                  padding: "0.25rem 0.6rem",
+                  borderRadius: 2,
+                  fontWeight: 700,
                 }}
               >
                 {activeState.name.toUpperCase()}
@@ -258,16 +262,17 @@ export default function GlobalGeospatialExplorer({
 
           {level >= 5 && (
             <>
-              <ChevronRight size={12} color="var(--text-muted)" />
+              <ChevronRight size={11} color="var(--steel)" />
               <button
                 onClick={() => setLevel(5)}
                 style={{
-                  background: level === 5 ? "rgba(201,162,39,0.15)" : "transparent",
-                  border: level === 5 ? "1px solid var(--gold)" : "none",
-                  color: level === 5 ? "var(--gold-bright)" : "var(--text-muted)",
+                  background: level === 5 ? "rgba(255, 255, 255, 0.08)" : "transparent",
+                  border: level === 5 ? "1px solid rgba(255, 255, 255, 0.3)" : "none",
+                  color: level === 5 ? "var(--air-white)" : "var(--silver)",
                   cursor: "pointer",
-                  padding: "0.2rem 0.5rem",
-                  borderRadius: 4,
+                  padding: "0.25rem 0.6rem",
+                  borderRadius: 2,
+                  fontWeight: 700,
                 }}
               >
                 {activeCity.name.toUpperCase()}
@@ -281,22 +286,23 @@ export default function GlobalGeospatialExplorer({
           <div style={{ position: "relative" }}>
             <input
               type="text"
-              placeholder="Search Global Location (City, Area, Country)..."
+              placeholder="Search Location (City, Area, Country)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
               style={{
-                background: "rgba(12,12,12,0.95)",
-                border: "1px solid var(--border-gold)",
-                borderRadius: 8,
-                padding: "0.55rem 0.8rem 0.55rem 2.2rem",
-                color: "var(--text-primary)",
-                fontSize: "0.8rem",
+                background: "rgba(10, 10, 10, 0.95)",
+                border: "1px solid var(--border-default)",
+                borderRadius: 2,
+                padding: "0.45rem 0.8rem 0.45rem 2rem",
+                color: "var(--air-white)",
+                fontSize: "0.74rem",
+                fontFamily: "JetBrains Mono, monospace",
                 width: "100%",
                 outline: "none",
               }}
             />
-            <Search size={14} color="var(--gold)" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }} />
+            <Search size={12} color="var(--silver)" style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)" }} />
           </div>
 
           {/* Autocomplete Dropdown */}
@@ -307,14 +313,14 @@ export default function GlobalGeospatialExplorer({
                 top: "105%",
                 left: 0,
                 right: 0,
-                background: "#0d0d0d",
-                border: "1px solid var(--gold)",
-                borderRadius: 10,
+                background: "#121212",
+                border: "1px solid var(--border-strong)",
+                borderRadius: 3,
                 boxShadow: "0 15px 40px rgba(0,0,0,0.9)",
                 zIndex: 100,
                 maxHeight: 280,
                 overflowY: "auto",
-                padding: "0.5rem",
+                padding: "0.4rem",
               }}
             >
               {searchResults.map((res, idx) => (
@@ -323,7 +329,7 @@ export default function GlobalGeospatialExplorer({
                   onClick={() => handleSearchResultClick(res)}
                   style={{
                     padding: "0.5rem 0.75rem",
-                    borderRadius: 6,
+                    borderRadius: 2,
                     cursor: "pointer",
                     borderBottom: "1px solid rgba(255,255,255,0.05)",
                     transition: "background 0.2s ease",
@@ -331,14 +337,14 @@ export default function GlobalGeospatialExplorer({
                   className="search-item"
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--gold-bright)" }}>
+                    <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--air-white)" }}>
                       {res.title}
                     </span>
-                    <span style={{ fontSize: "0.62rem", fontFamily: "Orbitron, sans-serif", color: "var(--text-muted)", textTransform: "uppercase" }}>
+                    <span style={{ fontSize: "0.6rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)", textTransform: "uppercase" }}>
                       {res.type}
                     </span>
                   </div>
-                  <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{res.subtitle}</span>
+                  <span style={{ fontSize: "0.68rem", color: "var(--silver)" }}>{res.subtitle}</span>
                 </div>
               ))}
             </div>
@@ -355,10 +361,10 @@ export default function GlobalGeospatialExplorer({
       {level > 1 && (
         <div
           style={{
-            background: "#080808",
-            border: "1px solid var(--border-gold)",
-            borderRadius: 18,
-            padding: "2rem",
+            background: "#090909",
+            border: "1px solid var(--border-default)",
+            borderRadius: 4,
+            padding: "1.8rem",
             marginBottom: "2.5rem",
             position: "relative",
             boxShadow: "0 20px 60px rgba(0,0,0,0.85)",
@@ -373,22 +379,22 @@ export default function GlobalGeospatialExplorer({
               flexWrap: "wrap",
               gap: "1rem",
               marginBottom: "1.5rem",
-              borderBottom: "1px solid var(--border)",
+              borderBottom: "1px solid var(--border-default)",
               paddingBottom: "1rem",
             }}
           >
             <div>
-              <span style={{ fontSize: "0.72rem", fontFamily: "Orbitron, sans-serif", color: "var(--gold)", fontWeight: 700 }}>
+              <span style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)", fontWeight: 700, letterSpacing: "0.1em" }}>
                 LEVEL {level} — {level === 2 ? "COUNTRY SELECTION" : level === 3 ? "STATE / REGION INDEX" : level === 4 ? "CITY SELECTOR" : "LOCALITY ZONE SELECTOR"}
               </span>
               <h2
                 style={{
                   fontFamily: "Orbitron, sans-serif",
-                  fontSize: "1.5rem",
+                  fontSize: "1.35rem",
                   fontWeight: 900,
-                  color: "var(--gold-bright)",
+                  color: "var(--air-white)",
                   margin: "0.2rem 0 0 0",
-                  letterSpacing: "0.04em",
+                  letterSpacing: "0.06em",
                 }}
               >
                 {level === 2
@@ -404,20 +410,22 @@ export default function GlobalGeospatialExplorer({
             <button
               onClick={handleBackOneLevel}
               style={{
-                background: "rgba(201,162,39,0.1)",
-                border: "1px solid var(--gold-dim)",
-                color: "var(--gold)",
-                padding: "0.45rem 1rem",
-                borderRadius: 8,
-                fontSize: "0.78rem",
+                background: "rgba(255, 255, 255, 0.05)",
+                border: "1px solid var(--border-default)",
+                color: "var(--air-white)",
+                padding: "0.4rem 0.85rem",
+                borderRadius: 2,
+                fontSize: "0.72rem",
+                fontFamily: "JetBrains Mono, monospace",
                 fontWeight: 700,
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: "0.4rem",
+                gap: "0.35rem",
+                letterSpacing: "0.06em",
               }}
             >
-              <ArrowLeft size={14} /> BACK TO LEVEL {level - 1}
+              <ArrowLeft size={12} /> BACK TO LEVEL {level - 1}
             </button>
           </div>
 
@@ -425,9 +433,9 @@ export default function GlobalGeospatialExplorer({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-              gap: "1.4rem 0.9rem",
-              padding: "1rem 0",
+              gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+              gap: "1.2rem 0.8rem",
+              padding: "0.8rem 0",
             }}
           >
             {/* LEVEL 2: COUNTRIES */}
@@ -445,16 +453,18 @@ export default function GlobalGeospatialExplorer({
                       aspectRatio: "1 / 1.15",
                       clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
                       background: isSelected
-                        ? "radial-gradient(circle, rgba(201,162,39,0.35) 0%, rgba(20,20,20,0.95) 100%)"
-                        : "rgba(18,18,18,0.9)",
+                        ? "var(--air-white)"
+                        : "var(--charcoal)",
+                      color: isSelected ? "var(--void)" : "var(--air-white)",
                       cursor: "pointer",
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
                       justifyContent: "center",
-                      padding: "1rem 0.6rem",
+                      padding: "0.9rem 0.5rem",
                       textAlign: "center",
-                      transition: "all 0.25s ease-in-out",
+                      transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+                      boxShadow: isSelected ? "0 0 20px rgba(255, 255, 255, 0.28)" : "none",
                     }}
                     className="honeycomb-hex"
                   >
@@ -463,18 +473,18 @@ export default function GlobalGeospatialExplorer({
                         position: "absolute",
                         inset: 2,
                         clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-                        border: isSelected ? "2px solid var(--gold-bright)" : "1px solid #282828",
+                        border: isSelected ? "2px solid #070707" : "1px solid rgba(255, 255, 255, 0.14)",
                         pointerEvents: "none",
                       }}
                     />
-                    <span style={{ fontSize: "0.62rem", fontFamily: "Orbitron, sans-serif", color: "var(--gold)", fontWeight: 800 }}>
+                    <span style={{ fontSize: "0.58rem", fontFamily: "JetBrains Mono, monospace", color: isSelected ? "#070707" : "var(--silver)", fontWeight: 800 }}>
                       {country.code}
                     </span>
-                    <h4 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.88rem", fontWeight: 800, color: "var(--text-primary)", margin: "0.2rem 0" }}>
+                    <h4 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.82rem", fontWeight: 800, color: isSelected ? "#070707" : "var(--air-white)", margin: "0.15rem 0" }}>
                       {country.name}
                     </h4>
-                    <span style={{ fontSize: "0.6rem", color: "var(--text-muted)" }}>
-                      {country.stateCount} STATES/REGIONS
+                    <span style={{ fontSize: "0.55rem", fontFamily: "JetBrains Mono, monospace", color: isSelected ? "#333333" : "var(--steel)" }}>
+                      {country.stateCount} REGIONS
                     </span>
                   </div>
                 );
@@ -495,16 +505,18 @@ export default function GlobalGeospatialExplorer({
                       aspectRatio: "1 / 1.15",
                       clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
                       background: isSelected
-                        ? "radial-gradient(circle, rgba(201,162,39,0.35) 0%, rgba(20,20,20,0.95) 100%)"
-                        : "rgba(18,18,18,0.9)",
+                        ? "var(--air-white)"
+                        : "var(--charcoal)",
+                      color: isSelected ? "var(--void)" : "var(--air-white)",
                       cursor: "pointer",
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
                       justifyContent: "center",
-                      padding: "1rem 0.6rem",
+                      padding: "0.9rem 0.5rem",
                       textAlign: "center",
-                      transition: "all 0.25s ease-in-out",
+                      transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+                      boxShadow: isSelected ? "0 0 20px rgba(255, 255, 255, 0.28)" : "none",
                     }}
                     className="honeycomb-hex"
                   >
@@ -513,17 +525,17 @@ export default function GlobalGeospatialExplorer({
                         position: "absolute",
                         inset: 2,
                         clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-                        border: isSelected ? "2px solid var(--gold-bright)" : "1px solid #282828",
+                        border: isSelected ? "2px solid #070707" : "1px solid rgba(255, 255, 255, 0.14)",
                         pointerEvents: "none",
                       }}
                     />
-                    <span style={{ fontSize: "0.6rem", fontFamily: "Orbitron, sans-serif", color: "var(--gold)", fontWeight: 800 }}>
+                    <span style={{ fontSize: "0.58rem", fontFamily: "JetBrains Mono, monospace", color: isSelected ? "#070707" : "var(--silver)", fontWeight: 800 }}>
                       {st.code}
                     </span>
-                    <h4 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.85rem", fontWeight: 800, color: "var(--text-primary)", margin: "0.2rem 0" }}>
+                    <h4 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.82rem", fontWeight: 800, color: isSelected ? "#070707" : "var(--air-white)", margin: "0.15rem 0" }}>
                       {st.name}
                     </h4>
-                    <span style={{ fontSize: "0.58rem", color: "var(--text-muted)" }}>
+                    <span style={{ fontSize: "0.55rem", fontFamily: "JetBrains Mono, monospace", color: isSelected ? "#333333" : "var(--steel)" }}>
                       {st.cityCount} CITIES
                     </span>
                   </div>
@@ -545,16 +557,20 @@ export default function GlobalGeospatialExplorer({
                       aspectRatio: "1 / 1.15",
                       clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
                       background: isSelected
-                        ? "radial-gradient(circle, rgba(201,162,39,0.35) 0%, rgba(20,20,20,0.95) 100%)"
-                        : "rgba(18,18,18,0.9)",
+                        ? "var(--air-white)"
+                        : city.isCapital
+                        ? "var(--graphite)"
+                        : "var(--charcoal)",
+                      color: isSelected ? "var(--void)" : "var(--air-white)",
                       cursor: "pointer",
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
                       justifyContent: "center",
-                      padding: "1rem 0.6rem",
+                      padding: "0.9rem 0.5rem",
                       textAlign: "center",
-                      transition: "all 0.25s ease-in-out",
+                      transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+                      boxShadow: isSelected ? "0 0 20px rgba(255, 255, 255, 0.28)" : "none",
                     }}
                     className="honeycomb-hex"
                   >
@@ -563,17 +579,17 @@ export default function GlobalGeospatialExplorer({
                         position: "absolute",
                         inset: 2,
                         clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-                        border: isSelected ? "2px solid var(--gold-bright)" : "1px solid #282828",
+                        border: isSelected ? "2px solid #070707" : "1px solid rgba(255, 255, 255, 0.14)",
                         pointerEvents: "none",
                       }}
                     />
-                    <span style={{ fontSize: "0.58rem", fontFamily: "Orbitron, sans-serif", color: city.isCapital ? "var(--gold)" : "var(--text-muted)", fontWeight: 700 }}>
+                    <span style={{ fontSize: "0.55rem", fontFamily: "JetBrains Mono, monospace", color: isSelected ? "#070707" : "var(--silver)", fontWeight: 700 }}>
                       {city.isCapital ? "CAPITAL" : "METRO"}
                     </span>
-                    <h4 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.85rem", fontWeight: 800, color: "var(--text-primary)", margin: "0.15rem 0" }}>
+                    <h4 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.82rem", fontWeight: 800, color: isSelected ? "#070707" : "var(--air-white)", margin: "0.15rem 0" }}>
                       {city.name}
                     </h4>
-                    <span style={{ fontSize: "0.58rem", color: "var(--gold-dim)" }}>
+                    <span style={{ fontSize: "0.55rem", fontFamily: "JetBrains Mono, monospace", color: isSelected ? "#333333" : "var(--steel)" }}>
                       {city.areas.length} LOCALITIES
                     </span>
                   </div>
@@ -584,7 +600,6 @@ export default function GlobalGeospatialExplorer({
             {level === 5 &&
               currentAreas.map((area) => {
                 const isSelectedArea = area.slug === selectedAreaSlug;
-                const isHazardousHint = area.defaultRegimeHint === 2;
 
                 return (
                   <div
@@ -596,18 +611,18 @@ export default function GlobalGeospatialExplorer({
                       aspectRatio: "1 / 1.15",
                       clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
                       background: isSelectedArea
-                        ? "radial-gradient(circle, rgba(201,162,39,0.4) 0%, rgba(20,20,20,0.95) 100%)"
-                        : isHazardousHint
-                        ? "radial-gradient(circle, rgba(214,40,40,0.25) 0%, rgba(18,18,18,0.95) 100%)"
-                        : "rgba(18,18,18,0.9)",
+                        ? "var(--air-white)"
+                        : "var(--charcoal)",
+                      color: isSelectedArea ? "var(--void)" : "var(--air-white)",
                       cursor: "pointer",
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
                       justifyContent: "center",
-                      padding: "1rem 0.6rem",
+                      padding: "0.9rem 0.5rem",
                       textAlign: "center",
-                      transition: "all 0.25s ease-in-out",
+                      transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+                      boxShadow: isSelectedArea ? "0 0 20px rgba(255, 255, 255, 0.28)" : "none",
                     }}
                     className="honeycomb-hex"
                   >
@@ -617,22 +632,20 @@ export default function GlobalGeospatialExplorer({
                         inset: 2,
                         clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
                         border: isSelectedArea
-                          ? "2px solid var(--gold-bright)"
-                          : isHazardousHint
-                          ? "1px solid var(--red)"
-                          : "1px solid #333333",
+                          ? "2px solid #070707"
+                          : "1px solid rgba(255, 255, 255, 0.14)",
                         pointerEvents: "none",
                       }}
                     />
-                    <MapPin size={15} color={isSelectedArea ? "var(--gold-bright)" : isHazardousHint ? "var(--red-bright)" : "var(--gold)"} style={{ marginBottom: "0.2rem" }} />
-                    <h4 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.82rem", fontWeight: 800, color: "var(--text-primary)", margin: "0 0 0.15rem 0" }}>
+                    <MapPin size={13} color={isSelectedArea ? "#070707" : "var(--silver)"} style={{ marginBottom: "0.15rem" }} />
+                    <h4 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.8rem", fontWeight: 800, color: isSelectedArea ? "#070707" : "var(--air-white)", margin: "0 0 0.15rem 0" }}>
                       {area.name}
                     </h4>
-                    <span style={{ fontSize: "0.6rem", fontFamily: "monospace", color: "var(--text-muted)" }}>
+                    <span style={{ fontSize: "0.58rem", fontFamily: "JetBrains Mono, monospace", color: isSelectedArea ? "#333333" : "var(--silver)" }}>
                       {area.lat.toFixed(2)}°N, {area.lon.toFixed(2)}°E
                     </span>
-                    <span style={{ fontSize: "0.56rem", fontFamily: "Orbitron, sans-serif", fontWeight: 700, color: isHazardousHint ? "var(--red-bright)" : "var(--gold)", marginTop: "0.25rem" }}>
-                      {isSelectedArea ? "ACTIVE ZONE" : isHazardousHint ? "ELEVATED RISK" : "SELECT ZONE"}
+                    <span style={{ fontSize: "0.55rem", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: isSelectedArea ? "#070707" : "var(--steel)", marginTop: "0.25rem", letterSpacing: "0.06em" }}>
+                      {isSelectedArea ? "ACTIVE ZONE" : "MONITORED"}
                     </span>
                   </div>
                 );
@@ -644,12 +657,17 @@ export default function GlobalGeospatialExplorer({
       {/* Embedded CSS for Hex Hover Effects */}
       <style jsx>{`
         .honeycomb-hex:hover {
-          transform: scale(1.06);
-          filter: drop-shadow(0 0 14px rgba(201, 162, 39, 0.45));
+          transform: scale(1.05);
+          background: var(--silver) !important;
+          color: #070707 !important;
           z-index: 10;
         }
+        .honeycomb-hex:hover h4,
+        .honeycomb-hex:hover span {
+          color: #070707 !important;
+        }
         .search-item:hover {
-          background: rgba(201, 162, 39, 0.15);
+          background: rgba(255, 255, 255, 0.08);
         }
       `}</style>
     </div>

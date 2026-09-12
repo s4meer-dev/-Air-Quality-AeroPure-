@@ -15,33 +15,58 @@ export default function HazardBanner({ hazardous, hazardProbability, predictedAq
       <div
         className="hazard-pulse"
         style={{
-          background: "linear-gradient(135deg, var(--red-deep) 0%, var(--red) 50%, var(--red-bright) 100%)",
-          border: "1px solid var(--red-bright)",
-          borderRadius: 12,
-          padding: "1.5rem 2rem",
+          background: "#111111",
+          border: "2px solid var(--air-white)",
+          borderRadius: 4,
+          padding: "1.4rem 1.8rem",
           marginBottom: "1.5rem",
+          boxShadow: "0 0 35px rgba(255, 255, 255, 0.18)",
         }}
       >
         <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
-          <AlertTriangle size={28} color="#FFD6D6" style={{ flexShrink: 0, marginTop: 2 }} />
+          <div
+            style={{
+              padding: "0.4rem",
+              borderRadius: 2,
+              background: "rgba(255, 255, 255, 0.1)",
+              border: "1px solid var(--air-white)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <AlertTriangle size={24} color="var(--air-white)" />
+          </div>
           <div>
-            <p style={{
-              fontFamily: "Orbitron, sans-serif",
-              fontSize: "1rem",
-              fontWeight: 700,
-              color: "#FFD6D6",
-              letterSpacing: "0.06em",
-              marginBottom: "0.4rem",
-            }}>
-              HAZARDOUS AIR DAY ALERT — TOMORROW
+            <span
+              style={{
+                fontFamily: "JetBrains Mono, monospace",
+                fontSize: "0.72rem",
+                fontWeight: 800,
+                color: "var(--air-white)",
+                letterSpacing: "0.14em",
+                display: "inline-block",
+                marginBottom: "0.3rem",
+              }}
+            >
+              CRITICAL ATMOSPHERIC ALERT — ELEVATED DISPERSION CONSTRAINT
+            </span>
+            <p
+              style={{
+                fontSize: "1.25rem",
+                fontWeight: 900,
+                fontFamily: "Orbitron, sans-serif",
+                color: "var(--air-white)",
+                marginBottom: "0.3rem",
+                letterSpacing: "0.04em",
+              }}
+            >
+              {areaName.toUpperCase()} · AQI PROXY {predictedAqi.toFixed(1)} · {(hazardProbability * 100).toFixed(0)}% HAZARD RISK
             </p>
-            <p style={{ fontSize: "1.4rem", fontWeight: 800, color: "#ffffff", marginBottom: "0.3rem" }}>
-              {areaName} · AQI Proxy {predictedAqi.toFixed(1)} · {(hazardProbability * 100).toFixed(0)}% Probability
-            </p>
-            <p style={{ fontSize: "0.85rem", color: "#FFBBBB", lineHeight: 1.6 }}>
+            <p style={{ fontSize: "0.82rem", fontFamily: "JetBrains Mono, monospace", color: "var(--cloud)", lineHeight: 1.6 }}>
               Actionable Advisory: Project-defined elevated-pollution threshold (AQI Proxy ≥ 180.0) exceeded.
-              Atmospheric dispersion is constrained. Vulnerable populations should reduce outdoor exertion;
-              ventilation adjustments advised.
+              Atmospheric stagnation trapped particulate matter. Reduced outdoor exposure and HVAC recirculation advised.
             </p>
           </div>
         </div>
@@ -53,31 +78,34 @@ export default function HazardBanner({ hazardous, hazardProbability, predictedAq
     <div
       style={{
         background: "var(--bg-card)",
-        border: "1px solid var(--gold-dim)",
-        borderRadius: 12,
-        padding: "1.3rem 2rem",
+        border: "1px solid var(--border-default)",
+        borderRadius: 4,
+        padding: "1.2rem 1.8rem",
         marginBottom: "1.5rem",
-        boxShadow: "0 0 20px rgba(201,162,39,0.08)",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        <CheckCircle size={24} color="var(--gold)" style={{ flexShrink: 0 }} />
+        <CheckCircle size={20} color="var(--silver)" style={{ flexShrink: 0 }} />
         <div>
-          <p style={{
-            fontFamily: "Orbitron, sans-serif",
-            fontSize: "0.9rem",
-            fontWeight: 700,
-            color: "var(--gold)",
-            letterSpacing: "0.06em",
-            marginBottom: "0.2rem",
-          }}>
-            ACCEPTABLE / MODERATE AIR PROJECTED — TOMORROW
+          <span
+            style={{
+              fontFamily: "JetBrains Mono, monospace",
+              fontSize: "0.68rem",
+              fontWeight: 700,
+              color: "var(--silver)",
+              letterSpacing: "0.12em",
+              display: "inline-block",
+              marginBottom: "0.15rem",
+            }}
+          >
+            ATMOSPHERIC REGIME STABLE
+          </span>
+          <p style={{ fontSize: "0.92rem", fontWeight: 700, fontFamily: "JetBrains Mono, monospace", color: "var(--air-white)" }}>
+            {areaName.toUpperCase()} · AQI PROXY {predictedAqi.toFixed(1)} · {(hazardProbability * 100).toFixed(0)}% HAZARD RISK
           </p>
-          <p style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)" }}>
-            {areaName} · AQI Proxy {predictedAqi.toFixed(1)} · {(hazardProbability * 100).toFixed(0)}% Hazard Probability
-          </p>
-          <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
-            Atmospheric dispersion favorable. Outdoor civic activity permissible under standard guidelines.
+          <p style={{ fontSize: "0.78rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)", marginTop: "0.2rem" }}>
+            Atmospheric mixing active. Pollutant concentration safely within nominal dispersion limits.
           </p>
         </div>
       </div>

@@ -15,13 +15,13 @@ export default function NotFound() {
         textAlign: "center",
       }}
     >
-      <MapPin size={48} color="var(--gold-dim)" style={{ marginBottom: "1.5rem", opacity: 0.5 }} />
+      <MapPin size={48} color="var(--silver)" style={{ marginBottom: "1.5rem", opacity: 0.5 }} />
       <h1
         style={{
           fontFamily: "Orbitron, sans-serif",
           fontSize: "1.4rem",
           fontWeight: 700,
-          color: "var(--gold)",
+          color: "var(--air-white)",
           letterSpacing: "0.08em",
           marginBottom: "0.75rem",
         }}
@@ -32,7 +32,7 @@ export default function NotFound() {
         This city or area is not currently in the AeroPure supported locations registry.
         Only validated locations with registered atmospheric baselines are available in Demo Mode.
       </p>
-      <Link href="/" className="btn-gold">
+      <Link href="/" className="btn-primary-mono">
         ← Search Supported Cities
       </Link>
     </div>

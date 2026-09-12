@@ -78,13 +78,15 @@ export default function SearchHero() {
 
   async function handleCheck() {
     if (!selectedCity) { setError("Please select a city from the suggestions."); return; }
-    if (!selectedArea) { setError("Please select an area / locality."); return; }
+    if (!selectedArea) { setError("Please select an area from the suggestions."); return; }
     setLoading(true);
     setError("");
     router.push(`/city/${selectedCity.slug}/${selectedArea.slug}`);
   }
 
   function quickSearch(city: City, area: Area) {
+    selectCity(city);
+    selectArea(area);
     router.push(`/city/${city.slug}/${area.slug}`);
   }
 
@@ -92,11 +94,11 @@ export default function SearchHero() {
     <div style={{ width: "100%", maxWidth: 640, margin: "0 auto" }}>
       {/* City input */}
       <div ref={cityRef} style={{ position: "relative", marginBottom: "1rem" }}>
-        <p className="section-label">CITY</p>
+        <p className="section-label">CITY INDEX</p>
         <div style={{ position: "relative" }}>
           <MapPin
             size={16}
-            color="var(--gold-dim)"
+            color="var(--silver)"
             style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
           />
           <input
@@ -117,28 +119,29 @@ export default function SearchHero() {
         {showCitySugg && citySuggestions.length > 0 && (
           <div style={{
             position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100,
-            background: "var(--bg-card)", border: "1px solid var(--border)",
-            borderRadius: 10, marginTop: 4, overflow: "hidden",
-            boxShadow: "0 12px 40px rgba(0,0,0,0.6)",
+            background: "#111111", border: "1px solid var(--border-strong)",
+            borderRadius: 3, marginTop: 4, overflow: "hidden",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.8)",
           }}>
             {citySuggestions.map((city) => (
               <button
                 key={city.slug}
                 onClick={() => selectCity(city)}
                 style={{
-                  width: "100%", textAlign: "left", padding: "0.9rem 1.1rem",
+                  width: "100%", textAlign: "left", padding: "0.85rem 1.1rem",
                   background: "transparent", border: "none", cursor: "pointer",
-                  color: "var(--text-primary)", fontSize: "0.92rem",
-                  borderBottom: "1px solid var(--border-dim)", display: "flex",
+                  color: "var(--air-white)", fontSize: "0.88rem",
+                  fontFamily: "JetBrains Mono, monospace",
+                  borderBottom: "1px solid var(--border-default)", display: "flex",
                   alignItems: "center", gap: "0.6rem",
                   transition: "background 0.15s",
                 }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--bg-elevated)")}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
               >
-                <MapPin size={14} color="var(--gold-dim)" />
+                <MapPin size={13} color="var(--silver)" />
                 <span>{city.name}</span>
-                <span style={{ color: "var(--text-faint)", fontSize: "0.78rem", marginLeft: "auto" }}>
+                <span style={{ color: "var(--steel)", fontSize: "0.74rem", marginLeft: "auto" }}>
                   {city.country}
                 </span>
               </button>
@@ -149,11 +152,11 @@ export default function SearchHero() {
 
       {/* Area input */}
       <div ref={areaRef} style={{ position: "relative", marginBottom: "1.5rem" }}>
-        <p className="section-label">AREA / LOCALITY</p>
+        <p className="section-label">LOCALITY / SENSOR ZONE</p>
         <div style={{ position: "relative" }}>
           <Search
             size={16}
-            color={selectedCity ? "var(--gold-dim)" : "var(--text-faint)"}
+            color={selectedCity ? "var(--silver)" : "var(--steel)"}
             style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
           />
           <input
@@ -174,26 +177,27 @@ export default function SearchHero() {
         {showAreaSugg && areaSuggestions.length > 0 && (
           <div style={{
             position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100,
-            background: "var(--bg-card)", border: "1px solid var(--border)",
-            borderRadius: 10, marginTop: 4, overflow: "hidden",
-            boxShadow: "0 12px 40px rgba(0,0,0,0.6)",
+            background: "#111111", border: "1px solid var(--border-strong)",
+            borderRadius: 3, marginTop: 4, overflow: "hidden",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.8)",
           }}>
             {areaSuggestions.map((area) => (
               <button
                 key={area.slug}
                 onClick={() => selectArea(area)}
                 style={{
-                  width: "100%", textAlign: "left", padding: "0.9rem 1.1rem",
+                  width: "100%", textAlign: "left", padding: "0.85rem 1.1rem",
                   background: "transparent", border: "none", cursor: "pointer",
-                  color: "var(--text-primary)", fontSize: "0.92rem",
-                  borderBottom: "1px solid var(--border-dim)", display: "flex",
+                  color: "var(--air-white)", fontSize: "0.88rem",
+                  fontFamily: "JetBrains Mono, monospace",
+                  borderBottom: "1px solid var(--border-default)", display: "flex",
                   alignItems: "center", gap: "0.6rem",
                   transition: "background 0.15s",
                 }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--bg-elevated)")}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
               >
-                <Search size={13} color="var(--gold-dim)" />
+                <Search size={13} color="var(--silver)" />
                 {area.name}
               </button>
             ))}
@@ -205,33 +209,34 @@ export default function SearchHero() {
       {error && (
         <div style={{
           display: "flex", alignItems: "center", gap: "0.5rem",
-          background: "rgba(177,18,38,0.12)", border: "1px solid var(--red)",
-          borderRadius: 8, padding: "0.75rem 1rem", marginBottom: "1rem",
-          color: "var(--red-bright)", fontSize: "0.88rem",
+          background: "rgba(255,255,255,0.06)", border: "1px solid var(--border-strong)",
+          borderRadius: 3, padding: "0.75rem 1rem", marginBottom: "1rem",
+          color: "var(--air-white)", fontSize: "0.82rem",
+          fontFamily: "JetBrains Mono, monospace",
         }}>
-          <AlertTriangle size={15} />
+          <AlertTriangle size={15} color="var(--air-white)" />
           {error}
         </div>
       )}
 
       {/* Submit */}
       <button
-        className="btn-gold"
-        style={{ width: "100%", justifyContent: "center", fontSize: "1rem", padding: "1rem" }}
+        className="btn-primary-mono"
+        style={{ width: "100%", justifyContent: "center", fontSize: "0.88rem", padding: "0.9rem" }}
         onClick={handleCheck}
         disabled={loading}
       >
         {loading ? (
-          <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Checking...</>
+          <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> QUERYING ATMOSPHERE...</>
         ) : (
-          <><Search size={18} /> CHECK AIR QUALITY</>
+          <><Search size={16} /> INSPECT LOCAL ATMOSPHERE</>
         )}
       </button>
 
       {/* Popular searches */}
       <div style={{ marginTop: "2.5rem" }}>
         <p className="section-label" style={{ textAlign: "center", marginBottom: "1rem" }}>
-          POPULAR SEARCHES
+          FREQUENT OBSERVATION NODES
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", justifyContent: "center" }}>
           {POPULAR_SEARCHES.map(({ city, area }) => (
@@ -239,9 +244,9 @@ export default function SearchHero() {
               key={`${city.slug}-${area.slug}`}
               onClick={() => quickSearch(city, area)}
               className="btn-ghost"
-              style={{ fontSize: "0.8rem" }}
+              style={{ fontSize: "0.74rem", fontFamily: "JetBrains Mono, monospace" }}
             >
-              <MapPin size={13} />
+              <MapPin size={12} />
               {area.name}, {city.name}
             </button>
           ))}

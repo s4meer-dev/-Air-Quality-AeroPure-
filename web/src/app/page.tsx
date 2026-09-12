@@ -235,15 +235,15 @@ export default function HomePage() {
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <span
             style={{
-              fontFamily: "Orbitron, sans-serif",
+              fontFamily: "JetBrains Mono, monospace",
               fontSize: "0.72rem",
               fontWeight: 700,
               letterSpacing: "0.18em",
-              color: "var(--gold)",
-              background: "rgba(201,162,39,0.08)",
-              border: "1px solid var(--gold-dim)",
+              color: "var(--cloud)",
+              background: "rgba(255, 255, 255, 0.04)",
+              border: "1px solid var(--border-strong)",
               padding: "0.35rem 1rem",
-              borderRadius: 30,
+              borderRadius: 3,
               display: "inline-block",
               marginBottom: "1rem",
             }}
@@ -256,11 +256,11 @@ export default function HomePage() {
               fontFamily: "Orbitron, sans-serif",
               fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
               fontWeight: 900,
-              color: "var(--gold)",
-              letterSpacing: "0.04em",
+              color: "var(--air-white)",
+              letterSpacing: "0.06em",
               lineHeight: 1,
               marginBottom: "0.5rem",
-              textShadow: "0 0 50px rgba(201,162,39,0.25)",
+              textShadow: "0 0 50px rgba(255, 255, 255, 0.18)",
             }}
           >
             AEROPURE
@@ -271,10 +271,11 @@ export default function HomePage() {
               fontSize: "clamp(1.1rem, 2.5vw, 1.4rem)",
               fontWeight: 300,
               letterSpacing: "0.02em",
+              color: "var(--cloud)",
               marginBottom: "0.5rem",
             }}
           >
-            KNOW TOMORROW&apos;S AIR. <span style={{ color: "var(--gold)", fontWeight: 600 }}>TODAY.</span>
+            KNOW TOMORROW&apos;S AIR. <span style={{ color: "var(--air-white)", fontWeight: 600 }}>TODAY.</span>
           </p>
 
           <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", maxWidth: 640, margin: "0 auto" }}>
@@ -317,7 +318,7 @@ export default function HomePage() {
 
         {/* Phase 6 Model-Estimated Forecast Timeline */}
         {timeline.length > 0 && (
-          <section style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 14, padding: "1.5rem", marginBottom: "2.5rem" }}>
+          <section style={{ background: "var(--bg-card)", border: "1px solid var(--border-default)", borderRadius: 4, padding: "1.5rem", marginBottom: "2.5rem" }}>
             <ForecastTimeline timeline={timeline} />
             <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "1rem", textAlign: "right" }}>
               * Methodological Note: Forecast points represent discrete model inference under available observation/state assumptions.

@@ -38,6 +38,8 @@ export default function DualSourcePanel({
   externalPollution,
   onRetryWeather,
 }: Props) {
+  const isHazard = prediction?.hazardous ?? false;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", marginBottom: "2.5rem" }}>
       <div
@@ -47,120 +49,141 @@ export default function DualSourcePanel({
           gap: "1.5rem",
         }}
       >
-        {/* Card 1: OpenWeather Context */}
+        {/* Card 1: Atmospheric Meteorological Instrumentation */}
         <div
           style={{
             background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            borderRadius: 14,
-            padding: "1.5rem",
+            border: "1px solid var(--border-default)",
+            borderRadius: 4,
+            padding: "1.6rem",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
           }}
         >
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-              <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.12em" }}>
-                WEATHER CONTEXT
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
+              <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.68rem", fontWeight: 700, color: "var(--silver)", letterSpacing: "0.14em", textTransform: "uppercase" }}>
+                ATMOSPHERIC CONDITIONS
               </span>
-              <span style={{ fontSize: "0.7rem", background: "rgba(255,255,255,0.06)", padding: "0.2rem 0.6rem", borderRadius: 4, color: "var(--text-muted)" }}>
-                Source: OpenWeather API
+              <span style={{ fontSize: "0.65rem", fontFamily: "JetBrains Mono, monospace", background: "rgba(255,255,255,0.06)", padding: "0.2rem 0.5rem", borderRadius: 2, color: "var(--silver)" }}>
+                METEOROLOGICAL SENSORS
               </span>
             </div>
 
             {weatherState.available && weatherState.weather ? (
               <div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem", marginBottom: "1rem" }}>
-                  <span style={{ fontSize: "2.8rem", fontWeight: 800, color: "var(--text-primary)" }}>
-                    {weatherState.weather.temp}°C
+                <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem", marginBottom: "1.2rem" }}>
+                  <span style={{ fontSize: "2.8rem", fontWeight: 900, color: "var(--air-white)", fontFamily: "JetBrains Mono, monospace", lineHeight: 1 }}>
+                    {weatherState.weather.temp.toFixed(1)}°C
                   </span>
-                  <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>
-                    Feels like {weatherState.weather.temp_feels_like}°C · {weatherState.weather.condition}
+                  <span style={{ fontSize: "0.82rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)" }}>
+                    FEELS {weatherState.weather.temp_feels_like.toFixed(1)}°C · {weatherState.weather.condition.toUpperCase()}
                   </span>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.8rem", fontSize: "0.82rem" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--text-muted)" }}>
-                    <Droplets size={14} color="#4A90E2" />
-                    <span>Humidity: <strong style={{ color: "var(--text-primary)" }}>{weatherState.weather.humidity}%</strong></span>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.9rem", fontSize: "0.8rem", fontFamily: "JetBrains Mono, monospace" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--silver)" }}>
+                    <Droplets size={14} color="var(--mist)" />
+                    <span>RH: <strong style={{ color: "var(--air-white)" }}>{weatherState.weather.humidity}%</strong></span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--text-muted)" }}>
-                    <Wind size={14} color="var(--gold-bright)" />
-                    <span>Wind: <strong style={{ color: "var(--text-primary)" }}>{weatherState.weather.wind_speed} m/s</strong></span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--silver)" }}>
+                    <Wind size={14} color="var(--mist)" />
+                    <span>WIND: <strong style={{ color: "var(--air-white)" }}>{(weatherState.weather.wind_speed * 3.6).toFixed(0)} km/h</strong></span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--text-muted)" }}>
-                    <Gauge size={14} color="var(--gold)" />
-                    <span>Pressure: <strong style={{ color: "var(--text-primary)" }}>{weatherState.weather.pressure} hPa</strong></span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--silver)" }}>
+                    <Gauge size={14} color="var(--mist)" />
+                    <span>BARO: <strong style={{ color: "var(--air-white)" }}>{weatherState.weather.pressure} hPa</strong></span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--text-muted)" }}>
-                    <CloudSun size={14} color="var(--gold)" />
-                    <span>Sky: <strong style={{ color: "var(--text-primary)" }}>{weatherState.weather.description}</strong></span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--silver)" }}>
+                    <CloudSun size={14} color="var(--mist)" />
+                    <span>SKY: <strong style={{ color: "var(--cloud)" }}>{weatherState.weather.description.toUpperCase()}</strong></span>
                   </div>
                 </div>
               </div>
             ) : (
               <div style={{ padding: "1.5rem 0", textAlign: "center" }}>
-                <AlertCircle size={28} color="var(--gold)" style={{ margin: "0 auto 0.5rem" }} />
-                <p style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text-primary)" }}>WEATHER DATA UNAVAILABLE</p>
-                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
-                  {weatherState.error ?? "API Key pending activation or service network timeout."}
+                <AlertCircle size={24} color="var(--silver)" style={{ margin: "0 auto 0.5rem" }} />
+                <p style={{ fontWeight: 700, fontSize: "0.85rem", fontFamily: "JetBrains Mono, monospace", color: "var(--air-white)" }}>METEOROLOGY FEED STANDBY</p>
+                <p style={{ fontSize: "0.72rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)", marginTop: "0.3rem" }}>
+                  {weatherState.error ?? "API key pending activation or atmospheric service timeout."}
                 </p>
                 <button
                   onClick={onRetryWeather}
                   style={{
                     marginTop: "1rem",
-                    background: "rgba(201,162,39,0.12)",
-                    border: "1px solid var(--gold-dim)",
-                    color: "var(--gold)",
-                    padding: "0.4rem 0.9rem",
-                    borderRadius: 6,
-                    fontSize: "0.78rem",
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid var(--border-strong)",
+                    color: "var(--air-white)",
+                    padding: "0.35rem 0.8rem",
+                    borderRadius: 2,
+                    fontSize: "0.72rem",
+                    fontFamily: "JetBrains Mono, monospace",
                     cursor: "pointer",
                     display: "inline-flex",
                     alignItems: "center",
                     gap: "0.4rem",
+                    letterSpacing: "0.06em",
                   }}
                 >
-                  <RefreshCw size={12} /> RETRY WEATHER FETCH
+                  <RefreshCw size={11} /> RETRY TELEMETRY
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Card 2: AeroPure ML Prediction */}
+        {/* Card 2: AeroPure Model Output (Strongest Visual Element) */}
         <div
           style={{
-            background: "var(--bg-card)",
-            border: prediction?.hazardous ? "1px solid var(--red)" : "1px solid var(--gold-dim)",
-            borderRadius: 14,
-            padding: "1.5rem",
+            background: isHazard ? "#111111" : "var(--bg-card)",
+            border: isHazard ? "2px solid var(--air-white)" : "1px solid var(--border-strong)",
+            borderRadius: 4,
+            padding: "1.6rem",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
+            boxShadow: isHazard ? "0 0 30px rgba(255,255,255,0.15)" : "none",
           }}
+          className={isHazard ? "hazard-pulse" : ""}
         >
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-              <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.72rem", fontWeight: 700, color: "var(--gold)", letterSpacing: "0.12em" }}>
-                AIR QUALITY PREDICTION
+              <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.68rem", fontWeight: 700, color: "var(--silver)", letterSpacing: "0.14em" }}>
+                AEROPURE MODEL
               </span>
-              <span style={{ fontSize: "0.7rem", background: "rgba(201,162,39,0.12)", padding: "0.2rem 0.6rem", borderRadius: 4, color: "var(--gold)" }}>
-                Source: AeroPure XGBoost Model
+              <span
+                style={{
+                  fontSize: "0.65rem",
+                  fontFamily: "JetBrains Mono, monospace",
+                  background: isHazard ? "#FFFFFF" : "rgba(255,255,255,0.08)",
+                  color: isHazard ? "#000000" : "var(--air-white)",
+                  padding: "0.2rem 0.6rem",
+                  borderRadius: 2,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                }}
+              >
+                XGBOOST INFERENCE
               </span>
             </div>
 
+            <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.65rem", color: "var(--silver)", letterSpacing: "0.12em", marginBottom: "0.5rem" }}>
+              POLLUTANT-BASED AIR QUALITY INDEX PROXY
+            </p>
+
             {prediction ? (
               <div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: "0.8rem", marginBottom: "0.8rem" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "1rem", marginBottom: "1rem" }}>
                   <span
                     style={{
-                      fontSize: "3.2rem",
+                      fontSize: "clamp(3.5rem, 8vw, 4.2rem)",
                       fontWeight: 900,
                       fontFamily: "Orbitron, sans-serif",
-                      color: prediction.hazardous ? "var(--red-bright)" : "var(--gold-bright)",
+                      color: "var(--air-white)",
                       lineHeight: 1,
+                      letterSpacing: "-0.02em",
+                      textShadow: "0 0 35px rgba(255, 255, 255, 0.3)",
                     }}
                   >
                     {prediction.predicted_aqi_proxy.toFixed(1)}
@@ -170,12 +193,14 @@ export default function DualSourcePanel({
                       style={{
                         display: "inline-block",
                         fontSize: "0.75rem",
-                        fontWeight: 700,
-                        padding: "0.2rem 0.6rem",
-                        borderRadius: 4,
-                        background: prediction.hazardous ? "rgba(139,0,0,0.3)" : "rgba(201,162,39,0.15)",
-                        color: prediction.hazardous ? "var(--red-bright)" : "var(--gold)",
-                        border: prediction.hazardous ? "1px solid var(--red)" : "1px solid var(--gold-dim)",
+                        fontFamily: "JetBrains Mono, monospace",
+                        fontWeight: 800,
+                        padding: "0.3rem 0.75rem",
+                        borderRadius: 2,
+                        background: isHazard ? "#FFFFFF" : "rgba(255, 255, 255, 0.12)",
+                        color: isHazard ? "#000000" : "var(--air-white)",
+                        border: isHazard ? "1px solid #FFFFFF" : "1px solid var(--border-strong)",
+                        letterSpacing: "0.1em",
                       }}
                     >
                       {prediction.risk_category.toUpperCase()}
@@ -183,64 +208,56 @@ export default function DualSourcePanel({
                   </div>
                 </div>
 
-                <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                  <p>Hazard Probability: <strong style={{ color: prediction.hazardous ? "var(--red-bright)" : "var(--text-primary)" }}>{(prediction.hazard_probability * 100).toFixed(0)}%</strong></p>
-                  <p>Pollution Regime: <strong style={{ color: "var(--text-primary)" }}>{prediction.pollution_regime}</strong></p>
-                  <p>Dominant Driver: <strong style={{ color: "var(--gold)" }}>{prediction.dominant_current_pollutant}</strong></p>
+                <div style={{ fontSize: "0.78rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                  <p>HAZARD PROBABILITY: <strong style={{ color: "var(--air-white)" }}>{(prediction.hazard_probability * 100).toFixed(0)}%</strong></p>
+                  <p>ATMOSPHERIC REGIME: <strong style={{ color: "var(--cloud)" }}>{prediction.pollution_regime.toUpperCase()}</strong></p>
+                  <p>PRIMARY EMISSION DRIVER: <strong style={{ color: "var(--air-white)" }}>{prediction.dominant_current_pollutant}</strong></p>
                 </div>
               </div>
             ) : (
-              <div style={{ padding: "1.5rem 0", textAlign: "center", color: "var(--text-muted)" }}>
-                <Activity size={24} color="var(--gold-dim)" style={{ margin: "0 auto 0.5rem" }} />
-                <p>Loading Model Prediction...</p>
+              <div style={{ padding: "1.5rem 0", textAlign: "center", color: "var(--silver)" }}>
+                <Activity size={24} color="var(--silver)" style={{ margin: "0 auto 0.5rem" }} />
+                <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.8rem" }}>GENERATING INFERENCE...</p>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* External Air Pollution Reference Panel (Phase 8) */}
+      {/* External Air Pollution Reference Panel */}
       {externalPollution && (
         <div
           style={{
-            background: "rgba(10,10,10,0.5)",
-            border: "1px solid var(--border)",
-            borderRadius: 12,
-            padding: "1rem 1.2rem",
+            background: "var(--bg-primary)",
+            border: "1px solid var(--border-default)",
+            borderRadius: 4,
+            padding: "1rem 1.4rem",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
-            <span style={{ fontSize: "0.72rem", fontFamily: "Orbitron, sans-serif", fontWeight: 700, color: "var(--text-muted)" }}>
-              EXTERNAL AIR POLLUTION DATA (REFERENCE ONLY)
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+            <span style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "var(--silver)", letterSpacing: "0.1em" }}>
+              EXTERNAL SENSOR BENCHMARK (REFERENCE TELEMETRY)
             </span>
-            <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>Source: OpenWeather Air Pollution API</span>
+            <span style={{ fontSize: "0.64rem", fontFamily: "JetBrains Mono, monospace", color: "var(--steel)" }}>SOURCE: OPENWEATHER AIR POLLUTION API</span>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "0.8rem", textAlign: "center" }}>
-            <div style={{ background: "rgba(0,0,0,0.4)", padding: "0.5rem", borderRadius: 6 }}>
-              <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>PM2.5</span>
-              <p style={{ fontWeight: 700, fontSize: "0.9rem" }}>{externalPollution.pm2_5} µg/m³</p>
-            </div>
-            <div style={{ background: "rgba(0,0,0,0.4)", padding: "0.5rem", borderRadius: 6 }}>
-              <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>PM10</span>
-              <p style={{ fontWeight: 700, fontSize: "0.9rem" }}>{externalPollution.pm10} µg/m³</p>
-            </div>
-            <div style={{ background: "rgba(0,0,0,0.4)", padding: "0.5rem", borderRadius: 6 }}>
-              <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>NO₂</span>
-              <p style={{ fontWeight: 700, fontSize: "0.9rem" }}>{externalPollution.no2} µg/m³</p>
-            </div>
-            <div style={{ background: "rgba(0,0,0,0.4)", padding: "0.5rem", borderRadius: 6 }}>
-              <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>O₃</span>
-              <p style={{ fontWeight: 700, fontSize: "0.9rem" }}>{externalPollution.o3} µg/m³</p>
-            </div>
-            <div style={{ background: "rgba(0,0,0,0.4)", padding: "0.5rem", borderRadius: 6 }}>
-              <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>CO</span>
-              <p style={{ fontWeight: 700, fontSize: "0.9rem" }}>{externalPollution.co} µg/m³</p>
-            </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "0.6rem", textAlign: "center" }}>
+            {[
+              { label: "PM2.5", val: `${externalPollution.pm2_5} µg/m³` },
+              { label: "PM10", val: `${externalPollution.pm10} µg/m³` },
+              { label: "NO₂", val: `${externalPollution.no2} µg/m³` },
+              { label: "O₃", val: `${externalPollution.o3} µg/m³` },
+              { label: "CO", val: `${externalPollution.co} µg/m³` },
+            ].map((p, idx) => (
+              <div key={idx} style={{ background: "rgba(0,0,0,0.5)", border: "1px solid var(--border-subtle)", padding: "0.5rem", borderRadius: 2 }}>
+                <span style={{ fontSize: "0.62rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)" }}>{p.label}</span>
+                <p style={{ fontWeight: 700, fontSize: "0.82rem", fontFamily: "JetBrains Mono, monospace", color: "var(--cloud)", marginTop: 2 }}>{p.val}</p>
+              </div>
+            ))}
           </div>
 
-          <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "0.6rem" }}>
-            * Contextual reference data provided by OpenWeather. Not used as raw input for the trained AeroPure model.
+          <p style={{ fontSize: "0.66rem", fontFamily: "JetBrains Mono, monospace", color: "var(--steel)", marginTop: "0.6rem" }}>
+            * Contextual reference data. Not used as raw input for the trained AeroPure model.
           </p>
         </div>
       )}

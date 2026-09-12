@@ -8,47 +8,47 @@ export default function ResponsibleAI() {
       id="methodology"
       style={{
         marginTop: "3rem",
-        borderTop: "1px solid var(--border)",
+        borderTop: "1px solid var(--border-default)",
         paddingTop: "2rem",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-        <Shield size={16} color="var(--gold-dim)" />
-        <p style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.12em", color: "var(--text-muted)" }}>
-          RESPONSIBLE AI — TRANSPARENCY STATEMENT
+        <Shield size={16} color="var(--silver)" />
+        <p style={{ fontSize: "0.72rem", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, letterSpacing: "0.14em", color: "var(--silver)" }}>
+          RESPONSIBLE AI & METHODOLOGICAL SPECIFICATION
         </p>
       </div>
       <div
         style={{
           background: "var(--bg-card)",
-          border: "1px solid var(--border-dim)",
-          borderRadius: 10,
-          padding: "1.2rem 1.5rem",
+          border: "1px solid var(--border-default)",
+          borderRadius: 4,
+          padding: "1.4rem 1.6rem",
           fontSize: "0.78rem",
-          color: "var(--text-muted)",
+          fontFamily: "JetBrains Mono, monospace",
+          color: "var(--silver)",
           lineHeight: 1.85,
         }}
       >
         <p>
-          <strong style={{ color: "var(--gold-bright)" }}>AeroPure provides a Pollutant-Based Air Quality Index Proxy.</strong>{" "}
-          It is <strong>not</strong> an official CPCB, EPA, or WHO AQI calculation. The current ML model is trained on historical
-          single-station atmospheric observations (Archive 1 — UCI Air Quality Dataset). Location-level deployment
-          requires compatible real-world pollutant and meteorological sensor inputs.
+          <strong style={{ color: "var(--air-white)" }}>AeroPure provides a Pollutant-Based Air Quality Index Proxy.</strong>{" "}
+          It is <strong>not</strong> an official CPCB, EPA, or WHO AQI calculation. The ML model is trained on historical
+          atmospheric observations (UCI Air Quality Dataset Archive). Location-level operational deployment
+          requires calibrated real-world sensor streams.
         </p>
         <p style={{ marginTop: "0.6rem" }}>
-          All location forecasts in Demo Mode use <strong style={{ color: "var(--gold)" }}>representative atmospheric baselines</strong>{" "}
-          derived from validated K-Means cluster mean statistics. These are <strong>model inputs</strong>, not claimed real-time
-          measurements for any city or area. Predictions are XGBoost model outputs and should not be interpreted as
-          medical or regulatory advice.
+          All location forecasts in Demo Mode utilize <strong style={{ color: "var(--air-white)" }}>representative atmospheric baselines</strong>{" "}
+          derived from validated K-Means cluster centroid statistics. These serve as <strong>model inputs</strong>, not direct
+          in-situ measurements for any specific municipality. Predictions are model outputs and do not constitute
+          medical or regulatory directives.
         </p>
         <p style={{ marginTop: "0.6rem" }}>
-          <strong style={{ color: "var(--gold-bright)" }}>SHAP explanations</strong> represent model feature contribution,
-          not physical causality. The index threshold of 180.0 is a project-defined elevated-pollution marker,
-          not an official regulatory standard.
+          <strong style={{ color: "var(--air-white)" }}>SHAP attributions</strong> reflect tree feature attribution rather than
+          physical atmospheric causality. The hazard ceiling of 180.0 is an academic project-defined elevated-pollution marker.
         </p>
-        <p style={{ marginTop: "0.6rem", color: "var(--text-faint)" }}>
-          AeroPure v1.0.0 — Academic ML Project · XGBoost Regressor (RMSE 39.27) + Classifier (F1 0.683)
-          · 113 leakage-safe features · Trained on 9,333 hourly observations.
+        <p style={{ marginTop: "0.6rem", color: "var(--steel)" }}>
+          AeroPure v1.0.0 — Atmospheric Research Architecture · XGBoost Regressor (RMSE 39.27) + Classifier (F1 0.683)
+          · 113 leakage-safe features · Evaluated on 9,333 hourly observations.
         </p>
       </div>
     </div>
