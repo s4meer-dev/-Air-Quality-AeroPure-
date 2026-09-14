@@ -135,3 +135,22 @@ export async function searchLocation(query: string): Promise<{ data: GeoLocation
     return { data: [], error: msg };
   }
 }
+
+export async function searchGlobalLocation(query: string): Promise<{ data: GeoLocation[] | null; error: string | null }> {
+  try {
+    const url = `${GEO_URL}/direct?q=${encodeURIComponent(query)}&limit=5&appid=${OPENWEATHER_KEY}`;
+    const res = await fetch(url, { next: { revalidate: 300 } });
+    if (!res.ok) {
+      if (res.status === 401) {
+        return { data: null, error: "OpenWeather API Key Unauthorized (401)" };
+      }
+      return { data: null, error: `OpenWeather Geo API Error: ${res.status}` };
+    }
+    const data: GeoLocation[] = await res.json();
+    return { data, error: null };
+  } catch (error: unknown) {
+    console.error("OpenWeather Geo API Fetch Error:", error);
+    return { data: null, error: (error as Error).message };
+  }
+}
+

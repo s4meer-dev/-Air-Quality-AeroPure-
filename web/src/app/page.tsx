@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
-import HeroMap from "@/components/HeroMap";
-import GlobalGeospatialExplorer from "@/components/GlobalGeospatialExplorer";
+import StampScrapbook from "@/components/StampScrapbook";
+import HoneycombSelector from "@/components/HoneycombSelector";
+import AeroMap from "@/components/AeroMap";
 import DualSourcePanel from "@/components/DualSourcePanel";
 import ForecastTimeline, { ForecastPoint } from "@/components/ForecastTimeline";
 import RegimeCard from "@/components/RegimeCard";
@@ -12,16 +13,21 @@ import WhatIfSimulator from "@/components/WhatIfSimulator";
 import DriftPanel from "@/components/DriftPanel";
 import ModelTrustPanel from "@/components/ModelTrustPanel";
 import ResponsibleAI from "@/components/ResponsibleAI";
-import DemoModeBanner from "@/components/DemoModeBanner";
-import { getArea, Area } from "@/lib/locations";
+import LiveGlobalSearch from "@/components/LiveGlobalSearch";
+import { GeoLocation } from "@/lib/openweather";
+import { CONTINENTS, COUNTRIES, STATES, CITIES, Continent, Country, StateRegion, City, Area, getArea } from "@/lib/locations";
 import { aeropureClient, PredictResponse, ExplainResponse, DriftResponse } from "@/lib/aeropure-client";
 import { buildForecastInput, FORECAST_OFFSETS } from "@/lib/demo-inputs";
 
 export default function HomePage() {
-  const [citySlug, setCitySlug] = useState("hyderabad");
-  const [areaSlug, setAreaSlug] = useState("gachibowli");
-
-  const [currentAreaObj, setCurrentAreaObj] = useState<Area | null>(() => getArea("hyderabad", "gachibowli") ?? null);
+  type NavLevel = "earth" | "continent" | "country" | "state" | "city" | "area";
+  const [navLevel, setNavLevel] = useState<NavLevel>("earth");
+  const [selectedContinent, setSelectedContinent] = useState<Continent | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+  const [selectedState, setSelectedState] = useState<StateRegion | null>(null);
+  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+  const [currentAreaObj, setCurrentAreaObj] = useState<Area | null>(null);
+  const [liveLocation, setLiveLocation] = useState<GeoLocation | null>(null);
 
   // Weather State
   const [weatherState, setWeatherState] = useState<{
@@ -59,320 +65,338 @@ export default function HomePage() {
       if (json.available && json.weather) {
         setWeatherState({
           available: true,
-          temp: json.weather.temp,
-          humidity: json.weather.humidity,
-          windSpeed: json.weather.wind_speed,
-          condition: json.weather.condition,
-          description: json.weather.description,
+          temp: json.weather.main.temp,
+          humidity: json.weather.main.humidity,
+          windSpeed: json.weather.wind.speed,
+          condition: json.weather.weather[0].main,
+          description: json.weather.weather[0].description,
         });
+        if (json.pollution && json.pollution.list && json.pollution.list.length > 0) {
+          const p = json.pollution.list[0];
+          setExternalPollution({
+            aqi: p.main.aqi,
+            co: p.components.co,
+            no2: p.components.no2,
+            o3: p.components.o3,
+            so2: p.components.so2,
+            pm2_5: p.components.pm2_5,
+            pm10: p.components.pm10,
+          });
+        }
       } else {
-        setWeatherState({ available: false, error: json.error ?? "OpenWeather API Key Pending Activation (401)" });
+        setWeatherState({ available: false, error: json.error });
       }
-
-      // External Pollution Reference
-      const pRes = await fetch(`/api/pollution?lat=${lat}&lon=${lon}`);
-      const pJson = await pRes.json();
-      if (pJson.available && pJson.pollution) {
-        setExternalPollution(pJson.pollution);
-      } else {
-        setExternalPollution(null);
-      }
-    } catch {
-      setWeatherState({ available: false, error: "Network Error Fetching OpenWeather" });
+    } catch (e) {
+      console.error(e);
+      setWeatherState({ available: false, error: "Failed to fetch weather" });
     }
   }, []);
 
-  // Fetch AeroPure ML Model Outputs
-  const fetchModelOutputs = useCallback(async (area: Area) => {
-    const now = new Date();
-    const currentInput = buildForecastInput(area, 0, now);
+  const handleAreaSelection = useCallback(async (cSlug: string, aSlug: string) => {
+    const area = getArea(cSlug, aSlug);
+    if (!area) return;
+    setCurrentAreaObj(area);
+    setLiveLocation(null);
+    setNavLevel("area");
 
+    // Fetch Weather
+    await fetchWeather(area.lat, area.lon);
+
+    // Fetch AeroPure ML Intelligence
     try {
-      // 1. Predict
-      const predRes = await aeropureClient.predict(currentInput);
+      const baseInput = buildForecastInput(area, 0);
+      const predRes = await aeropureClient.predict(baseInput);
       setPrediction(predRes);
 
-      // 2. Timeline (6 forecast points)
-      const fcTimeline = await Promise.all(
+      const expRes = await aeropureClient.explain(baseInput);
+      setExplanation(expRes);
+
+      const driftRes = await aeropureClient.drift();
+      setDrift(driftRes);
+
+      // Fetch Timeline (24h to 120h)
+      const tl = await Promise.all(
         FORECAST_OFFSETS.map(async (offset) => {
-          const inp = buildForecastInput(area, offset, now);
-          const res = await aeropureClient.predict(inp);
+          const inp = buildForecastInput(area, offset);
+          const r = await aeropureClient.predict(inp);
           return {
             hourOffset: offset,
-            label: offset === 0 ? "Now" : `+${offset}h`,
-            time: new Date(now.getTime() + offset * 3600 * 1000).toLocaleTimeString("en-IN", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            }),
-            predicted_aqi_proxy: res.predicted_aqi_proxy,
-            hazard_probability: res.hazard_probability,
-            hazardous: res.hazardous,
-            risk_category: res.risk_category,
-            pollution_regime: res.pollution_regime,
+            predicted_aqi_proxy: r.predicted_aqi_proxy,
+            hazard_probability: r.hazard_probability,
+            hazardous: r.hazardous,
+            risk_category: r.risk_category,
+            label: `+${offset}h`,
+            time: new Date(Date.now() + offset * 3600000).toISOString()
           };
         })
       );
-      setTimeline(fcTimeline);
+      setTimeline(tl);
+    } catch (err) {
+      console.error("AeroPure ML API Error:", err);
+      setPrediction(null);
+      setExplanation(null);
+      setTimeline([]);
+    }
+  }, [fetchWeather]);
 
-      // 3. Explain (SHAP)
-      const expRes = await aeropureClient.explain(currentInput);
+  const handleLiveLocationSelection = useCallback(async (loc: GeoLocation) => {
+    setLiveLocation(loc);
+    setCurrentAreaObj(null);
+    setNavLevel("area");
+    
+    await fetchWeather(loc.lat, loc.lon);
+
+    try {
+      // Mock an Area object for the inputs since the model needs lat/lon/elevation/etc.
+      // We assume elevation=0 or something generic since we don't have it.
+      const pseudoArea: Area = {
+        slug: loc.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        name: loc.name,
+        lat: loc.lat,
+        lon: loc.lon,
+        defaultRegimeHint: 0
+      };
+      
+      const baseInput = buildForecastInput(pseudoArea, 0);
+      const predRes = await aeropureClient.predict(baseInput);
+      setPrediction(predRes);
+
+      const expRes = await aeropureClient.explain(baseInput);
       setExplanation(expRes);
 
-      // 4. Drift
       const driftRes = await aeropureClient.drift();
       setDrift(driftRes);
+
+      const tl = await Promise.all(
+        FORECAST_OFFSETS.map(async (offset) => {
+          const inp = buildForecastInput(pseudoArea, offset);
+          const r = await aeropureClient.predict(inp);
+          return {
+            hourOffset: offset,
+            predicted_aqi_proxy: r.predicted_aqi_proxy,
+            hazard_probability: r.hazard_probability,
+            hazardous: r.hazardous,
+            risk_category: r.risk_category,
+            label: `+${offset}h`,
+            time: new Date(Date.now() + offset * 3600000).toISOString()
+          };
+        })
+      );
+      setTimeline(tl);
     } catch (err) {
-      console.error("ML Model Fetch Error:", err);
+      console.error("AeroPure ML API Error for Live Location:", err);
+      setPrediction(null);
+      setExplanation(null);
+      setTimeline([]);
     }
-  }, []);
+  }, [fetchWeather]);
 
-  // Handle Location Selection
-  const handleSelectArea = useCallback(
-    (newCitySlug: string, newAreaSlug: string) => {
-      setCitySlug(newCitySlug);
-      setAreaSlug(newAreaSlug);
-      const area = getArea(newCitySlug, newAreaSlug);
-      if (area) {
-        setCurrentAreaObj(area);
-        fetchWeather(area.lat, area.lon);
-        fetchModelOutputs(area);
-      }
-    },
-    [fetchWeather, fetchModelOutputs]
-  );
+  const handleContinentSelect = (continentId: string) => {
+    const cont = CONTINENTS.find(c => c.id === continentId) || null;
+    if (cont) {
+      setSelectedContinent(cont);
+      setNavLevel("continent");
+    }
+  };
 
-  // Initial Load & Updates
-  useEffect(() => {
-    let isMounted = true;
-    const targetArea = getArea(citySlug, areaSlug);
-    if (!targetArea) return;
+  const handleCountrySelect = (countryId: string) => {
+    const ctry = COUNTRIES.find(c => c.id === countryId) || null;
+    if (ctry) {
+      setSelectedCountry(ctry);
+      setNavLevel("country");
+    }
+  };
 
-    const area: Area = targetArea;
-    const now = new Date();
-    const currentInput = buildForecastInput(area, 0, now);
+  const handleStateSelect = (stateId: string) => {
+    const st = STATES.find(s => s.id === stateId) || null;
+    if (st) {
+      setSelectedState(st);
+      setNavLevel("state");
+    }
+  };
 
-    async function loadData() {
-      // 1. Weather Context
-      try {
-        const [wRes, pRes] = await Promise.all([
-          fetch(`/api/weather?lat=${area.lat}&lon=${area.lon}`).then((r) => r.json()).catch(() => ({ available: false })),
-          fetch(`/api/pollution?lat=${area.lat}&lon=${area.lon}`).then((r) => r.json()).catch(() => ({ available: false })),
-        ]);
-        if (!isMounted) return;
-        if (wRes.available && wRes.weather) {
-          setWeatherState({
-            available: true,
-            temp: wRes.weather.temp,
-            humidity: wRes.weather.humidity,
-            windSpeed: wRes.weather.wind_speed,
-            condition: wRes.weather.condition,
-            description: wRes.weather.description,
-          });
-        } else {
-          setWeatherState({ available: false, error: wRes.error ?? "OpenWeather API Key Pending Activation (401)" });
-        }
-        if (pRes.available && pRes.pollution) {
-          setExternalPollution(pRes.pollution);
-        } else {
-          setExternalPollution(null);
-        }
-      } catch {
-        if (isMounted) setWeatherState({ available: false, error: "Network Error Fetching OpenWeather" });
-      }
+  const handleCitySelect = (citySlug: string) => {
+    const c = CITIES.find(ci => ci.slug === citySlug) || null;
+    if (c) {
+      setSelectedCity(c);
+      setNavLevel("city");
+    }
+  };
 
-      // 2. AeroPure ML Outputs
-      try {
-        const [predRes, expRes, driftRes, fcTimeline] = await Promise.all([
-          aeropureClient.predict(currentInput),
-          aeropureClient.explain(currentInput),
-          aeropureClient.drift(),
-          Promise.all(
-            FORECAST_OFFSETS.map(async (offset) => {
-              const inp = buildForecastInput(area, offset, now);
-              const res = await aeropureClient.predict(inp);
-              return {
-                hourOffset: offset,
-                label: offset === 0 ? "Now" : `+${offset}h`,
-                time: new Date(now.getTime() + offset * 3600 * 1000).toLocaleTimeString("en-IN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                }),
-                predicted_aqi_proxy: res.predicted_aqi_proxy,
-                hazard_probability: res.hazard_probability,
-                hazardous: res.hazardous,
-                risk_category: res.risk_category,
-                pollution_regime: res.pollution_regime,
-              };
-            })
-          ),
-        ]);
-
-        if (!isMounted) return;
-        setPrediction(predRes);
-        setExplanation(expRes);
-        setDrift(driftRes);
-        setTimeline(fcTimeline);
-      } catch (err) {
-        console.error("ML Model Fetch Error:", err);
+  const handleAreaSelect = (areaSlug: string) => {
+    if (selectedCity) {
+      const a = selectedCity.areas.find(ar => ar.slug === areaSlug) || null;
+      if (a) {
+        handleAreaSelection(selectedCity.slug, a.slug);
       }
     }
+  };
 
-    loadData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [citySlug, areaSlug]);
+  const renderBreadcrumbs = () => {
+    const crumbs = ["EARTH"];
+    if (selectedContinent) crumbs.push(selectedContinent.name.toUpperCase());
+    if (selectedCountry && navLevel !== "earth" && navLevel !== "continent") crumbs.push(selectedCountry.name.toUpperCase());
+    if (selectedState && (navLevel === "state" || navLevel === "city" || navLevel === "area")) crumbs.push(selectedState.name.toUpperCase());
+    if (selectedCity && (navLevel === "city" || navLevel === "area")) crumbs.push(selectedCity.name.toUpperCase());
+    if (currentAreaObj && navLevel === "area") crumbs.push(currentAreaObj.name.toUpperCase());
+    if (liveLocation && navLevel === "area") crumbs.push(liveLocation.name.toUpperCase());
+    
+    return (
+      <div style={{ padding: "1rem 2rem", fontSize: "0.7rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)", letterSpacing: "0.1em", borderBottom: "1px solid var(--charcoal)" }}>
+        {crumbs.join(" / ")}
+      </div>
+    );
+  };
 
   return (
-    <div style={{ minHeight: "100dvh", background: "var(--bg-void)", color: "var(--text-primary)" }}>
-      <Navbar />
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      {navLevel !== "earth" && <Navbar />}
 
-      <main style={{ maxWidth: 1280, margin: "0 auto", padding: "2rem 1.5rem 4rem" }}>
-        {/* Phase 4 Hero Branding */}
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <span
-            style={{
-              fontFamily: "JetBrains Mono, monospace",
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              letterSpacing: "0.18em",
-              color: "var(--cloud)",
-              background: "rgba(255, 255, 255, 0.04)",
-              border: "1px solid var(--border-strong)",
-              padding: "0.35rem 1rem",
-              borderRadius: 3,
-              display: "inline-block",
-              marginBottom: "1rem",
-            }}
-          >
-            ATMOSPHERIC & AIR QUALITY INTELLIGENCE PLATFORM
-          </span>
+      <main style={{ flex: 1 }}>
+        {navLevel !== "earth" && renderBreadcrumbs()}
+        {navLevel !== "earth" && navLevel !== "area" && <LiveGlobalSearch onSelectLiveLocation={handleLiveLocationSelection} />}
 
-          <h1
-            style={{
-              fontFamily: "Orbitron, sans-serif",
-              fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
-              fontWeight: 900,
-              color: "var(--air-white)",
-              letterSpacing: "0.06em",
-              lineHeight: 1,
-              marginBottom: "0.5rem",
-              textShadow: "0 0 50px rgba(255, 255, 255, 0.18)",
-            }}
-          >
-            AEROPURE
-          </h1>
+        {/* GEOGRAPHIC INTELLIGENCE NAVIGATION */}
+        {navLevel === "earth" && (
+          <StampScrapbook onSelectContinent={handleContinentSelect} />
+        )}
 
-          <p
-            style={{
-              fontSize: "clamp(1.1rem, 2.5vw, 1.4rem)",
-              fontWeight: 300,
-              letterSpacing: "0.02em",
-              color: "var(--cloud)",
-              marginBottom: "0.5rem",
-            }}
-          >
-            KNOW TOMORROW&apos;S AIR. <span style={{ color: "var(--air-white)", fontWeight: 600 }}>TODAY.</span>
-          </p>
-
-          <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", maxWidth: 640, margin: "0 auto" }}>
-            Model-driven air-quality intelligence combining pollutant observations, environmental conditions, and historical patterns.
-          </p>
-        </div>
-
-        {/* Global Geographic Intelligence Explorer (Earth -> Continent -> Country -> State -> City -> Area) */}
-        <section id="location-index" style={{ marginBottom: "2.5rem" }}>
-          <GlobalGeospatialExplorer
-            selectedCitySlug={citySlug}
-            selectedAreaSlug={areaSlug}
-            onSelectFinalLocation={handleSelectArea}
+        {navLevel === "continent" && selectedContinent && (
+          <HoneycombSelector 
+            title={`COUNTRIES IN ${selectedContinent.name.toUpperCase()}`} 
+            regions={COUNTRIES.filter(c => c.continentId === selectedContinent.id).map(c => ({
+              id: c.id, name: c.name.toUpperCase(), status: "active"
+            }))}
+            onSelect={handleCountrySelect}
           />
-        </section>
+        )}
 
-        {/* Phase 4 Hero Map Viewport */}
-        <section style={{ marginBottom: "2.5rem" }}>
-          <HeroMap
-            selectedArea={areaSlug}
-            currentAreaObj={currentAreaObj}
-            onSelectArea={handleSelectArea}
-            weatherState={weatherState}
-            onRetryWeather={() => currentAreaObj && fetchWeather(currentAreaObj.lat, currentAreaObj.lon)}
+        {navLevel === "country" && selectedCountry && (
+          <HoneycombSelector 
+            title={`REGIONS IN ${selectedCountry.name.toUpperCase()}`} 
+            regions={STATES.filter(s => s.countryId === selectedCountry.id).map(s => ({
+              id: s.id, name: s.name.toUpperCase(), status: "active"
+            }))}
+            onSelect={handleStateSelect}
           />
-        </section>
+        )}
 
-        {/* Demo Mode Notice */}
-        <DemoModeBanner />
-
-        {/* Phase 5 & 7 Dual-Source Presentation */}
-        <section id="forecast">
-          <DualSourcePanel
-            weatherState={weatherState}
-            prediction={prediction}
-            externalPollution={externalPollution}
-            onRetryWeather={() => currentAreaObj && fetchWeather(currentAreaObj.lat, currentAreaObj.lon)}
+        {navLevel === "state" && selectedState && (
+          <HoneycombSelector 
+            title={`CITIES IN ${selectedState.name.toUpperCase()}`} 
+            regions={CITIES.filter(c => c.stateId === selectedState.id).map(c => ({
+              id: c.slug, name: c.name.toUpperCase(), status: "active"
+            }))}
+            onSelect={handleCitySelect}
           />
-        </section>
-
-        {/* Phase 6 Model-Estimated Forecast Timeline */}
-        {timeline.length > 0 && (
-          <section style={{ background: "var(--bg-card)", border: "1px solid var(--border-default)", borderRadius: 4, padding: "1.5rem", marginBottom: "2.5rem" }}>
-            <ForecastTimeline timeline={timeline} />
-            <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "1rem", textAlign: "right" }}>
-              * Methodological Note: Forecast points represent discrete model inference under available observation/state assumptions.
-            </p>
-          </section>
         )}
 
-        {/* Phase 10 Atmospheric Regime */}
-        {prediction && (
-          <section style={{ marginBottom: "2.5rem" }}>
-            <RegimeCard regime={prediction.pollution_regime} />
-          </section>
+        {navLevel === "city" && selectedCity && (
+          <HoneycombSelector 
+            title={`AREAS IN ${selectedCity.name.toUpperCase()}`} 
+            regions={selectedCity.areas.map(a => ({
+              id: a.slug, name: a.name.toUpperCase(), status: "active"
+            }))}
+            onSelect={handleAreaSelect}
+          />
         )}
 
-        {/* Phase 9 SHAP Model Contribution Analysis */}
-        {explanation && (
-          <section id="explainability" style={{ marginBottom: "2.5rem" }}>
-            <ShapExplainer
-              positiveContributors={explanation.top_positive_contributors}
-              negativeContributors={explanation.top_negative_contributors}
-              summary={explanation.explanation_summary}
-              baseValue={explanation.base_expected_value}
-            />
-          </section>
+        {navLevel === "area" && (currentAreaObj || liveLocation) && (
+          <div style={{ padding: "0" }}>
+            {/* Phase 7: Hero Map & Context */}
+            {currentAreaObj && <AeroMap currentAreaObj={currentAreaObj} />}
+            {liveLocation && <AeroMap currentAreaObj={{
+              slug: liveLocation.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+              name: liveLocation.name,
+              lat: liveLocation.lat,
+              lon: liveLocation.lon,
+              defaultRegimeHint: 0
+            }} />}
+
+            <div style={{ padding: "3rem 2rem", maxWidth: "1400px", margin: "0 auto", display: "grid", gridTemplateColumns: "2fr 1fr", gap: "3rem" }}>
+              <div>
+                <button 
+                  onClick={() => setNavLevel("earth")}
+                  style={{
+                    background: "transparent", border: "1px solid var(--steel)", color: "var(--silver)",
+                    padding: "0.4rem 1rem", fontSize: "0.7rem", fontFamily: "JetBrains Mono, monospace",
+                    cursor: "pointer", marginBottom: "2rem"
+                  }}
+                >
+                  ← BACK TO GLOBAL EXPLORER
+                </button>
+                {/* Phase 8 & 9: Model Insights */}
+                <h2 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "2rem", color: "var(--air-white)", marginBottom: "1rem" }}>
+                  AEROPURE INTELLIGENCE
+                </h2>
+                {/* DualSourcePanel renders both if available, but handles nulls gracefully */}
+                <DualSourcePanel 
+                  prediction={prediction} 
+                  externalPollution={externalPollution} 
+                  weatherState={weatherState} 
+                  onRetryWeather={() => fetchWeather(currentAreaObj?.lat || liveLocation?.lat || 0, currentAreaObj?.lon || liveLocation?.lon || 0)} 
+                />
+
+                {prediction ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+                    <ForecastTimeline timeline={timeline} />
+                    <RegimeCard regime={prediction.pollution_regime} />
+                  </div>
+                ) : (
+                  <div style={{
+                    padding: "2rem",
+                    border: "1px solid var(--charcoal)",
+                    background: "rgba(36,36,35,0.3)",
+                    color: "var(--mist)",
+                    fontFamily: "JetBrains Mono, monospace",
+                    textAlign: "center"
+                  }}>
+                    AeroPure predictive modeling is unavailable for this location because compatible model inputs are insufficient.
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                {prediction && (
+                  <>
+                    <WhatIfSimulator />
+                    
+                    {explanation && (
+                      <div style={{ marginTop: "2rem" }}>
+                        <ShapExplainer 
+                          positiveContributors={explanation.top_positive_contributors}
+                          negativeContributors={explanation.top_negative_contributors}
+                          summary={explanation.explanation_summary}
+                          baseValue={explanation.base_expected_value}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Governance & Trust */}
+            <div style={{ background: "#111111", borderTop: "1px solid #333333", padding: "4rem 2rem" }}>
+              <div style={{ maxWidth: "1400px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3rem" }}>
+                {drift && (
+                  <DriftPanel 
+                    driftStatus={drift.drift_status}
+                    meanPsi={drift.mean_psi}
+                    retrainingFlagged={drift.retraining_flagged}
+                    recommendation={drift.recommendation}
+                    significantDriftFeatures={drift.significant_drift_features}
+                    psiByFeature={drift.psi_by_feature}
+                  />
+                )}
+                <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+                  <ModelTrustPanel />
+                  <ResponsibleAI />
+                </div>
+              </div>
+            </div>
+          </div>
         )}
-
-        {/* Phase 11 What-If Scenario Analysis */}
-        <section style={{ marginBottom: "2.5rem" }}>
-          <WhatIfSimulator />
-        </section>
-
-        {/* Phase 12 Drift Governance */}
-        {drift && (
-          <section id="governance" style={{ marginBottom: "2.5rem" }}>
-            <DriftPanel
-              driftStatus={drift.drift_status}
-              meanPsi={drift.mean_psi}
-              retrainingFlagged={drift.retraining_flagged}
-              recommendation={drift.recommendation}
-              significantDriftFeatures={drift.significant_drift_features}
-              psiByFeature={drift.psi_by_feature}
-            />
-          </section>
-        )}
-
-        {/* Phase 13 Model Trust Panel */}
-        <section style={{ marginBottom: "2.5rem" }}>
-          <ModelTrustPanel />
-        </section>
-
-        {/* Phase 14 Methodology & Responsible AI */}
-        <section id="methodology">
-          <ResponsibleAI />
-        </section>
       </main>
     </div>
   );

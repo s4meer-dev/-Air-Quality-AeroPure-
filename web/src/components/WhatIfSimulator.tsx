@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Sliders } from "lucide-react";
+import { Loader2, Sliders, ChevronDown, ChevronUp, Wind } from "lucide-react";
 
 interface SimResult {
   predicted_aqi_proxy: number;
@@ -9,18 +9,31 @@ interface SimResult {
   hazardous: boolean;
   risk_category: string;
   pollution_regime: string;
+  current_aqi_proxy: number;
 }
 
+// 5 Core User-Facing Inputs
 const DEFAULT_VALUES = {
   co: 2.0,
   no2: 100.0,
   c6h6: 8.0,
-  nox: 200.0,
   temperature: 20.0,
   relative_humidity: 50.0,
+};
+
+// We hide the other required inputs for the API as constants
+const HIDDEN_CONTEXT = {
+  nox: 200.0,
   hour: 14,
   month: 6,
   day_of_week: 2,
+};
+
+const PRESETS = {
+  CLEAN: { co: 0.5, no2: 20.0, c6h6: 1.0, temperature: 18.0, relative_humidity: 45.0 },
+  NORMAL: { co: 1.5, no2: 80.0, c6h6: 5.0, temperature: 22.0, relative_humidity: 50.0 },
+  ELEVATED: { co: 4.0, no2: 150.0, c6h6: 15.0, temperature: 28.0, relative_humidity: 65.0 },
+  SEVERE: { co: 8.0, no2: 300.0, c6h6: 40.0, temperature: 35.0, relative_humidity: 80.0 },
 };
 
 function Slider({ label, unit, min, max, step, value, onChange }: {
@@ -53,13 +66,20 @@ function Slider({ label, unit, min, max, step, value, onChange }: {
 }
 
 export default function WhatIfSimulator() {
+  const [mode, setMode] = useState<"beginner" | "advanced">("beginner");
   const [values, setValues] = useState(DEFAULT_VALUES);
   const [result, setResult] = useState<SimResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showTechDetails, setShowTechDetails] = useState(false);
 
   function set(key: keyof typeof DEFAULT_VALUES) {
     return (v: number) => setValues((prev) => ({ ...prev, [key]: v }));
+  }
+
+  function applyPreset(presetName: keyof typeof PRESETS) {
+    setValues(PRESETS[presetName]);
+    setResult(null); // Clear previous result
   }
 
   async function runSimulation() {
@@ -70,15 +90,8 @@ export default function WhatIfSimulator() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          co: values.co,
-          no2: values.no2,
-          c6h6: values.c6h6,
-          nox: values.nox,
-          temperature: values.temperature,
-          relative_humidity: values.relative_humidity,
-          hour: values.hour,
-          month: values.month,
-          day_of_week: values.day_of_week,
+          ...values,
+          ...HIDDEN_CONTEXT, // Pass the required hidden context to the API
         }),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? "Inference failed");
@@ -94,36 +107,121 @@ export default function WhatIfSimulator() {
     <div id="what-if">
       <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.4rem" }}>
         <Sliders size={16} color="var(--air-white)" />
-        <p className="section-label" style={{ margin: 0 }}>SCENARIO SIMULATION & SENSITIVITY INSTRUMENTATION</p>
+        <p className="section-label" style={{ margin: 0 }}>SCENARIO SIMULATION</p>
       </div>
       <p style={{ fontSize: "0.78rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)", marginBottom: "1.4rem" }}>
-        Adjust atmospheric parameters to explore model response sensitivity. Driven by live AeroPure XGBoost inference.{" "}
-        <strong style={{ color: "var(--air-white)" }}>Observation parameter exploration — not causal intervention.</strong>
+        Explore how atmospheric conditions impact the next-day AQI proxy forecast using our production ML model.
       </p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0 2rem" }}>
-        <div>
-          <Slider label="CO(GT)" unit="mg/m³" name="co" min={0.2} max={12} step={0.1} value={values.co} onChange={set("co")} />
-          <Slider label="NO₂(GT)" unit="µg/m³" name="no2" min={10} max={350} step={5} value={values.no2} onChange={set("no2")} />
-          <Slider label="C₆H₆(GT)" unit="µg/m³" name="c6h6" min={0.2} max={50} step={0.5} value={values.c6h6} onChange={set("c6h6")} />
+      {/* Mode Selector */}
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem" }}>
+        <button
+          onClick={() => setMode("beginner")}
+          style={{
+            background: mode === "beginner" ? "var(--air-white)" : "transparent",
+            color: mode === "beginner" ? "var(--void)" : "var(--silver)",
+            border: `1px solid ${mode === "beginner" ? "var(--air-white)" : "var(--steel)"}`,
+            padding: "0.4rem 1rem",
+            fontFamily: "JetBrains Mono, monospace",
+            fontSize: "0.75rem",
+            cursor: "pointer",
+            fontWeight: mode === "beginner" ? 700 : 400,
+          }}
+        >
+          PRESETS (BEGINNER)
+        </button>
+        <button
+          onClick={() => setMode("advanced")}
+          style={{
+            background: mode === "advanced" ? "var(--air-white)" : "transparent",
+            color: mode === "advanced" ? "var(--void)" : "var(--silver)",
+            border: `1px solid ${mode === "advanced" ? "var(--air-white)" : "var(--steel)"}`,
+            padding: "0.4rem 1rem",
+            fontFamily: "JetBrains Mono, monospace",
+            fontSize: "0.75rem",
+            cursor: "pointer",
+            fontWeight: mode === "advanced" ? 700 : 400,
+          }}
+        >
+          MANUAL (ADVANCED)
+        </button>
+      </div>
+
+      {mode === "beginner" ? (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.8rem", marginBottom: "1.5rem" }}>
+          {Object.keys(PRESETS).map((key) => (
+            <button
+              key={key}
+              onClick={() => applyPreset(key as keyof typeof PRESETS)}
+              style={{
+                background: "#111111",
+                color: "var(--air-white)",
+                border: "1px solid var(--steel)",
+                padding: "0.6rem 1.2rem",
+                fontFamily: "JetBrains Mono, monospace",
+                fontSize: "0.7rem",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.4rem",
+              }}
+            >
+              <Wind size={12} /> {key.replace("_", " ")}
+            </button>
+          ))}
         </div>
-        <div>
-          <Slider label="NOx(GT)" unit="ppb" name="nox" min={10} max={1000} step={10} value={values.nox} onChange={set("nox")} />
-          <Slider label="Temperature" unit="°C" name="temperature" min={-5} max={45} step={1} value={values.temperature} onChange={set("temperature")} />
-          <Slider label="Relative Humidity" unit="%" name="relative_humidity" min={10} max={95} step={5} value={values.relative_humidity} onChange={set("relative_humidity")} />
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0 2rem", marginBottom: "1.5rem" }}>
+          <div>
+            <Slider label="CO(GT)" unit="mg/m³" name="co" min={0.2} max={12} step={0.1} value={values.co} onChange={set("co")} />
+            <Slider label="NO₂(GT)" unit="µg/m³" name="no2" min={10} max={350} step={5} value={values.no2} onChange={set("no2")} />
+            <Slider label="C₆H₆(GT)" unit="µg/m³" name="c6h6" min={0.2} max={50} step={0.5} value={values.c6h6} onChange={set("c6h6")} />
+          </div>
+          <div>
+            <Slider label="Temperature" unit="°C" name="temperature" min={-5} max={45} step={1} value={values.temperature} onChange={set("temperature")} />
+            <Slider label="Relative Humidity" unit="%" name="relative_humidity" min={10} max={95} step={5} value={values.relative_humidity} onChange={set("relative_humidity")} />
+          </div>
         </div>
-        <div>
-          <Slider label="Hour of Day" unit="h" name="hour" min={0} max={23} step={1} value={values.hour} onChange={set("hour")} />
-          <Slider label="Month" unit="" name="month" min={1} max={12} step={1} value={values.month} onChange={set("month")} />
-          <Slider label="Day of Week (0=Mon)" unit="" name="day_of_week" min={0} max={6} step={1} value={values.day_of_week} onChange={set("day_of_week")} />
-        </div>
+      )}
+
+      {/* Technical Details Accordion */}
+      <div style={{ marginBottom: "1.5rem", borderTop: "1px solid var(--charcoal)", borderBottom: "1px solid var(--charcoal)" }}>
+        <button
+          onClick={() => setShowTechDetails(!showTechDetails)}
+          style={{
+            width: "100%",
+            background: "transparent",
+            border: "none",
+            padding: "0.8rem 0",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            color: "var(--silver)",
+            fontFamily: "JetBrains Mono, monospace",
+            fontSize: "0.7rem",
+            cursor: "pointer",
+            textAlign: "left",
+          }}
+        >
+          <span>TECHNICAL EXPLANATION: MODEL SENSITIVITY</span>
+          {showTechDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+        {showTechDetails && (
+          <div style={{ padding: "0 0 1rem 0", color: "var(--cloud)", fontSize: "0.75rem", lineHeight: 1.5 }}>
+            <p style={{ marginBottom: "0.5rem" }}>
+              <strong>AeroPure Architecture (113-Feature XGBoost):</strong>
+            </p>
+            <p>
+              AeroPure evaluates current conditions together with historical temporal and rolling features. Changing one environmental variable therefore changes the prediction without completely replacing the surrounding atmospheric context.
+            </p>
+          </div>
+        )}
       </div>
 
       <button
         onClick={runSimulation}
         disabled={loading}
         style={{
-          marginTop: "1rem",
           background: "var(--air-white)",
           color: "var(--void)",
           fontFamily: "JetBrains Mono, monospace",
@@ -168,7 +266,7 @@ export default function WhatIfSimulator() {
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem" }}>
             <div>
-              <p className="section-label">FORECAST AQI PROXY</p>
+              <p className="section-label">PREDICTED AQI PROXY</p>
               <p style={{
                 fontFamily: "Orbitron, sans-serif",
                 fontSize: "2.6rem", fontWeight: 900,
@@ -176,6 +274,16 @@ export default function WhatIfSimulator() {
                 textShadow: "0 0 25px rgba(255,255,255,0.3)",
                 lineHeight: 1,
               }}>{result.predicted_aqi_proxy.toFixed(1)}</p>
+              {result.current_aqi_proxy !== undefined && (
+                <p style={{ 
+                  fontSize: "0.74rem", fontFamily: "JetBrains Mono, monospace", 
+                  color: "var(--silver)", marginTop: "0.5rem",
+                  fontWeight: 600
+                }}>
+                  {result.predicted_aqi_proxy > result.current_aqi_proxy ? "+" : ""}
+                  {(result.predicted_aqi_proxy - result.current_aqi_proxy).toFixed(1)} vs current
+                </p>
+              )}
             </div>
             <div>
               <p className="section-label">HAZARD PROBABILITY</p>

@@ -150,7 +150,7 @@ export default function DualSourcePanel({
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
               <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.68rem", fontWeight: 700, color: "var(--silver)", letterSpacing: "0.14em" }}>
-                AEROPURE MODEL
+                AEROPURE PREDICTED AQI PROXY
               </span>
               <span
                 style={{
@@ -236,7 +236,7 @@ export default function DualSourcePanel({
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
             <span style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "var(--silver)", letterSpacing: "0.1em" }}>
-              EXTERNAL SENSOR BENCHMARK (REFERENCE TELEMETRY)
+              WORLD AQI INDEX (EXTERNAL REFERENCE TELEMETRY)
             </span>
             <span style={{ fontSize: "0.64rem", fontFamily: "JetBrains Mono, monospace", color: "var(--steel)" }}>SOURCE: OPENWEATHER AIR POLLUTION API</span>
           </div>
