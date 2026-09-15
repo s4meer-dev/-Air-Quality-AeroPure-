@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import StampScrapbook from "@/components/StampScrapbook";
+import ContinentArchiveView from "@/components/ContinentArchiveView";
 import HoneycombSelector from "@/components/HoneycombSelector";
 import AeroMap from "@/components/AeroMap";
 import DualSourcePanel from "@/components/DualSourcePanel";
@@ -250,11 +251,11 @@ export default function HomePage() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {navLevel !== "earth" && <Navbar />}
+      {navLevel !== "earth" && navLevel !== "continent" && <Navbar />}
 
       <main style={{ flex: 1 }}>
-        {navLevel !== "earth" && renderBreadcrumbs()}
-        {navLevel !== "earth" && navLevel !== "area" && <LiveGlobalSearch onSelectLiveLocation={handleLiveLocationSelection} />}
+        {navLevel !== "earth" && navLevel !== "continent" && renderBreadcrumbs()}
+        {navLevel !== "earth" && navLevel !== "continent" && navLevel !== "area" && <LiveGlobalSearch onSelectLiveLocation={handleLiveLocationSelection} />}
 
         {/* GEOGRAPHIC INTELLIGENCE NAVIGATION */}
         {navLevel === "earth" && (
@@ -262,12 +263,11 @@ export default function HomePage() {
         )}
 
         {navLevel === "continent" && selectedContinent && (
-          <HoneycombSelector 
-            title={`COUNTRIES IN ${selectedContinent.name.toUpperCase()}`} 
-            regions={COUNTRIES.filter(c => c.continentId === selectedContinent.id).map(c => ({
-              id: c.id, name: c.name.toUpperCase(), status: "active"
-            }))}
-            onSelect={handleCountrySelect}
+          <ContinentArchiveView
+            continent={selectedContinent}
+            onSelectCountry={handleCountrySelect}
+            onBackToEarth={() => setNavLevel("earth")}
+            onSelectLiveLocation={handleLiveLocationSelection}
           />
         )}
 
