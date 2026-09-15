@@ -29,7 +29,7 @@ interface Props {
   weatherState: { available: boolean; weather?: WeatherData; error?: string };
   prediction: PredictResponse | null;
   externalPollution?: ExternalPollutionData | null;
-  onRetryWeather: () => void;
+  onRetryWeather?: () => void;
 }
 
 export default function DualSourcePanel({

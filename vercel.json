@@ -1,23 +1,18 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "web/package.json",
-      "use": "@vercel/next"
+  "framework": "nextjs",
+  "buildCommand": "npm install --prefix web --include=dev && npm run build --prefix web",
+  "outputDirectory": "web/.next",
+  "functions": {
+    "api/index.py": {
+      "memory": 1024,
+      "maxDuration": 60
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/pyapi/(.*)",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "web/$1"
+      "source": "/pyapi/:path*",
+      "destination": "/api/index.py"
     }
   ]
 }

@@ -129,7 +129,6 @@ export default async function AreaPage({ params }: Props) {
           weatherState={weatherState}
           prediction={pred}
           externalPollution={pollutionObj.data}
-          onRetryWeather={() => {}}
         />
 
         {/* Forecast Timeline */}

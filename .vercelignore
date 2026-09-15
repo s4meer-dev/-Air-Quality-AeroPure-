@@ -1,0 +1,15 @@
+data/
+outputs/predictions/
+outputs/figures/
+outputs/reports/
+outputs/models/
+tests/
+scratch/
+docs/
+.venv/
+web/.next/
+web/node_modules/
+node_modules/
+*.csv
+*.tsv
+
