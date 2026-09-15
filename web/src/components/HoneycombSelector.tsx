@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 
 interface Region {
   id: string;
@@ -35,7 +34,7 @@ export default function HoneycombSelector({ regions, title, onSelect }: { region
         {regions.map((region) => (
           <div 
             key={region.id}
-            onClick={(e) => {
+            onClick={() => {
               if (region.status === "active" && onSelect) onSelect(region.id);
             }}
             style={{ textDecoration: "none", pointerEvents: region.status === "active" ? "auto" : "none" }}

@@ -29,7 +29,7 @@ export default function LiveGlobalSearch({ onSelectLiveLocation }: LiveGlobalSea
         } else if (json.error) {
           setError(json.error);
         }
-      } catch (err) {
+      } catch {
         setError("Search failed");
       } finally {
         setLoading(false);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import StampScrapbook from "@/components/StampScrapbook";
 import HoneycombSelector from "@/components/HoneycombSelector";

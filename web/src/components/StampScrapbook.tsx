@@ -1,363 +1,481 @@
 "use client";
 
 /**
- * StampScrapbook — Physical stamp collection on dark surface.
+ * StampScrapbook — Exact Framer port.
+ * Source: https://framer.com/m/StampScrapbook-eEEr79.js@jDvcRGMMShsLg00dZ1ku
  *
- * Design: Seven postage stamps arranged in a scrapbook composition.
- * Each stamp is a self-contained SVG with:
- *   - Perforated edges (SVG mask, holes cut through to dark page background)
- *   - Recognizable continent geographic silhouette
- *   - Continent name, denomination, series details
+ * All physics, geometry and layout are a direct translation of the Framer
+ * source (minified above).  The proprietary Framer runtime is replaced with:
+ *   - useAnimationFrame, useInView, useMotionValue, useTransform  (framer-motion)
+ *   - createPortal                                                 (react-dom)
  *
- * Palette: AeroPure monochrome only (#F2F2F0 → #070707).
- * No 3D ring. No carousel. All stamps visible simultaneously.
- * Hover lifts the stamp. Click triggers geographic navigation.
+ * The original stamp photographs are replaced with AeroPure continent stamps
+ * rendered via CSS + grayscale filter, matching the AeroPure monochrome palette.
+ *
+ * @framerIntrinsicWidth  1200
+ * @framerIntrinsicHeight 640
  */
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, {
+  useRef,
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  startTransition,
+} from "react";
+import { createPortal } from "react-dom";
+import {
+  motion,
+  AnimatePresence,
+  useAnimationFrame,
+  useInView,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+  type MotionValue,
+} from "framer-motion";
 
-// ─── Continent definitions ────────────────────────────────────────────────────
-// SVG paths are in a 100×100 coordinate space.
-// They are scaled to fit the stamp content area via preserveAspectRatio.
-// Shapes are simplified but immediately recognizable geographic silhouettes.
-const CONTINENTS = [
+// ─── Stamp data ───────────────────────────────────────────────────────────────
+// Each stamp image lives in /public/stamps/<id>.jpg
+// They are rendered with filter:grayscale(1) for the AeroPure monochrome palette.
+const FALLBACK_STAMPS = [
   {
     id: "north-america",
-    name: "NORTH AMERICA",
-    sub: "WESTERN HEMISPHERE",
-    denom: "30",
-    rotate: -3.5,
-    // Classic triangular landmass, wide at top (Canada), narrows to Central America
-    path: "M28,6 L74,6 L84,16 L80,27 L74,37 L63,46 L54,55 L43,55 L34,48 L26,38 L18,26 L16,14 Z",
+    title: "North America",
+    caption: "WESTERN AIR CORRIDOR · 30¢",
+    description:
+      "From the Pacific Coast to the Gulf of Mexico — the jet stream shapes tomorrow's air for 600 million people.",
+    src: "/stamps/north-america.jpg",
   },
   {
     id: "south-america",
-    name: "SOUTH AMERICA",
-    sub: "EQUATORIAL ZONE",
-    denom: "20",
-    rotate: 2.5,
-    // Pear-shaped, wide at top, tapers to Cape Horn at bottom
-    path: "M36,6 L66,8 L76,22 L74,37 L68,53 L58,70 L48,82 L40,71 L33,55 L29,38 L31,22 Z",
+    title: "South America",
+    caption: "EQUATORIAL ZONE · 20¢",
+    description:
+      "The Amazon Basin breathes for the planet. Deforestation pressure makes its air quality a global indicator.",
+    src: "/stamps/south-america.jpg",
   },
   {
     id: "europe",
-    name: "EUROPE",
-    sub: "NORTHERN MARITIME",
-    denom: "40",
-    rotate: -1.5,
-    // Compact irregular blob — Scandinavian peninsula top-right, Iberia bottom-left
-    path: "M30,10 L56,8 L70,15 L74,27 L69,39 L57,46 L43,45 L30,38 L22,28 L25,16 Z",
+    title: "Europe",
+    caption: "NORTHERN MARITIME · 40¢",
+    description:
+      "Dense industry meets Atlantic westerlies. Europe's air corridors carry pollutants across borders daily.",
+    src: "/stamps/europe.jpg",
   },
   {
     id: "africa",
-    name: "AFRICA",
-    sub: "SAHARAN CORRIDOR",
-    denom: "25",
-    rotate: 4,
-    // Large rounded diamond — widest in middle, pointed Cape of Good Hope at base
-    path: "M36,5 L64,5 L82,22 L83,44 L75,63 L64,79 L50,88 L36,79 L25,63 L17,44 L18,22 Z",
+    title: "Africa",
+    caption: "SAHARAN CORRIDOR · 25¢",
+    description:
+      "Saharan dust travels thousands of kilometres, seeding oceans and degrading air quality across continents.",
+    src: "/stamps/africa.jpg",
   },
   {
     id: "asia",
-    name: "ASIA",
-    sub: "EASTERN MONSOON",
-    denom: "60",
-    // Extremely wide — from Arabian Peninsula (left) to Russian Far East (right)
-    // Indian subcontinent protrudes south; Southeast Asia protrudes lower-right
-    rotate: -2.5,
-    path: "M5,13 L35,7 L68,4 L88,11 L95,27 L91,44 L76,58 L60,67 L42,67 L28,59 L16,48 L5,33 L2,19 Z",
+    title: "Asia",
+    caption: "EASTERN MONSOON ZONE · 60¢",
+    description:
+      "Home to the world's most polluted cities and its largest clean-air reserves. The monsoon resets the slate each year.",
+    src: "/stamps/asia.jpg",
   },
   {
     id: "oceania",
-    name: "OCEANIA",
-    sub: "SOUTHERN PACIFIC",
-    denom: "15",
-    // Australia: broad kidney shape, slightly indented north coast
-    rotate: 1.5,
-    path: "M24,18 L58,12 L78,22 L84,40 L78,58 L58,70 L33,66 L15,55 L12,38 L20,25 Z",
+    title: "Oceania",
+    caption: "SOUTHERN CLEAN AIR · 15¢",
+    description:
+      "The Southern Ocean delivers some of the cleanest air on Earth — a baseline against which all other regions are measured.",
+    src: "/stamps/oceania.jpg",
   },
   {
     id: "antarctica",
-    name: "ANTARCTICA",
-    sub: "POLAR VORTEX",
-    denom: "10",
-    // Top-down view: roughly circular with indentations (Ross Sea, Weddell Sea)
-    rotate: -4,
-    path: "M50,10 L70,17 L85,30 L88,50 L81,68 L64,79 L50,83 L36,79 L19,68 L12,50 L15,30 L30,17 Z",
+    title: "Antarctica",
+    caption: "POLAR VORTEX BASELINE · 10¢",
+    description:
+      "The polar vortex is the atmospheric reference point for the planet's pristine pre-industrial air.",
+    src: "/stamps/antarctica.jpg",
   },
 ];
 
-// ─── Stamp SVG geometry ───────────────────────────────────────────────────────
-const SW = 200; // SVG coordinate width
-const SH = 300; // SVG coordinate height (2:3 portrait)
-const PR = 7;   // perforation hole radius
-const PP = 16;  // perforation pitch (center-to-center)
+// ─── Geometry (exact Framer) ──────────────────────────────────────────────────
+const STAMP_ASPECT = 2 / 3; // portrait
 
-// Build perforation circles once (reused per stamp via different mask IDs)
-function makePerforations() {
-  const nodes: React.ReactNode[] = [];
-  const hCount = Math.floor((SW - PR) / PP) + 1;
-  const hStart = (SW - (hCount - 1) * PP) / 2;
-  for (let i = 0; i < hCount; i++) {
-    const cx = hStart + i * PP;
-    nodes.push(<circle key={`t${i}`} cx={cx} cy={0} r={PR} />);
-    nodes.push(<circle key={`b${i}`} cx={cx} cy={SH} r={PR} />);
-  }
-  const vCount = Math.floor((SH - PR) / PP) + 1;
-  const vStart = (SH - (vCount - 1) * PP) / 2;
-  for (let i = 0; i < vCount; i++) {
-    const cy = vStart + i * PP;
-    nodes.push(<circle key={`l${i}`} cx={0} cy={cy} r={PR} />);
-    nodes.push(<circle key={`r${i}`} cx={SW} cy={cy} r={PR} />);
-  }
-  return nodes;
+function ringRadius(count: number, stampWidth: number, spread: number) {
+  if (count < 3) return stampWidth * 0.75 * spread;
+  return (stampWidth / (2 * Math.tan(Math.PI / count))) * 1.18 * spread;
 }
-const PERF_NODES = makePerforations();
 
-// ─── Single stamp component ───────────────────────────────────────────────────
-function Stamp({
-  continent,
-  onClick,
-}: {
-  continent: (typeof CONTINENTS)[number];
-  onClick: () => void;
-}) {
-  const maskId = `ap-mask-${continent.id}`;
-  const dotId  = `ap-dot-${continent.id}`;
-  const fontSize = continent.name.length > 11 ? 9 : 11;
+// ─── postcard slide variants (exact Framer) ───────────────────────────────────
+const POSTCARD_VARIANTS = {
+  enter: (dir: number) => ({
+    x: dir === 0 ? 0 : dir > 0 ? 320 : -320,
+    rotateY: dir === 0 ? -90 : 0,
+    rotate: dir === 0 ? 0 : dir > 0 ? 8 : -8,
+    scale: dir === 0 ? 0.75 : 1,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    rotateY: 0,
+    rotate: -1.5,
+    scale: 1,
+    opacity: 1,
+  },
+  exit: (dir: number) => ({
+    x: dir === 0 ? 0 : dir > 0 ? -320 : 320,
+    rotateY: dir === 0 ? 90 : 0,
+    rotate: dir === 0 ? 0 : dir > 0 ? -8 : 8,
+    scale: dir === 0 ? 0.75 : 1,
+    opacity: 0,
+  }),
+};
+
+// ─── Ruled lines (exact Framer helper) ───────────────────────────────────────
+function ruledLines(pitch: number): React.CSSProperties {
+  const lineAt = Math.round(pitch * 0.92);
+  return {
+    backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${lineAt - 1}px, rgba(187,187,187,0.55) ${lineAt - 1}px, rgba(187,187,187,0.55) ${lineAt}px, transparent ${lineAt}px, transparent ${pitch}px)`,
+  };
+}
+
+// ─── Single StampCard (exact Framer) ─────────────────────────────────────────
+interface StampCardProps {
+  stamp: (typeof FALLBACK_STAMPS)[number];
+  index: number;
+  count: number;
+  radius: number;
+  width: number;
+  height: number;
+  angle: MotionValue<number>;
+  shadow: boolean;
+  onOpen: (index: number) => void;
+  wasDragged: () => boolean;
+}
+
+function StampCard({
+  stamp,
+  index,
+  count,
+  radius,
+  width,
+  height,
+  angle,
+  shadow,
+  onOpen,
+  wasDragged,
+}: StampCardProps) {
+  const step   = 360 / count;
+  const facing = index * step;
+
+  // Exact Framer brightness formula
+  const imageFilter = useTransform(angle, (value: number) => {
+    const relative = (((facing + value) % 360) + 540) % 360 - 180;
+    const t        = Math.abs(relative) / 180;
+    const brightness = 1 - 0.5 * Math.pow(t, 1.6);
+    const shadow_str = shadow
+      ? " drop-shadow(0 16px 24px rgba(4,9,22,0.4))"
+      : "";
+    // Add grayscale for AeroPure monochrome on top of Framer brightness
+    return `grayscale(1) brightness(${brightness.toFixed(3)})${shadow_str}`;
+  });
 
   return (
-    <motion.button
-      type="button"
-      aria-label={`Select ${continent.name}`}
-      onClick={onClick}
-      animate={{ rotate: continent.rotate }}
-      whileHover={{
-        rotate: continent.rotate * 0.25,
-        y: -12,
-        scale: 1.07,
-        zIndex: 30,
-        transition: { type: "spring", stiffness: 280, damping: 22 },
-      }}
-      whileTap={{ scale: 0.97 }}
+    <div
       style={{
-        background: "transparent",
-        border: "none",
-        padding: 0,
-        cursor: "pointer",
-        display: "block",
-        width: "100%",
-        position: "relative",
-        transformOrigin: "center center",
-        filter: "drop-shadow(0 6px 16px rgba(0,0,0,0.65))",
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        width,
+        height,
+        marginLeft: -width / 2,
+        marginTop: -height / 2,
+        transform: `rotateY(${facing}deg) translateZ(${radius}px)`,
+        transformStyle: "preserve-3d",
       }}
     >
-      <svg
-        viewBox={`0 0 ${SW} ${SH}`}
-        width="100%"
-        height="100%"
-        style={{ display: "block" }}
-        aria-hidden="true"
+      <motion.button
+        type="button"
+        aria-label={`Open stamp: ${stamp.title}`}
+        onClick={() => { if (!wasDragged()) onOpen(index); }}
+        whileHover={{ scale: 1.05, y: -6 }}
+        transition={{ type: "spring", stiffness: 320, damping: 24 }}
+        style={{
+          width: "100%",
+          height: "100%",
+          padding: 0,
+          margin: 0,
+          border: "none",
+          background: "transparent",
+          cursor: "pointer",
+          display: "block",
+        }}
       >
-        <defs>
-          {/* Perforation mask: white = show stamp; black circles = holes to dark bg */}
-          <mask id={maskId}>
-            <rect width={SW} height={SH} fill="white" />
-            <g fill="black">{PERF_NODES}</g>
-          </mask>
-
-          {/* Security dot grid (subtle, like intaglio printing) */}
-          <pattern
-            id={dotId}
-            width="6" height="6"
-            patternUnits="userSpaceOnUse"
-          >
-            <circle cx="3" cy="3" r="0.5" fill="#929292" />
-          </pattern>
-        </defs>
-
-        {/* Everything masked by perforations — dark bg shows through holes */}
-        <g mask={`url(#${maskId})`}>
-
-          {/* ── Stamp face (cool grey paper, not cream/beige) ── */}
-          <rect width={SW} height={SH} fill="#D9D9D6" />
-          <rect width={SW} height={SH} fill={`url(#${dotId})`} opacity="0.5" />
-
-          {/* ── Outer stamp border ── */}
-          <rect
-            x={9} y={9}
-            width={SW - 18} height={SH - 18}
-            fill="none"
-            stroke="#6D6D6A"
-            strokeWidth={1.5}
-          />
-          {/* Inner thin rule */}
-          <rect
-            x={13} y={13}
-            width={SW - 26} height={SH - 26}
-            fill="none"
-            stroke="#B8B8B5"
-            strokeWidth={0.5}
-          />
-
-          {/* ── Name band (top) ── */}
-          <rect x={9} y={9} width={SW - 18} height={33} fill="#242423" />
-          <text
-            x={SW / 2}
-            y={30}
-            textAnchor="middle"
-            fill="#F2F2F0"
-            fontSize={fontSize}
-            fontWeight="700"
-            fontFamily="'Orbitron', 'Arial Black', sans-serif"
-            letterSpacing="2.5"
-          >
-            {continent.name}
-          </text>
-
-          {/* ── Geographic silhouette area ── */}
-          {/* Subtle background wash for the map area */}
-          <rect x={9} y={42} width={SW - 18} height={SH - 74} fill="#C8C8C5" />
-
-          {/* Fine map grid lines (lat/lon grid feel) */}
-          {[25, 50, 75].map((v) => (
-            <React.Fragment key={`grid${v}`}>
-              {/* Horizontal lines mapped into map area */}
-              <line
-                x1={9}  y1={42 + (SH - 74) * v / 100}
-                x2={SW - 9} y2={42 + (SH - 74) * v / 100}
-                stroke="#B8B8B5" strokeWidth={0.4} strokeDasharray="2 3"
-              />
-              {/* Vertical lines */}
-              <line
-                x1={9 + (SW - 18) * v / 100} y1={42}
-                x2={9 + (SW - 18) * v / 100} y2={SH - 32}
-                stroke="#B8B8B5" strokeWidth={0.4} strokeDasharray="2 3"
-              />
-            </React.Fragment>
-          ))}
-
-          {/* Continent silhouette — nested SVG auto-scales path to content area */}
-          <svg
-            x={16}
-            y={50}
-            width={SW - 32}
-            height={SH - 90}
-            viewBox="0 0 100 100"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            {/* Shadow/depth of silhouette */}
-            <path
-              d={continent.path}
-              fill="#41413F"
-              transform="translate(1,1)"
-              opacity="0.35"
-            />
-            {/* Main silhouette */}
-            <path
-              d={continent.path}
-              fill="#41413F"
-              stroke="#6D6D6A"
-              strokeWidth="1"
-              strokeLinejoin="round"
-            />
-          </svg>
-
-          {/* ── Bottom strip ── */}
-          <rect x={9} y={SH - 32} width={SW - 18} height={23} fill="#1A1A1A" />
-
-          {/* Sub-caption (left) */}
-          <text
-            x={16}
-            y={SH - 17}
-            fill="#6D6D6A"
-            fontSize={6}
-            fontFamily="'JetBrains Mono', monospace"
-            letterSpacing="1"
-          >
-            AEROPURE · MMXXVI
-          </text>
-
-          {/* Denomination (right) */}
-          <text
-            x={SW - 15}
-            y={SH - 16}
-            textAnchor="end"
-            fill="#929292"
-            fontSize={9.5}
-            fontWeight="700"
-            fontFamily="'JetBrains Mono', monospace"
-          >
-            {continent.denom}¢
-          </text>
-
-        </g>
-      </svg>
-    </motion.button>
+        {/* Exact Framer: motion.img with objectFit:contain — perforations transparent */}
+        <motion.img
+          src={stamp.src}
+          alt={stamp.title}
+          draggable={false}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            pointerEvents: "none",
+            filter: imageFilter,
+          }}
+        />
+      </motion.button>
+    </div>
   );
 }
 
-// ─── Main export ──────────────────────────────────────────────────────────────
+// ─── Main component ───────────────────────────────────────────────────────────
 export default function StampScrapbook({
   onSelectContinent,
 }: {
   onSelectContinent?: (id: string) => void;
 }) {
-  const row1 = CONTINENTS.slice(0, 4); // NA, SA, EU, AF
-  const row2 = CONTINENTS.slice(4);    // AS, OC, AN
+  // — Props matching Framer defaults —
+  const stampHeight      = 300;
+  const spread           = 1;
+  const tilt             = -6;
+  const autoRotate       = true;
+  const speed            = 10;
+  const cursorSteer      = true;
+  const hoverSpeed       = 24;
+  const scrollTilt       = true;
+  const scrollTiltStrength = 16;
+  const stampShadow      = true;
+
+  // AeroPure monochrome panel colours (replacing Framer's warm cream)
+  const panelColor    = "#D9D9D6";
+  const backdropColor = "rgba(7,7,7,0.92)";
+  const titleColor    = "#111111";
+  const textColor     = "#41413F";
+
+  const items = useMemo(() => FALLBACK_STAMPS, []);
+  const count = items.length;
+
+  const reducedMotion = useReducedMotion();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const inView  = useInView(rootRef);
+  const angle   = useMotionValue(0);
+  const tiltMV  = useMotionValue(0);
+
+  const yawTransform  = useTransform(angle, (a: number) => `rotateY(${a}deg)`);
+  const tiltTransform = useTransform(tiltMV, (t: number) => `rotateX(${tilt + t}deg)`);
+
+  const [mounted,        setMounted]        = useState(false);
+  const [openIndex,      setOpenIndex]      = useState<number | null>(null);
+  const [direction,      setDirection]      = useState(1);
+  const [containerWidth, setContainerWidth] = useState(1200);
+  const [viewportNarrow, setViewportNarrow] = useState(false);
+
+  // Exact Framer geometry: clamp stamp to containerWidth * 0.6
+  const cardHeight = Math.round(Math.min(stampHeight, Math.max(140, containerWidth * 0.55)));
+  const cardWidth  = Math.round(cardHeight * STAMP_ASPECT);
+  const radius     = Math.round(ringRadius(count, cardWidth, spread));
+
+  // — Drag / fling refs —
+  const draggingRef     = useRef(false);
+  const dragDistanceRef = useRef(0);
+  const lastXRef        = useRef(0);
+  const lastTimeRef     = useRef(0);
+  const flingRef        = useRef(0);
+  const steerVelRef     = useRef(speed);
+  const pointerNormXRef = useRef(0);
+  const tiltTargetRef   = useRef(0);
+  const hoverRef        = useRef(false);
+
+  // SSR-safe mount (exact Framer)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
+  // Container resize (exact Framer)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const node = rootRef.current;
+    if (!node) return;
+    const observer = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width ?? 0;
+      if (w > 0) startTransition(() => setContainerWidth(w));
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  // Viewport narrow (modal layout)
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq     = window.matchMedia("(max-width: 640px)");
+    const update = () => setViewportNarrow(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  // Scroll-driven tilt (exact Framer)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let lastY = window.scrollY;
+    let lastT = Date.now();
+    const onScroll = () => {
+      const now = Date.now();
+      const y   = window.scrollY;
+      const dt  = Math.max(now - lastT, 1);
+      const v   = ((y - lastY) / dt) * 1000;
+      lastY = y; lastT = now;
+      const range = scrollTilt ? scrollTiltStrength : 0;
+      tiltTargetRef.current = Math.max(-range, Math.min(range, -(v / 2500) * range));
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [scrollTilt, scrollTiltStrength]);
+
+  // Declare close/step before keyboard effect
+  const wasDragged = useCallback(() => dragDistanceRef.current > 6, []);
+
+  const openStamp = useCallback((index: number) => {
+    setDirection(0);
+    startTransition(() => setOpenIndex(index));
+  }, []);
+
+  const closeStamp = useCallback(() => {
+    setDirection(0);
+    startTransition(() => setOpenIndex(null));
+  }, []);
+
+  const stepStamp = useCallback(
+    (dir: number) => {
+      setDirection(dir);
+      startTransition(() =>
+        setOpenIndex((cur) =>
+          cur === null ? cur : (cur + dir + count) % count
+        )
+      );
+    },
+    [count]
+  );
+
+  // Keyboard controls (exact Framer)
+  useEffect(() => {
+    if (openIndex === null || typeof window === "undefined") return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape")     closeStamp();
+      if (e.key === "ArrowRight") stepStamp(1);
+      if (e.key === "ArrowLeft")  stepStamp(-1);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prev;
+    };
+  }, [openIndex, closeStamp, stepStamp]);
+
+  // Animation loop (exact Framer)
+  const STEER_RESPONSE = 3;
+  useAnimationFrame((_, delta) => {
+    if (openIndex !== null || draggingRef.current || !inView) return;
+    const dt   = Math.min(delta, 48) / 1000;
+    const idle = autoRotate && !reducedMotion ? speed : 0;
+    const target = cursorSteer && hoverRef.current
+      ? pointerNormXRef.current * hoverSpeed
+      : idle;
+    const ease = 1 - Math.exp(-dt * STEER_RESPONSE);
+    steerVelRef.current += (target - steerVelRef.current) * ease;
+    flingRef.current *= Math.exp(-dt * 2.2);
+    if (Math.abs(flingRef.current) < 1) flingRef.current = 0;
+    angle.set(angle.get() + (steerVelRef.current + flingRef.current) * dt);
+    tiltTargetRef.current *= Math.exp(-dt * 3);
+    tiltMV.set(
+      tiltMV.get() +
+        (tiltTargetRef.current - tiltMV.get()) * (1 - Math.exp(-dt * 8))
+    );
+  });
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      if (openIndex !== null) return;
+      draggingRef.current     = true;
+      dragDistanceRef.current = 0;
+      flingRef.current        = 0;
+      lastXRef.current        = e.clientX;
+      lastTimeRef.current     = e.timeStamp;
+    },
+    [openIndex]
+  );
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const nx   = ((e.clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1;
+      pointerNormXRef.current = Math.max(-1, Math.min(1, nx));
+      if (!draggingRef.current) return;
+      const dx    = e.clientX - lastXRef.current;
+      const dtime = Math.max(e.timeStamp - lastTimeRef.current, 1);
+      lastXRef.current    = e.clientX;
+      lastTimeRef.current = e.timeStamp;
+      dragDistanceRef.current += Math.abs(dx);
+      const deg = dx * 0.28;
+      angle.set(angle.get() + deg);
+      flingRef.current = (deg / dtime) * 1000;
+    },
+    [angle]
+  );
+
+  const handlePointerUp = useCallback(() => {
+    draggingRef.current  = false;
+    flingRef.current = Math.max(-260, Math.min(260, flingRef.current));
+  }, []);
+
+  const openStampData = openIndex === null ? null : items[openIndex];
+
+  // When a stamp is clicked from the ring, route to geographic navigation
+  const handleOpen = useCallback(
+    (index: number) => {
+      const stamp = items[index];
+      if (onSelectContinent) {
+        // Navigate directly without modal
+        onSelectContinent(stamp.id);
+      } else {
+        openStamp(index);
+      }
+    },
+    [items, onSelectContinent, openStamp]
+  );
+
+  const chevBtn: React.CSSProperties = {
+    border: "none",
+    background: "transparent",
+    color: panelColor,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    padding: 6,
+  };
 
   return (
     <>
-      {/* Responsive grid styles */}
-      <style>{`
-        .ap-row1 {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: clamp(10px, 1.8vw, 22px);
-          width: 100%;
-          max-width: min(900px, 96vw);
-        }
-        .ap-row2 {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: clamp(10px, 1.8vw, 22px);
-          width: 100%;
-          max-width: min(678px, 72vw);
-        }
-        @media (max-width: 700px) {
-          .ap-row1 {
-            grid-template-columns: repeat(2, 1fr);
-            max-width: 100%;
-          }
-          .ap-row2 {
-            grid-template-columns: repeat(2, 1fr);
-            max-width: 100%;
-          }
-        }
-        @media (max-width: 400px) {
-          .ap-row1, .ap-row2 {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-          }
-        }
-      `}</style>
-
+      {/* ── Page wrapper ── */}
       <div
         style={{
           background: "#070707",
-          minHeight: "100vh",
+          minHeight: "100svh",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
         }}
       >
-        {/* ── Header ── */}
+        {/* ── Minimal header ── */}
         <header
           style={{
             textAlign: "center",
-            padding: "clamp(1.5rem, 4vh, 3rem) 2rem clamp(1rem, 2.5vh, 2rem)",
-            width: "100%",
+            padding: "clamp(1.2rem,3vh,2.5rem) 2rem clamp(0.8rem,2vh,1.5rem)",
             flexShrink: 0,
           }}
         >
@@ -365,7 +483,7 @@ export default function StampScrapbook({
             style={{
               fontFamily: "'Orbitron', sans-serif",
               color: "#F2F2F0",
-              fontSize: "clamp(1.8rem, 4.5vw, 3.5rem)",
+              fontSize: "clamp(1.6rem,4vw,3.2rem)",
               fontWeight: 900,
               margin: 0,
               letterSpacing: "0.15em",
@@ -377,9 +495,9 @@ export default function StampScrapbook({
             style={{
               fontFamily: "'JetBrains Mono', monospace",
               color: "#929292",
-              fontSize: "clamp(0.75rem, 1.5vw, 0.95rem)",
+              fontSize: "clamp(0.7rem,1.4vw,0.9rem)",
+              margin: "0.5rem 0 0",
               letterSpacing: "0.05em",
-              margin: "0.6rem 0 0",
             }}
           >
             Know Tomorrow&apos;s Air. Today.
@@ -388,52 +506,340 @@ export default function StampScrapbook({
             style={{
               fontFamily: "'Orbitron', sans-serif",
               color: "#41413F",
-              fontSize: "clamp(0.55rem, 1vw, 0.7rem)",
-              letterSpacing: "0.3em",
-              margin: "0.9rem 0 0",
-              textTransform: "uppercase",
+              fontSize: "clamp(0.5rem,0.9vw,0.65rem)",
+              margin: "0.7rem 0 0",
+              letterSpacing: "0.28em",
             }}
           >
-            Global Air Intelligence
+            GLOBAL AIR INTELLIGENCE
           </p>
         </header>
 
-        {/* ── Scrapbook ── */}
-        <main
+        {/* ── 3-D ring carousel (exact Framer layout) ── */}
+        <div
+          ref={rootRef}
+          role="group"
+          aria-roledescription="3D stamp carousel"
+          aria-label="Select a continent to explore air quality data"
           style={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "0 clamp(1rem, 3vw, 2.5rem) clamp(1.5rem, 4vh, 3rem)",
-            gap: "clamp(10px, 2vh, 24px)",
-            width: "100%",
+            position: "relative",
+            overflow: "hidden",
+            userSelect: "none",
+            touchAction: "pan-y",
           }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onPointerLeave={handlePointerUp}
+          onMouseEnter={() => { hoverRef.current = true; }}
+          onMouseLeave={() => { hoverRef.current = false; }}
         >
-          {/* Row 1: North America, South America, Europe, Africa */}
-          <div className="ap-row1">
-            {row1.map((c) => (
-              <Stamp
-                key={c.id}
-                continent={c}
-                onClick={() => onSelectContinent?.(c.id)}
-              />
-            ))}
+          {/* Perspective outer shell (exact Framer) */}
+          <div
+            aria-hidden={openIndex !== null}
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              perspective: 1400,
+            }}
+          >
+            {/* Tilt (scroll-driven) */}
+            <motion.div
+              style={{
+                position: "relative",
+                transformStyle: "preserve-3d",
+                transform: tiltTransform,
+              }}
+            >
+              {/* Yaw / spin wrapper (exact Framer) */}
+              <motion.div
+                style={{
+                  position: "relative",
+                  width: cardWidth,
+                  height: cardHeight,
+                  transformStyle: "preserve-3d",
+                  transform: yawTransform,
+                }}
+              >
+                {items.map((stamp, index) => (
+                  <StampCard
+                    key={stamp.id}
+                    stamp={stamp}
+                    index={index}
+                    count={count}
+                    radius={radius}
+                    width={cardWidth}
+                    height={cardHeight}
+                    angle={angle}
+                    shadow={stampShadow}
+                    onOpen={handleOpen}
+                    wasDragged={wasDragged}
+                  />
+                ))}
+              </motion.div>
+            </motion.div>
           </div>
 
-          {/* Row 2: Asia, Oceania, Antarctica (centered under row 1) */}
-          <div className="ap-row2">
-            {row2.map((c) => (
-              <Stamp
-                key={c.id}
-                continent={c}
-                onClick={() => onSelectContinent?.(c.id)}
-              />
-            ))}
-          </div>
-        </main>
+          {/* Hint */}
+          <p
+            style={{
+              position: "absolute",
+              bottom: "1rem",
+              left: "50%",
+              transform: "translateX(-50%)",
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.6rem",
+              color: "#41413F",
+              letterSpacing: "0.22em",
+              pointerEvents: "none",
+              margin: 0,
+              whiteSpace: "nowrap",
+            }}
+          >
+            DRAG TO SPIN · CLICK TO EXPLORE
+          </p>
+        </div>
       </div>
+
+      {/* ── Postcard modal portal (exact Framer) ── */}
+      {mounted &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {openStampData && (
+              <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-label={openStampData.title}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                style={{
+                  position: "fixed",
+                  inset: 0,
+                  zIndex: 2147483000,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: viewportNarrow ? 16 : 20,
+                  padding: viewportNarrow ? 16 : 40,
+                  background: backdropColor,
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  perspective: 1600,
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => { if (e.target === e.currentTarget) closeStamp(); }}
+              >
+                <AnimatePresence initial custom={direction} mode="popLayout">
+                  <motion.div
+                    key={openIndex}
+                    custom={direction}
+                    variants={POSTCARD_VARIANTS}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x:       { type: "spring", stiffness: 300, damping: 32 },
+                      rotate:  { type: "spring", stiffness: 300, damping: 32 },
+                      rotateY: { type: "spring", stiffness: 70,  damping: 14 },
+                      scale:   { type: "spring", stiffness: 120, damping: 15 },
+                      opacity: { duration: 0.28 },
+                    }}
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.7}
+                    onDragEnd={(_, info) => {
+                      const power = info.offset.x + info.velocity.x * 0.2;
+                      if (power < -90) stepStamp(1);
+                      else if (power > 90) stepStamp(-1);
+                    }}
+                    style={{
+                      position: "relative",
+                      width: viewportNarrow ? "100%" : 380,
+                      maxWidth: "100%",
+                      maxHeight: "calc(100% - 60px)",
+                      cursor: "grab",
+                      pointerEvents: "auto",
+                      transformStyle: "preserve-3d",
+                      filter: "drop-shadow(0 24px 44px rgba(2,6,18,0.55))",
+                    }}
+                  >
+                    {/* Postcard panel */}
+                    <div
+                      style={{
+                        position: "relative",
+                        display: "flex",
+                        flexDirection: "column",
+                        background: panelColor,
+                        boxSizing: "border-box",
+                        borderRadius: 6,
+                        transform: "rotate(-1.5deg)",
+                        padding: viewportNarrow ? "30px 26px 26px" : "46px 44px 36px",
+                        width: "100%",
+                        minHeight: viewportNarrow ? undefined : 480,
+                        maxHeight: "100%",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {/* Top row: title + stamp image */}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+                        <div style={{ flex: 1, minWidth: 0, paddingRight: 12 }}>
+                          <h3
+                            style={{
+                              margin: 0,
+                              fontSize: viewportNarrow ? 26 : 32,
+                              lineHeight: 1.08,
+                              fontFamily: "'Orbitron', sans-serif",
+                              color: titleColor,
+                              letterSpacing: "0.05em",
+                            }}
+                          >
+                            {openStampData.title}
+                          </h3>
+                          <p
+                            style={{
+                              margin: "0.5rem 0 0",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              fontSize: 10,
+                              letterSpacing: "0.18em",
+                              color: "#6D6D6A",
+                            }}
+                          >
+                            {openStampData.caption}
+                          </p>
+                        </div>
+
+                        {/* Stamp thumbnail (greyscale) */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={openStampData.src}
+                          alt={openStampData.title}
+                          draggable={false}
+                          style={{
+                            height: viewportNarrow ? 132 : 180,
+                            width: "auto",
+                            objectFit: "contain",
+                            flexShrink: 0,
+                            marginTop: -18,
+                            marginRight: -14,
+                            transform: "rotate(-4deg)",
+                            filter: "grayscale(1) drop-shadow(0 1px 1.5px rgba(2,6,18,0.28))",
+                          }}
+                        />
+                      </div>
+
+                      {/* Story text */}
+                      {openStampData.description && (
+                        <p
+                          style={{
+                            marginTop: "auto",
+                            marginBottom: 0,
+                            fontFamily: "Georgia, serif",
+                            fontSize: viewportNarrow ? 18 : 20,
+                            color: textColor,
+                            lineHeight: viewportNarrow ? "44px" : "52px",
+                            ...ruledLines(viewportNarrow ? 44 : 52),
+                          }}
+                        >
+                          {openStampData.description}
+                        </p>
+                      )}
+
+                      {/* Navigate to continent button */}
+                      {onSelectContinent && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            closeStamp();
+                            onSelectContinent(openStampData.id);
+                          }}
+                          style={{
+                            marginTop: "1.5rem",
+                            padding: "0.6rem 1.4rem",
+                            background: "#242423",
+                            color: "#F2F2F0",
+                            border: "none",
+                            borderRadius: 3,
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: 10,
+                            letterSpacing: "0.2em",
+                            cursor: "pointer",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          Explore {openStampData.title} →
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Chevron nav (exact Framer) */}
+                <div
+                  style={{
+                    flexShrink: 0,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 22,
+                    pointerEvents: "auto",
+                  }}
+                >
+                  <button type="button" aria-label="Previous stamp" onClick={() => stepStamp(-1)} style={chevBtn}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                      <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                  <span style={{ color: panelColor, opacity: 0.75, fontSize: 14, letterSpacing: "0.08em", fontFamily: "'JetBrains Mono', monospace" }}>
+                    {(openIndex ?? 0) + 1} / {count}
+                  </span>
+                  <button type="button" aria-label="Next stamp" onClick={() => stepStamp(1)} style={chevBtn}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                      <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Close button (exact Framer) */}
+                <button
+                  type="button"
+                  aria-label="Close stamp detail"
+                  onClick={closeStamp}
+                  style={{
+                    position: "absolute",
+                    top: viewportNarrow ? 16 : 28,
+                    right: viewportNarrow ? 16 : 32,
+                    width: 40,
+                    height: 40,
+                    borderRadius: "50%",
+                    border: "none",
+                    background: "transparent",
+                    color: panelColor,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 0,
+                    pointerEvents: "auto",
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden>
+                    <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
     </>
   );
 }
