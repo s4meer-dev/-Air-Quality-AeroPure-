@@ -6,7 +6,7 @@ const nextConfig = {
   },
   // Expose the FastAPI base URL to server-side code only
   env: {
-    AEROPURE_API_URL: process.env.AEROPURE_API_URL ?? "http://127.0.0.1:8000",
+    AEROPURE_API_URL: process.env.AEROPURE_API_URL ?? "",
   },
 };
 

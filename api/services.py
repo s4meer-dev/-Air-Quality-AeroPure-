@@ -25,11 +25,16 @@ from api.schemas import (
 from src.aqi import calculate_sub_index, BREAKPOINTS_CO, BREAKPOINTS_NO2, BREAKPOINTS_C6H6
 
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
 class PredictionService:
     """Production service managing model inference, explainability, and diagnostics."""
     _instance = None
 
-    def __init__(self, models_dir: str = "models"):
+    def __init__(self, models_dir: Optional[str] = None):
+        if models_dir is None:
+            models_dir = "models" if os.path.exists("models") else os.path.join(PROJECT_ROOT, "models")
         self.models_dir = models_dir
         self.regressor = None
         self.classifier = None
@@ -46,7 +51,7 @@ class PredictionService:
         self.load_components()
 
     @classmethod
-    def get_instance(cls, models_dir: str = "models") -> "PredictionService":
+    def get_instance(cls, models_dir: Optional[str] = None) -> "PredictionService":
         if cls._instance is None:
             cls._instance = cls(models_dir=models_dir)
         return cls._instance
@@ -58,7 +63,12 @@ class PredictionService:
         prep_path = os.path.join(self.models_dir, "preprocessing_pipeline_v1.joblib")
         clust_path = os.path.join(self.models_dir, "clustering_pipeline_v1.joblib")
         registry_path = os.path.join(self.models_dir, "model_registry.json")
-        drift_path = "outputs/metrics/drift_summary.json"
+        
+        drift_candidates = [
+            "outputs/metrics/drift_summary.json",
+            os.path.join(PROJECT_ROOT, "outputs", "metrics", "drift_summary.json")
+        ]
+        drift_path = next((p for p in drift_candidates if os.path.exists(p)), drift_candidates[0])
 
         if os.path.exists(reg_path):
             self.regressor = joblib.load(reg_path)
@@ -339,7 +349,11 @@ class PredictionService:
     def get_drift(self) -> DriftResponse:
         """Drift metrics."""
         # Load detailed metrics if available
-        psi_csv = "outputs/metrics/drift_psi_metrics.csv"
+        psi_candidates = [
+            "outputs/metrics/drift_psi_metrics.csv",
+            os.path.join(PROJECT_ROOT, "outputs", "metrics", "drift_psi_metrics.csv")
+        ]
+        psi_csv = next((p for p in psi_candidates if os.path.exists(p)), psi_candidates[0])
         psi_dict = {}
         if os.path.exists(psi_csv):
             df_psi = pd.read_csv(psi_csv)

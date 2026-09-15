@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     const msg = err instanceof Error ? err.message : String(err);
     if (msg.includes("ECONNREFUSED") || msg.includes("fetch failed")) {
       return NextResponse.json(
-        { error: "ML engine unavailable. Ensure FastAPI is running on port 8000." },
+        { error: "ML inference engine temporarily unavailable. Please try again shortly." },
         { status: 503 }
       );
     }

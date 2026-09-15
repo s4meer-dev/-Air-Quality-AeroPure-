@@ -10,7 +10,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, APIRouter, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.schemas import (
@@ -41,7 +41,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Enable CORS for local dashboards and frontends
+# Enable CORS for dashboards and frontends
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -50,8 +50,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+router = APIRouter()
 
-@app.get("/", tags=["Overview"])
+
+@router.get("/", tags=["Overview"])
 def root():
     """Root metadata and API status overview."""
     return {
@@ -69,21 +71,21 @@ def root():
     }
 
 
-@app.get("/health", response_model=HealthResponse, tags=["Diagnostics"])
+@router.get("/health", response_model=HealthResponse, tags=["Diagnostics"])
 def health_check():
     """Verifies that models and preprocessing pipelines are online."""
     service = PredictionService.get_instance()
     return service.get_health()
 
 
-@app.get("/metrics", response_model=MetricsResponse, tags=["Governance"])
+@router.get("/metrics", response_model=MetricsResponse, tags=["Governance"])
 def get_metrics():
     """Returns production model metadata, validation scores, and runtime latency."""
     service = PredictionService.get_instance()
     return service.get_metrics()
 
 
-@app.post("/predict", response_model=PredictResponse, tags=["Forecasting"])
+@router.post("/predict", response_model=PredictResponse, tags=["Forecasting"])
 def predict_next_day_air_quality(input_data: ObservationInput):
     """
     Predicts next-day (+24h) Pollutant-Based AQI Proxy, hazardous air probability,
@@ -99,7 +101,7 @@ def predict_next_day_air_quality(input_data: ObservationInput):
         )
 
 
-@app.post("/explain", response_model=ExplainResponse, tags=["Explainability"])
+@router.post("/explain", response_model=ExplainResponse, tags=["Explainability"])
 def explain_prediction(input_data: ObservationInput):
     """
     Provides interpretable directional feature contributions (top positive and
@@ -115,7 +117,7 @@ def explain_prediction(input_data: ObservationInput):
         )
 
 
-@app.get("/drift", response_model=DriftResponse, tags=["Monitoring"])
+@router.get("/drift", response_model=DriftResponse, tags=["Monitoring"])
 def get_drift_report():
     """
     Returns Population Stability Index (PSI) drift monitoring metrics across key
@@ -131,6 +133,15 @@ def get_drift_report():
         )
 
 
+# Register routes at root, /pyapi, and /api for universal serverless routing compatibility
+app.include_router(router)
+app.include_router(router, prefix="/pyapi")
+app.include_router(router, prefix="/api")
+
+
 if __name__ == "__main__":
+    import os
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host=host, port=port)

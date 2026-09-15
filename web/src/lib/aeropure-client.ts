@@ -5,7 +5,18 @@
  * Used by Next.js API routes (server-side only).
  */
 
-const FASTAPI_BASE = process.env.AEROPURE_API_URL ?? "http://127.0.0.1:8000";
+function getApiBase(): string {
+  if (process.env.AEROPURE_API_URL) {
+    return process.env.AEROPURE_API_URL.replace(/\/$/, "");
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/pyapi`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}/pyapi`;
+  }
+  return "";
+}
 
 export interface ObservationInput {
   co: number;
@@ -85,7 +96,8 @@ export interface MetricsResponse {
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const url = `${FASTAPI_BASE}${path}`;
+  const base = getApiBase();
+  const url = `${base}${path}`;
   const res = await fetch(url, {
     headers: { "Content-Type": "application/json" },
     ...init,
@@ -93,7 +105,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`FastAPI ${path} → ${res.status}: ${text}`);
+    throw new Error(`Inference engine ${path} → ${res.status}: ${text}`);
   }
   return res.json() as Promise<T>;
 }

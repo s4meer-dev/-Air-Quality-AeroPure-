@@ -17,8 +17,8 @@ import ResponsibleAI from "@/components/ResponsibleAI";
 import LiveGlobalSearch from "@/components/LiveGlobalSearch";
 import { GeoLocation } from "@/lib/openweather";
 import { CONTINENTS, COUNTRIES, STATES, CITIES, Continent, Country, StateRegion, City, Area, getArea } from "@/lib/locations";
-import { aeropureClient, PredictResponse, ExplainResponse, DriftResponse } from "@/lib/aeropure-client";
-import { buildForecastInput, FORECAST_OFFSETS } from "@/lib/demo-inputs";
+import type { PredictResponse, ExplainResponse, DriftResponse } from "@/lib/aeropure-client";
+import { buildForecastInput } from "@/lib/demo-inputs";
 
 export default function HomePage() {
   type NavLevel = "earth" | "continent" | "country" | "state" | "city" | "area";
@@ -103,35 +103,33 @@ export default function HomePage() {
     // Fetch Weather
     await fetchWeather(area.lat, area.lon);
 
-    // Fetch AeroPure ML Intelligence
+    // Fetch AeroPure ML Intelligence via same-origin production API routes
     try {
       const baseInput = buildForecastInput(area, 0);
-      const predRes = await aeropureClient.predict(baseInput);
-      setPrediction(predRes);
 
-      const expRes = await aeropureClient.explain(baseInput);
-      setExplanation(expRes);
+      const [predRes, expRes, driftRes, tlData] = await Promise.all([
+        fetch("/api/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(baseInput),
+        }).then((r) => (r.ok ? (r.json() as Promise<PredictResponse>) : null)),
+        fetch("/api/explain", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ citySlug: cSlug, areaSlug: area.slug }),
+        }).then((r) => (r.ok ? (r.json() as Promise<ExplainResponse>) : null)),
+        fetch("/api/drift").then((r) => (r.ok ? (r.json() as Promise<DriftResponse>) : null)),
+        fetch("/api/forecast", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ citySlug: cSlug, areaSlug: area.slug }),
+        }).then((r) => (r.ok ? r.json() : null)),
+      ]);
 
-      const driftRes = await aeropureClient.drift();
-      setDrift(driftRes);
-
-      // Fetch Timeline (24h to 120h)
-      const tl = await Promise.all(
-        FORECAST_OFFSETS.map(async (offset) => {
-          const inp = buildForecastInput(area, offset);
-          const r = await aeropureClient.predict(inp);
-          return {
-            hourOffset: offset,
-            predicted_aqi_proxy: r.predicted_aqi_proxy,
-            hazard_probability: r.hazard_probability,
-            hazardous: r.hazardous,
-            risk_category: r.risk_category,
-            label: `+${offset}h`,
-            time: new Date(Date.now() + offset * 3600000).toISOString()
-          };
-        })
-      );
-      setTimeline(tl);
+      if (predRes) setPrediction(predRes);
+      if (expRes) setExplanation(expRes);
+      if (driftRes) setDrift(driftRes);
+      if (tlData?.timeline) setTimeline(tlData.timeline);
     } catch (err) {
       console.error("AeroPure ML API Error:", err);
       setPrediction(null);
