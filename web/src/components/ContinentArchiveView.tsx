@@ -11,15 +11,21 @@ import {
   Globe, 
   Target, 
   Plus, 
-  X
+  X,
+  Radio
 } from "lucide-react";
 import { Continent, COUNTRIES, STATES, CITIES } from "@/lib/locations";
 import { GeoLocation } from "@/lib/openweather";
 
-interface HexNode {
+export type CountryStatus = "aeropure-active" | "live-telemetry" | "coming-soon";
+
+export interface HexNode {
   name: string;
   id?: string;
-  status: "active" | "coming-soon";
+  lat?: number;
+  lon?: number;
+  countryCode?: string;
+  status: CountryStatus;
   image?: string;
   isAction?: boolean;
 }
@@ -29,8 +35,6 @@ interface ContinentConfig {
   name: string;
   index: string;
   coordinates: string;
-  totalCountries: number;
-  activeCountryIds: string[];
   quote: string;
   editorialTags: string[];
   reliefMap: string;
@@ -38,18 +42,59 @@ interface ContinentConfig {
   polaroidPhoto?: string;
   polaroidCaption?: string[];
   rows: HexNode[][];
+  directoryCountries?: { name: string; status: CountryStatus; lat?: number; lon?: number; id?: string; code?: string }[];
 }
 
-// ── CONTINENT REGISTRY & HEXAGON NETWORK DEFINITIONS ────────────────────────────
+// ── PROGRAMMATIC CONTINENT CONFIGS & COUNTRY CAPABILITY REGISTRY ─────────────────
 
 const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
+  "north-america": {
+    id: "north-america",
+    name: "NORTH AMERICA",
+    index: "04",
+    coordinates: "54.5260° N\n105.2551° W",
+    quote: '"Jet-stream tracking from arctic borders to gulf shores."',
+    editorialTags: ["PACIFIC BASINS", "BOREAL", "GREAT PLAINS", "JET STREAM", "RESEARCH"],
+    reliefMap: "/stamps/geo_north-america.jpg",
+    rows: [
+      [
+        { name: "CANADA", id: "canada", status: "aeropure-active", image: "/stamps/geo_north-america.jpg" },
+        { name: "UNITED STATES", id: "united-states", status: "aeropure-active", image: "/stamps/north-america.jpg" },
+        { name: "MEXICO", status: "live-telemetry", lat: 23.6345, lon: -102.5528, countryCode: "MX" },
+        { name: "CUBA", status: "live-telemetry", lat: 21.5218, lon: -77.7812, countryCode: "CU" },
+        { name: "GUATEMALA", status: "live-telemetry", lat: 15.7835, lon: -90.2308, countryCode: "GT" },
+      ],
+      [
+        { name: "PANAMA", status: "live-telemetry", lat: 8.538, lon: -80.7821, countryCode: "PA" },
+        { name: "COSTA RICA", status: "live-telemetry", lat: 9.7489, lon: -83.7534, countryCode: "CR" },
+        { name: "JAMAICA", status: "live-telemetry", lat: 18.1096, lon: -77.2975, countryCode: "JM" },
+        { name: "HONDURAS", status: "live-telemetry", lat: 15.2, lon: -86.2419, countryCode: "HN" },
+        { name: "DOMINICAN REP", status: "live-telemetry", lat: 18.7357, lon: -70.1627, countryCode: "DO" },
+        { name: "BAHAMAS", status: "live-telemetry", lat: 25.0343, lon: -77.3963, countryCode: "BS" },
+      ],
+      [
+        { name: "BELIZE", status: "live-telemetry", lat: 17.1899, lon: -88.4976, countryCode: "BZ" },
+        { name: "EL SALVADOR", status: "live-telemetry", lat: 13.7942, lon: -88.8965, countryCode: "SV" },
+        { name: "NICARAGUA", status: "live-telemetry", lat: 12.8654, lon: -85.2072, countryCode: "NI" },
+        { name: "HAITI", status: "live-telemetry", lat: 18.9712, lon: -72.2852, countryCode: "HT" },
+        { name: "TRINIDAD", status: "live-telemetry", lat: 10.6918, lon: -61.2225, countryCode: "TT" },
+        { name: "BARBADOS", status: "live-telemetry", lat: 13.1939, lon: -59.5432, countryCode: "BB" },
+      ],
+      [
+        { name: "SAINT LUCIA", status: "live-telemetry", lat: 13.9094, lon: -60.9789, countryCode: "LC" },
+        { name: "GRENADA", status: "live-telemetry", lat: 12.1165, lon: -61.679, countryCode: "GD" },
+        { name: "ANTIGUA", status: "live-telemetry", lat: 17.0608, lon: -61.7964, countryCode: "AG" },
+        { name: "DOMINICA", status: "live-telemetry", lat: 15.415, lon: -61.371, countryCode: "DM" },
+        { name: "GREENLAND", status: "coming-soon" },
+        { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
+      ],
+    ],
+  },
   africa: {
     id: "africa",
     name: "AFRICA",
     index: "01",
     coordinates: "8.7832° N\n34.5085° E",
-    totalCountries: 54,
-    activeCountryIds: ["egypt", "south-africa"],
     quote: '"A healthier Africa for a brighter world."',
     editorialTags: ["PEOPLE", "LANDSCAPES", "CULTURE", "CLEANER AIR", "BRIGHTER TOMORROWS"],
     reliefMap: "/continents/africa_map_relief.jpg",
@@ -57,82 +102,35 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     polaroidPhoto: "/continents/africa_savannah_card.jpg",
     polaroidCaption: ["AFRICA", "A CLEANER", "TOMORROW"],
     rows: [
-      // Row 1 (5 nodes)
       [
-        { name: "MOROCCO", status: "coming-soon", image: "/continents/morocco_casablanca.jpg" },
-        { name: "ALGERIA", status: "coming-soon" },
-        { name: "TUNISIA", status: "coming-soon" },
-        { name: "LIBYA", status: "coming-soon" },
-        { name: "EGYPT", id: "egypt", status: "active", image: "/continents/egypt_pyramids.jpg" },
-      ],
-      // Row 2 (6 nodes)
-      [
-        { name: "MAURITANIA", status: "coming-soon" },
-        { name: "MALI", status: "coming-soon" },
-        { name: "NIGER", status: "coming-soon" },
-        { name: "CHAD", status: "coming-soon" },
-        { name: "SUDAN", status: "coming-soon" },
-        { name: "ETHIOPIA", status: "coming-soon" },
-      ],
-      // Row 3 (6 nodes)
-      [
-        { name: "NIGERIA", status: "coming-soon" },
-        { name: "GHANA", status: "coming-soon" },
-        { name: "CAMEROON", status: "coming-soon" },
-        { name: "DRC", status: "coming-soon" },
-        { name: "KENYA", status: "coming-soon" },
-        { name: "TANZANIA", status: "coming-soon" },
-      ],
-      // Row 4 (6 nodes)
-      [
-        { name: "ANGOLA", status: "coming-soon" },
-        { name: "ZAMBIA", status: "coming-soon" },
-        { name: "ZIMBABWE", status: "coming-soon" },
-        { name: "BOTSWANA", status: "coming-soon" },
-        { name: "SOUTH AFRICA", id: "south-africa", status: "active", image: "/continents/table_mountain.jpg" },
-        { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
-      ],
-    ],
-  },
-  asia: {
-    id: "asia",
-    name: "ASIA",
-    index: "02",
-    coordinates: "34.0479° N\n100.6197° E",
-    totalCountries: 48,
-    activeCountryIds: ["india", "japan", "uae", "singapore"],
-    quote: '"Atmospheric resilience across historic trade corridors."',
-    editorialTags: ["MEGACITIES", "MONSOONS", "INDUSTRY", "CLEAN HORIZONS", "TOMORROW"],
-    reliefMap: "/stamps/geo_asia.jpg",
-    rows: [
-      [
-        { name: "SAUDI ARABIA", status: "coming-soon" },
-        { name: "UAE", id: "uae", status: "active" },
-        { name: "INDIA", id: "india", status: "active" },
-        { name: "SINGAPORE", id: "singapore", status: "active" },
-        { name: "JAPAN", id: "japan", status: "active" },
+        { name: "MOROCCO", status: "live-telemetry", lat: 31.7917, lon: -7.0926, countryCode: "MA", image: "/continents/morocco_casablanca.jpg" },
+        { name: "ALGERIA", status: "live-telemetry", lat: 28.0339, lon: 1.6596, countryCode: "DZ" },
+        { name: "TUNISIA", status: "live-telemetry", lat: 33.8869, lon: 9.5375, countryCode: "TN" },
+        { name: "LIBYA", status: "live-telemetry", lat: 26.3351, lon: 17.2283, countryCode: "LY" },
+        { name: "EGYPT", id: "egypt", status: "aeropure-active", image: "/continents/egypt_pyramids.jpg" },
       ],
       [
-        { name: "TURKEY", status: "coming-soon" },
-        { name: "IRAN", status: "coming-soon" },
-        { name: "KAZAKHSTAN", status: "coming-soon" },
-        { name: "CHINA", status: "coming-soon" },
-        { name: "SOUTH KOREA", status: "coming-soon" },
-        { name: "VIETNAM", status: "coming-soon" },
+        { name: "MAURITANIA", status: "live-telemetry", lat: 21.0079, lon: -10.9408, countryCode: "MR" },
+        { name: "MALI", status: "live-telemetry", lat: 17.5707, lon: -3.9962, countryCode: "ML" },
+        { name: "NIGER", status: "live-telemetry", lat: 17.6078, lon: 8.0817, countryCode: "NE" },
+        { name: "CHAD", status: "live-telemetry", lat: 15.4542, lon: 18.7322, countryCode: "TD" },
+        { name: "SUDAN", status: "live-telemetry", lat: 12.8628, lon: 30.2176, countryCode: "SD" },
+        { name: "ETHIOPIA", status: "live-telemetry", lat: 9.145, lon: 40.4897, countryCode: "ET" },
       ],
       [
-        { name: "PAKISTAN", status: "coming-soon" },
-        { name: "BANGLADESH", status: "coming-soon" },
-        { name: "THAILAND", status: "coming-soon" },
-        { name: "MALAYSIA", status: "coming-soon" },
-        { name: "INDONESIA", status: "coming-soon" },
-        { name: "PHILIPPINES", status: "coming-soon" },
+        { name: "NIGERIA", status: "live-telemetry", lat: 9.082, lon: 8.6753, countryCode: "NG" },
+        { name: "GHANA", status: "live-telemetry", lat: 7.9465, lon: -1.0232, countryCode: "GH" },
+        { name: "CAMEROON", status: "live-telemetry", lat: 7.3697, lon: 12.3547, countryCode: "CM" },
+        { name: "DRC", status: "live-telemetry", lat: -4.0383, lon: 21.7587, countryCode: "CD" },
+        { name: "KENYA", status: "live-telemetry", lat: -0.0236, lon: 37.9062, countryCode: "KE" },
+        { name: "TANZANIA", status: "live-telemetry", lat: -6.369, lon: 34.8888, countryCode: "TZ" },
       ],
       [
-        { name: "SRI LANKA", status: "coming-soon" },
-        { name: "NEPAL", status: "coming-soon" },
-        { name: "QATAR", status: "coming-soon" },
-        { name: "TAIWAN", status: "coming-soon" },
+        { name: "ANGOLA", status: "live-telemetry", lat: -11.2027, lon: 17.8739, countryCode: "AO" },
+        { name: "ZAMBIA", status: "live-telemetry", lat: -13.1339, lon: 27.8493, countryCode: "ZM" },
+        { name: "ZIMBABWE", status: "live-telemetry", lat: -19.0154, lon: 29.1549, countryCode: "ZW" },
+        { name: "BOTSWANA", status: "live-telemetry", lat: -22.3285, lon: 24.6849, countryCode: "BW" },
+        { name: "SOUTH AFRICA", id: "south-africa", status: "aeropure-active", image: "/continents/table_mountain.jpg" },
         { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
       ],
     ],
@@ -142,69 +140,79 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     name: "EUROPE",
     index: "03",
     coordinates: "54.5260° N\n15.2551° E",
-    totalCountries: 44,
-    activeCountryIds: ["germany", "united-kingdom", "france"],
     quote: '"Pioneering continental standards for atmospheric clarity."',
     editorialTags: ["ALPINE WINDS", "MARITIME", "CORRIDORS", "EMISSION CAPS", "ARCHIVE"],
     reliefMap: "/stamps/geo_europe.jpg",
     rows: [
       [
-        { name: "IRELAND", status: "coming-soon" },
-        { name: "UNITED KINGDOM", id: "united-kingdom", status: "active" },
-        { name: "FRANCE", id: "france", status: "active" },
-        { name: "GERMANY", id: "germany", status: "active" },
-        { name: "POLAND", status: "coming-soon" },
+        { name: "IRELAND", status: "live-telemetry", lat: 53.1424, lon: -7.6921, countryCode: "IE" },
+        { name: "UNITED KINGDOM", id: "united-kingdom", status: "aeropure-active" },
+        { name: "FRANCE", id: "france", status: "aeropure-active" },
+        { name: "GERMANY", id: "germany", status: "aeropure-active" },
+        { name: "POLAND", status: "live-telemetry", lat: 51.9194, lon: 19.1451, countryCode: "PL" },
       ],
       [
-        { name: "PORTUGAL", status: "coming-soon" },
-        { name: "SPAIN", status: "coming-soon" },
-        { name: "ITALY", status: "coming-soon" },
-        { name: "SWITZERLAND", status: "coming-soon" },
-        { name: "AUSTRIA", status: "coming-soon" },
-        { name: "NETHERLANDS", status: "coming-soon" },
+        { name: "PORTUGAL", status: "live-telemetry", lat: 39.3999, lon: -8.2245, countryCode: "PT" },
+        { name: "SPAIN", status: "live-telemetry", lat: 40.4637, lon: -3.7492, countryCode: "ES" },
+        { name: "ITALY", status: "live-telemetry", lat: 41.8719, lon: 12.5674, countryCode: "IT" },
+        { name: "SWITZERLAND", status: "live-telemetry", lat: 46.8182, lon: 8.2275, countryCode: "CH" },
+        { name: "AUSTRIA", status: "live-telemetry", lat: 47.5162, lon: 14.5501, countryCode: "AT" },
+        { name: "NETHERLANDS", status: "live-telemetry", lat: 52.1326, lon: 5.2913, countryCode: "NL" },
       ],
       [
-        { name: "NORWAY", status: "coming-soon" },
-        { name: "SWEDEN", status: "coming-soon" },
-        { name: "FINLAND", status: "coming-soon" },
-        { name: "DENMARK", status: "coming-soon" },
-        { name: "BELGIUM", status: "coming-soon" },
-        { name: "CZECHIA", status: "coming-soon" },
+        { name: "NORWAY", status: "live-telemetry", lat: 60.472, lon: 8.4689, countryCode: "NO" },
+        { name: "SWEDEN", status: "live-telemetry", lat: 60.1282, lon: 18.6435, countryCode: "SE" },
+        { name: "FINLAND", status: "live-telemetry", lat: 61.9241, lon: 25.7482, countryCode: "FI" },
+        { name: "DENMARK", status: "live-telemetry", lat: 56.2639, lon: 9.5018, countryCode: "DK" },
+        { name: "BELGIUM", status: "live-telemetry", lat: 50.5039, lon: 4.4699, countryCode: "BE" },
+        { name: "CZECHIA", status: "live-telemetry", lat: 49.8175, lon: 15.473, countryCode: "CZ" },
       ],
       [
-        { name: "GREECE", status: "coming-soon" },
-        { name: "ROMANIA", status: "coming-soon" },
-        { name: "HUNGARY", status: "coming-soon" },
+        { name: "GREECE", status: "live-telemetry", lat: 39.0742, lon: 21.8243, countryCode: "GR" },
+        { name: "ROMANIA", status: "live-telemetry", lat: 45.9432, lon: 24.9668, countryCode: "RO" },
+        { name: "HUNGARY", status: "live-telemetry", lat: 47.1625, lon: 19.5033, countryCode: "HU" },
+        { name: "SVALBARD", status: "coming-soon" },
         { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
       ],
     ],
   },
-  "north-america": {
-    id: "north-america",
-    name: "NORTH AMERICA",
-    index: "04",
-    coordinates: "54.5260° N\n105.2551° W",
-    totalCountries: 23,
-    activeCountryIds: ["united-states", "canada"],
-    quote: '"Jet-stream tracking from arctic borders to gulf shores."',
-    editorialTags: ["PACIFIC BASINS", "BOREAL", "GREAT PLAINS", "JET STREAM", "RESEARCH"],
-    reliefMap: "/stamps/geo_north-america.jpg",
+  asia: {
+    id: "asia",
+    name: "ASIA",
+    index: "02",
+    coordinates: "34.0479° N\n100.6197° E",
+    quote: '"Atmospheric resilience across historic trade corridors."',
+    editorialTags: ["MEGACITIES", "MONSOONS", "INDUSTRY", "CLEAN HORIZONS", "TOMORROW"],
+    reliefMap: "/stamps/geo_asia.jpg",
     rows: [
       [
-        { name: "CANADA", id: "canada", status: "active" },
-        { name: "UNITED STATES", id: "united-states", status: "active" },
-        { name: "MEXICO", status: "coming-soon" },
+        { name: "SAUDI ARABIA", status: "live-telemetry", lat: 23.8859, lon: 45.0792, countryCode: "SA" },
+        { name: "UAE", id: "uae", status: "aeropure-active" },
+        { name: "INDIA", id: "india", status: "aeropure-active" },
+        { name: "SINGAPORE", id: "singapore", status: "aeropure-active" },
+        { name: "JAPAN", id: "japan", status: "aeropure-active" },
       ],
       [
-        { name: "GUATEMALA", status: "coming-soon" },
-        { name: "CUBA", status: "coming-soon" },
-        { name: "PANAMA", status: "coming-soon" },
-        { name: "COSTA RICA", status: "coming-soon" },
+        { name: "TURKEY", status: "live-telemetry", lat: 38.9637, lon: 35.2433, countryCode: "TR" },
+        { name: "IRAN", status: "live-telemetry", lat: 32.4279, lon: 53.688, countryCode: "IR" },
+        { name: "KAZAKHSTAN", status: "live-telemetry", lat: 48.0196, lon: 66.9237, countryCode: "KZ" },
+        { name: "CHINA", status: "live-telemetry", lat: 35.8617, lon: 104.1954, countryCode: "CN" },
+        { name: "SOUTH KOREA", status: "live-telemetry", lat: 35.9078, lon: 127.7669, countryCode: "KR" },
+        { name: "VIETNAM", status: "live-telemetry", lat: 14.0583, lon: 108.2772, countryCode: "VN" },
       ],
       [
-        { name: "JAMAICA", status: "coming-soon" },
-        { name: "HONDURAS", status: "coming-soon" },
-        { name: "DOMINICAN REP", status: "coming-soon" },
+        { name: "PAKISTAN", status: "live-telemetry", lat: 30.3753, lon: 69.3451, countryCode: "PK" },
+        { name: "BANGLADESH", status: "live-telemetry", lat: 23.685, lon: 90.3563, countryCode: "BD" },
+        { name: "THAILAND", status: "live-telemetry", lat: 15.87, lon: 100.9925, countryCode: "TH" },
+        { name: "MALAYSIA", status: "live-telemetry", lat: 4.2105, lon: 101.9758, countryCode: "MY" },
+        { name: "INDONESIA", status: "live-telemetry", lat: -0.7893, lon: 113.9213, countryCode: "ID" },
+        { name: "PHILIPPINES", status: "live-telemetry", lat: 12.8797, lon: 121.774, countryCode: "PH" },
+      ],
+      [
+        { name: "SRI LANKA", status: "live-telemetry", lat: 7.8731, lon: 80.7718, countryCode: "LK" },
+        { name: "NEPAL", status: "live-telemetry", lat: 28.3949, lon: 84.124, countryCode: "NP" },
+        { name: "QATAR", status: "live-telemetry", lat: 25.3548, lon: 51.1839, countryCode: "QA" },
+        { name: "TAIWAN", status: "live-telemetry", lat: 23.6978, lon: 120.9605, countryCode: "TW" },
         { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
       ],
     ],
@@ -214,27 +222,25 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     name: "SOUTH AMERICA",
     index: "05",
     coordinates: "8.7832° S\n55.4915° W",
-    totalCountries: 12,
-    activeCountryIds: ["brazil"],
     quote: '"Protecting planetary respiration across the Amazon basin."',
     editorialTags: ["AMAZON BASIN", "ANDEAN HEIGHTS", "OXYGEN SINKS", "PURITY", "ARCHIVE"],
     reliefMap: "/stamps/geo_south-america.jpg",
     rows: [
       [
-        { name: "COLOMBIA", status: "coming-soon" },
-        { name: "BRAZIL", id: "brazil", status: "active" },
-        { name: "ARGENTINA", status: "coming-soon" },
+        { name: "COLOMBIA", status: "live-telemetry", lat: 4.5709, lon: -74.2973, countryCode: "CO" },
+        { name: "BRAZIL", id: "brazil", status: "aeropure-active" },
+        { name: "ARGENTINA", status: "live-telemetry", lat: -38.4161, lon: -63.6167, countryCode: "AR" },
       ],
       [
-        { name: "CHILE", status: "coming-soon" },
-        { name: "PERU", status: "coming-soon" },
-        { name: "ECUADOR", status: "coming-soon" },
-        { name: "URUGUAY", status: "coming-soon" },
+        { name: "CHILE", status: "live-telemetry", lat: -35.6751, lon: -71.543, countryCode: "CL" },
+        { name: "PERU", status: "live-telemetry", lat: -9.19, lon: -75.0152, countryCode: "PE" },
+        { name: "ECUADOR", status: "live-telemetry", lat: -1.8312, lon: -78.1834, countryCode: "EC" },
+        { name: "URUGUAY", status: "live-telemetry", lat: -32.5228, lon: -55.7658, countryCode: "UY" },
       ],
       [
-        { name: "VENEZUELA", status: "coming-soon" },
-        { name: "PARAGUAY", status: "coming-soon" },
-        { name: "BOLIVIA", status: "coming-soon" },
+        { name: "VENEZUELA", status: "live-telemetry", lat: 6.4238, lon: -66.5897, countryCode: "VE" },
+        { name: "PARAGUAY", status: "live-telemetry", lat: -23.4425, lon: -58.4438, countryCode: "PY" },
+        { name: "BOLIVIA", status: "live-telemetry", lat: -16.2902, lon: -63.5887, countryCode: "BO" },
         { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
       ],
     ],
@@ -244,21 +250,20 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     name: "OCEANIA",
     index: "06",
     coordinates: "22.7359° S\n140.0188° E",
-    totalCountries: 14,
-    activeCountryIds: ["australia"],
     quote: '"Uninterrupted maritime baseline over the Southern Ocean."',
     editorialTags: ["MARITIME", "REEF BASINS", "WESTERLIES", "CLEAN SEAS", "ISLAND NET"],
     reliefMap: "/stamps/geo_oceania.jpg",
     rows: [
       [
-        { name: "AUSTRALIA", id: "australia", status: "active" },
-        { name: "NEW ZEALAND", status: "coming-soon" },
-        { name: "FIJI", status: "coming-soon" },
+        { name: "AUSTRALIA", id: "australia", status: "aeropure-active" },
+        { name: "NEW ZEALAND", status: "live-telemetry", lat: -40.9006, lon: 174.886, countryCode: "NZ" },
+        { name: "FIJI", status: "live-telemetry", lat: -17.7134, lon: 178.065, countryCode: "FJ" },
       ],
       [
-        { name: "PAPUA NEW GUINEA", status: "coming-soon" },
-        { name: "SOLOMON ISLANDS", status: "coming-soon" },
-        { name: "SAMOA", status: "coming-soon" },
+        { name: "PAPUA NEW GUINEA", status: "live-telemetry", lat: -6.315, lon: 143.9555, countryCode: "PG" },
+        { name: "SOLOMON ISLANDS", status: "live-telemetry", lat: -9.6457, lon: 160.1562, countryCode: "SB" },
+        { name: "SAMOA", status: "live-telemetry", lat: -13.759, lon: -172.1046, countryCode: "WS" },
+        { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
       ],
     ],
   },
@@ -267,16 +272,18 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     name: "ANTARCTICA",
     index: "07",
     coordinates: "82.8628° S\n135.0000° E",
-    totalCountries: 1,
-    activeCountryIds: ["antarctica-terr"],
     quote: '"The absolute global zero baseline for atmospheric chemistry."',
     editorialTags: ["CRYOSPHERE", "ZERO BASELINE", "POLAR VORTEX", "PRISTINE", "ARCHIVE"],
     reliefMap: "/stamps/geo_antarctica.jpg",
     rows: [
       [
-        { name: "ANTARCTICA RES.", id: "antarctica-terr", status: "active" },
-        { name: "VOSTOK STATION", status: "coming-soon" },
-        { name: "MCMURDO BASE", status: "coming-soon" },
+        { name: "ANTARCTICA RES.", id: "antarctica-terr", status: "aeropure-active" },
+        { name: "MCMURDO BASE", status: "live-telemetry", lat: -77.8419, lon: 166.6863, countryCode: "AQ" },
+        { name: "VOSTOK STATION", status: "live-telemetry", lat: -78.4644, lon: 106.8373, countryCode: "AQ" },
+      ],
+      [
+        { name: "AMUNDSEN-SCOTT", status: "live-telemetry", lat: -90.0, lon: 0.0, countryCode: "AQ" },
+        { name: "CONCORDIA BASE", status: "coming-soon" },
       ],
     ],
   },
@@ -303,8 +310,6 @@ export default function ContinentArchiveView({
         name: continent.name.toUpperCase(),
         index: "01",
         coordinates: `${Math.abs(continent.lat).toFixed(4)}° ${continent.lat >= 0 ? "N" : "S"}\n${Math.abs(continent.lon).toFixed(4)}° ${continent.lon >= 0 ? "E" : "W"}`,
-        totalCountries: continent.countryCount || 54,
-        activeCountryIds: COUNTRIES.filter((c) => c.continentId === continent.id).map((c) => c.id),
         quote: `"Atmospheric research across ${continent.name}."`,
         editorialTags: ["ATMOSPHERE", "TERRAIN", "COMMUNITIES", "CLEAN AIR", "INTELLIGENCE"],
         reliefMap: "/continents/africa_map_relief.jpg",
@@ -312,22 +317,39 @@ export default function ContinentArchiveView({
           COUNTRIES.filter((c) => c.continentId === continent.id).map((c) => ({
             name: c.name.toUpperCase(),
             id: c.id,
-            status: "active" as const,
+            status: "aeropure-active" as const,
           })),
         ],
       }
     );
   }, [continent]);
 
-  // Actual active countries in this continent from application data
-  const realActiveCountries = useMemo(() => {
+  // ── DYNAMIC PROGRAMMATIC CAPABILITY CALCULATION ──
+  // 1. Exact AeroPure ML supported countries (from locations.ts)
+  const aeropureActiveCountries = useMemo(() => {
     return COUNTRIES.filter((c) => c.continentId === continent.id);
   }, [continent.id]);
+
+  const aeropureActiveCount = aeropureActiveCountries.length;
+
+  // 2. Exact Live Telemetry count available on this continent
+  const liveTelemetryCount = useMemo(() => {
+    const allNodes = config.rows.flat();
+    const liveSet = new Set(
+      allNodes
+        .filter((n) => n.status === "live-telemetry" && !n.isAction)
+        .map((n) => n.name)
+    );
+    return liveSet.size;
+  }, [config.rows]);
+
+  // 3. Total continental entities (actual total defined by continent or capabilities)
+  const totalEntities = continent.countryCount || (aeropureActiveCount + liveTelemetryCount);
 
   // Search State
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 1. Synchronously compute local matches with useMemo
+  // Synchronously compute local matches with useMemo
   const localMatches = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     if (q.length < 2) return [];
@@ -337,7 +359,7 @@ export default function ContinentArchiveView({
     COUNTRIES.forEach((c) => {
       if (c.name.toLowerCase().includes(q)) {
         matches.push({
-          type: "COUNTRY",
+          type: "AEROPURE ML",
           title: c.name,
           subtitle: `Continent: ${c.continentId.toUpperCase()} • Code: ${c.code}`,
           action: () => onSelectCountry(c.id),
@@ -370,7 +392,7 @@ export default function ContinentArchiveView({
     return matches.slice(0, 5);
   }, [searchQuery, onSelectCountry]);
 
-  // 2. Debounced query for live telemetry
+  // Debounced query for live OpenWeather telemetry
   const [liveMatches, setLiveMatches] = useState<GeoLocation[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [moreModalOpen, setMoreModalOpen] = useState(false);
@@ -414,8 +436,6 @@ export default function ContinentArchiveView({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const totalActive = realActiveCountries.length;
 
   return (
     <div
@@ -629,7 +649,7 @@ export default function ContinentArchiveView({
         }}
       />
 
-      {/* ── TOP NAVIGATION BAR (MATCHING APPROVED REFERENCE) ── */}
+      {/* ── TOP NAVIGATION BAR ── */}
       <header
         style={{
           position: "relative",
@@ -918,10 +938,11 @@ export default function ContinentArchiveView({
                     style={{
                       fontSize: "0.55rem",
                       fontFamily: "'JetBrains Mono', monospace",
-                      border: "1px solid #41413F",
+                      border: "1px solid #FFFFFF",
                       padding: "0.2rem 0.4rem",
                       borderRadius: "2px",
-                      color: "#B8B8B5",
+                      color: "#FFFFFF",
+                      backgroundColor: "rgba(255, 255, 255, 0.15)",
                     }}
                   >
                     {item.type}
@@ -965,11 +986,11 @@ export default function ContinentArchiveView({
                       border: "1px solid #6D6D6A",
                       padding: "0.2rem 0.4rem",
                       borderRadius: "2px",
-                      color: "#F2F2F0",
+                      color: "#D9D9D6",
                       backgroundColor: "rgba(255, 255, 255, 0.05)",
                     }}
                   >
-                    LIVE
+                    LIVE TELEMETRY
                   </span>
                 </div>
               ))}
@@ -1242,34 +1263,77 @@ export default function ContinentArchiveView({
           {config.rows.map((row, rowIdx) => (
             <div key={`hex-row-${rowIdx}`} className="hex-row">
               {row.map((node, nodeIdx) => {
-                const isActive = node.status === "active";
+                const isAeropure = node.status === "aeropure-active";
+                const isLive = node.status === "live-telemetry";
                 const isAction = node.isAction;
+
+                // Color tokens for outer shell:
+                const outerBg = isAeropure 
+                  ? "#FFFFFF" 
+                  : isLive 
+                  ? "#6D6D6A" 
+                  : isAction 
+                  ? "#41413F" 
+                  : "#242423";
+
+                const shellPadding = isAeropure ? "1.5px" : "1px";
+
+                const innerBg = isAeropure 
+                  ? "#161616" 
+                  : isLive 
+                  ? "#121212" 
+                  : "#0d0d0d";
+
+                const nameColor = isAeropure 
+                  ? "#FFFFFF" 
+                  : isLive 
+                  ? "#E6E6E3" 
+                  : isAction 
+                  ? "#F2F2F0" 
+                  : "#6D6D6A";
+
+                const badgeLabel = isAeropure 
+                  ? "AEROPURE ACTIVE" 
+                  : isLive 
+                  ? "LIVE TELEMETRY" 
+                  : "COMING SOON";
 
                 return (
                   <div
                     key={`hex-${rowIdx}-${nodeIdx}`}
                     className="hex-item"
                     onClick={() => {
-                      if (isActive && node.id) {
+                      if (isAeropure && node.id) {
                         onSelectCountry(node.id);
+                      } else if (isLive && node.lat !== undefined && node.lon !== undefined) {
+                        onSelectLiveLocation({
+                          name: node.name,
+                          lat: node.lat,
+                          lon: node.lon,
+                          country: node.countryCode || node.name,
+                        });
                       } else if (isAction) {
                         setMoreModalOpen(true);
                       }
                     }}
                     style={{
-                      cursor: isActive || isAction ? "pointer" : "default",
-                      filter: isActive
-                        ? "drop-shadow(0 4px 14px rgba(0, 0, 0, 0.8))"
+                      cursor: isAeropure || isLive || isAction ? "pointer" : "default",
+                      filter: isAeropure
+                        ? "drop-shadow(0 4px 16px rgba(255, 255, 255, 0.18))"
+                        : isLive
+                        ? "drop-shadow(0 3px 10px rgba(0, 0, 0, 0.8))"
                         : "drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6))",
                     }}
                     onMouseEnter={(e) => {
-                      if (isActive || isAction) {
-                        e.currentTarget.style.transform = "scale(1.08) translateY(-3px)";
+                      if (isAeropure || isLive || isAction) {
+                        e.currentTarget.style.transform = isAeropure 
+                          ? "scale(1.08) translateY(-4px)" 
+                          : "scale(1.06) translateY(-2px)";
                         e.currentTarget.style.zIndex = "25";
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (isActive || isAction) {
+                      if (isAeropure || isLive || isAction) {
                         e.currentTarget.style.transform = "scale(1) translateY(0)";
                         e.currentTarget.style.zIndex = "12";
                       }
@@ -1280,9 +1344,9 @@ export default function ContinentArchiveView({
                       style={{
                         width: "100%",
                         height: "100%",
-                        backgroundColor: isActive ? "#929292" : isAction ? "#41413F" : "#242423",
+                        backgroundColor: outerBg,
                         clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-                        padding: isActive ? "1.5px" : "1px",
+                        padding: shellPadding,
                         boxSizing: "border-box",
                         transition: "background-color 0.2s ease",
                       }}
@@ -1292,7 +1356,7 @@ export default function ContinentArchiveView({
                         style={{
                           width: "100%",
                           height: "100%",
-                          backgroundColor: "#111111",
+                          backgroundColor: innerBg,
                           clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
                           position: "relative",
                           display: "flex",
@@ -1302,7 +1366,7 @@ export default function ContinentArchiveView({
                           overflow: "hidden",
                         }}
                       >
-                        {/* Photographic Background if provided (e.g. Pyramids / Table Mountain) */}
+                        {/* Photographic Background if provided */}
                         {node.image && (
                           <div
                             style={{
@@ -1317,7 +1381,9 @@ export default function ContinentArchiveView({
                               fill
                               style={{
                                 objectFit: "cover",
-                                filter: "grayscale(100%) contrast(130%) brightness(75%)",
+                                filter: isAeropure
+                                  ? "grayscale(100%) contrast(135%) brightness(80%)"
+                                  : "grayscale(100%) contrast(115%) brightness(65%)",
                               }}
                             />
                             {/* Dark Gradient Overlay for razor-sharp typography */}
@@ -1326,7 +1392,7 @@ export default function ContinentArchiveView({
                                 position: "absolute",
                                 inset: 0,
                                 background:
-                                  "linear-gradient(to top, rgba(7, 7, 7, 0.92) 20%, rgba(17, 17, 17, 0.5) 70%, rgba(7, 7, 7, 0.8) 100%)",
+                                  "linear-gradient(to top, rgba(7, 7, 7, 0.94) 25%, rgba(17, 17, 17, 0.5) 70%, rgba(7, 7, 7, 0.82) 100%)",
                               }}
                             />
                           </div>
@@ -1359,7 +1425,7 @@ export default function ContinentArchiveView({
                                   lineHeight: 1.2,
                                 }}
                               >
-                                MORE
+                                ALL
                                 <br />
                                 COUNTRIES
                               </span>
@@ -1369,12 +1435,12 @@ export default function ContinentArchiveView({
                               <span
                                 style={{
                                   fontFamily: "'JetBrains Mono', monospace",
-                                  fontSize: node.name.length > 10 ? "0.54rem" : "0.62rem",
+                                  fontSize: node.name.length > 10 ? "0.52rem" : "0.62rem",
                                   fontWeight: 800,
                                   letterSpacing: "0.05em",
-                                  color: isActive ? "#FFFFFF" : "#B8B8B5",
+                                  color: nameColor,
                                   lineHeight: 1.2,
-                                  textShadow: isActive ? "0 2px 8px rgba(0, 0, 0, 1)" : "none",
+                                  textShadow: isAeropure ? "0 2px 8px rgba(0, 0, 0, 1)" : "none",
                                   marginBottom: "3px",
                                 }}
                               >
@@ -1383,17 +1449,25 @@ export default function ContinentArchiveView({
                               <span
                                 style={{
                                   fontFamily: "'JetBrains Mono', monospace",
-                                  fontSize: "0.46rem",
-                                  fontWeight: 600,
-                                  letterSpacing: "0.14em",
-                                  color: isActive ? "#F2F2F0" : "#6D6D6A",
-                                  backgroundColor: isActive ? "rgba(255, 255, 255, 0.15)" : "transparent",
-                                  padding: isActive ? "1px 5px" : "0",
+                                  fontSize: isAeropure ? "0.46rem" : "0.44rem",
+                                  fontWeight: isAeropure ? 800 : 600,
+                                  letterSpacing: "0.1em",
+                                  color: isAeropure ? "#FFFFFF" : isLive ? "#D9D9D6" : "#525250",
+                                  backgroundColor: isAeropure 
+                                    ? "rgba(255, 255, 255, 0.2)" 
+                                    : isLive 
+                                    ? "rgba(255, 255, 255, 0.07)" 
+                                    : "transparent",
+                                  padding: isAeropure || isLive ? "1px 5px" : "0",
                                   borderRadius: "1px",
-                                  border: isActive ? "1px solid rgba(255, 255, 255, 0.3)" : "none",
+                                  border: isAeropure 
+                                    ? "1px solid rgba(255, 255, 255, 0.45)" 
+                                    : isLive 
+                                    ? "1px solid #6D6D6A" 
+                                    : "none",
                                 }}
                               >
-                                {isActive ? "ACTIVE" : "COMING SOON"}
+                                {badgeLabel}
                               </span>
                             </>
                           )}
@@ -1415,8 +1489,8 @@ export default function ContinentArchiveView({
             position: "fixed",
             inset: 0,
             zIndex: 100,
-            backgroundColor: "rgba(0, 0, 0, 0.85)",
-            backdropFilter: "blur(8px)",
+            backgroundColor: "rgba(0, 0, 0, 0.88)",
+            backdropFilter: "blur(10px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1429,10 +1503,10 @@ export default function ContinentArchiveView({
               backgroundColor: "#111111",
               border: "1px solid #41413F",
               width: "100%",
-              maxWidth: "680px",
-              maxHeight: "80vh",
+              maxWidth: "760px",
+              maxHeight: "85vh",
               overflowY: "auto",
-              padding: "2rem",
+              padding: "2.2rem",
               borderRadius: "2px",
             }}
             onClick={(e) => e.stopPropagation()}
@@ -1444,7 +1518,7 @@ export default function ContinentArchiveView({
                 alignItems: "center",
                 marginBottom: "1.5rem",
                 borderBottom: "1px solid #242423",
-                paddingBottom: "1rem",
+                paddingBottom: "1.2rem",
               }}
             >
               <div>
@@ -1457,7 +1531,7 @@ export default function ContinentArchiveView({
                     margin: 0,
                   }}
                 >
-                  {config.name} — REGIONAL DIRECTORY
+                  {config.name} — GEOGRAPHIC INDEX
                 </h3>
                 <span
                   style={{
@@ -1466,7 +1540,7 @@ export default function ContinentArchiveView({
                     color: "#929292",
                   }}
                 >
-                  {totalActive} Active / {config.totalCountries} Continental Entities
+                  {aeropureActiveCount} AeroPure ML Active • {liveTelemetryCount} Live Telemetry • {totalEntities} Total Regions
                 </span>
               </div>
               <X
@@ -1477,59 +1551,190 @@ export default function ContinentArchiveView({
               />
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-                gap: "1rem",
-              }}
-            >
-              {COUNTRIES.filter((c) => c.continentId === continent.id).map((ctry) => (
-                <div
-                  key={ctry.id}
-                  onClick={() => {
-                    setMoreModalOpen(false);
-                    onSelectCountry(ctry.id);
-                  }}
+            {/* 1. AEROPURE PREDICTION PIPELINE SUPPORTED COUNTRIES */}
+            <div style={{ marginBottom: "2rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                <Layers size={14} color="#FFFFFF" />
+                <span
                   style={{
-                    padding: "1rem",
-                    backgroundColor: "#1c1c1b",
-                    border: "1px solid #6D6D6A",
-                    borderRadius: "2px",
-                    cursor: "pointer",
-                    transition: "transform 0.15s ease, background-color 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#242423";
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#1c1c1b";
-                    e.currentTarget.style.transform = "translateY(0)";
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.14em",
+                    color: "#FFFFFF",
                   }}
                 >
-                  <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#FFFFFF" }}>{ctry.name}</div>
+                  AEROPURE ACTIVE (VERIFIED 113-FEATURE ML PIPELINE)
+                </span>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))",
+                  gap: "0.85rem",
+                }}
+              >
+                {aeropureActiveCountries.map((ctry) => (
                   <div
+                    key={ctry.id}
+                    onClick={() => {
+                      setMoreModalOpen(false);
+                      onSelectCountry(ctry.id);
+                    }}
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginTop: "0.5rem",
-                      fontSize: "0.6rem",
-                      fontFamily: "'JetBrains Mono', monospace",
-                      color: "#B8B8B5",
+                      padding: "1rem",
+                      backgroundColor: "#1c1c1b",
+                      border: "1.5px solid #FFFFFF",
+                      borderRadius: "2px",
+                      cursor: "pointer",
+                      transition: "transform 0.15s ease, background-color 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#242423";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "#1c1c1b";
+                      e.currentTarget.style.transform = "translateY(0)";
                     }}
                   >
-                    <span>{ctry.stateCount} Regions</span>
-                    <span style={{ color: "#F2F2F0", fontWeight: 700 }}>ACTIVE</span>
+                    <div style={{ fontSize: "0.88rem", fontWeight: 800, color: "#FFFFFF" }}>{ctry.name}</div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginTop: "0.5rem",
+                        fontSize: "0.62rem",
+                        fontFamily: "'JetBrains Mono', monospace",
+                        color: "#B8B8B5",
+                      }}
+                    >
+                      <span>{ctry.stateCount} Regions</span>
+                      <span
+                        style={{
+                          color: "#070707",
+                          backgroundColor: "#FFFFFF",
+                          padding: "1px 4px",
+                          fontWeight: 800,
+                          borderRadius: "1px",
+                        }}
+                      >
+                        AEROPURE ACTIVE
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            {/* 2. LIVE OPENWEATHER TELEMETRY REGIONS */}
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                <Radio size={14} color="#929292" />
+                <span
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.14em",
+                    color: "#D9D9D6",
+                  }}
+                >
+                  LIVE TELEMETRY (EXTERNAL OPENWEATHER REFERENCE)
+                </span>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))",
+                  gap: "0.85rem",
+                }}
+              >
+                {config.rows
+                  .flat()
+                  .filter((n) => n.status === "live-telemetry" && !n.isAction)
+                  .map((node, idx) => (
+                    <div
+                      key={`modal-live-${idx}`}
+                      onClick={() => {
+                        if (node.lat !== undefined && node.lon !== undefined) {
+                          setMoreModalOpen(false);
+                          onSelectLiveLocation({
+                            name: node.name,
+                            lat: node.lat,
+                            lon: node.lon,
+                            country: node.countryCode || node.name,
+                          });
+                        }
+                      }}
+                      style={{
+                        padding: "1rem",
+                        backgroundColor: "#141414",
+                        border: "1px solid #6D6D6A",
+                        borderRadius: "2px",
+                        cursor: "pointer",
+                        transition: "transform 0.15s ease, background-color 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#1f1f1f";
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#141414";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
+                      <div style={{ fontSize: "0.84rem", fontWeight: 700, color: "#E6E6E3" }}>{node.name}</div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginTop: "0.5rem",
+                          fontSize: "0.6rem",
+                          fontFamily: "'JetBrains Mono', monospace",
+                          color: "#929292",
+                        }}
+                      >
+                        <span>
+                          {node.lat !== undefined ? `${node.lat.toFixed(1)}°, ${node.lon?.toFixed(1)}°` : "GPS Ready"}
+                        </span>
+                        <span
+                          style={{
+                            color: "#D9D9D6",
+                            border: "1px solid #6D6D6A",
+                            padding: "1px 4px",
+                            fontWeight: 600,
+                            borderRadius: "1px",
+                          }}
+                        >
+                          LIVE TELEMETRY
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── BOTTOM INFORMATION & TELEMETRY STRIP (MATCHING APPROVED REFERENCE) ── */}
+      {/* ── BOTTOM INFORMATION & TELEMETRY STRIP ── */}
       <footer
         style={{
           position: "relative",
@@ -1562,7 +1767,7 @@ export default function ContinentArchiveView({
               lineHeight: 1.4,
             }}
           >
-            <div>{config.totalCountries} COUNTRIES</div>
+            <div>{totalEntities} TOTAL COUNTRIES</div>
             <div style={{ color: "#6D6D6A" }}>1 SHARED ATMOSPHERE</div>
           </div>
         </div>
@@ -1577,46 +1782,46 @@ export default function ContinentArchiveView({
           }}
           className="hidden-mobile"
         >
-          {/* Block 1: Countries Active */}
+          {/* Block 1: AeroPure Model Active */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
-            <Layers size={18} color="#929292" />
+            <Layers size={18} color="#FFFFFF" />
             <div style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              <div style={{ fontSize: "0.58rem", letterSpacing: "0.18em", color: "#6D6D6A" }}>COUNTRIES</div>
-              <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.12em", color: "#F2F2F0" }}>
-                {String(totalActive).padStart(2, "0")} ACTIVE / {config.totalCountries} TOTAL
+              <div style={{ fontSize: "0.58rem", letterSpacing: "0.18em", color: "#929292" }}>AEROPURE MODEL</div>
+              <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.12em", color: "#FFFFFF" }}>
+                {String(aeropureActiveCount).padStart(2, "0")} ACTIVE (VERIFIED ML)
               </div>
             </div>
           </div>
 
-          {/* Block 2: Geospatial Index */}
+          {/* Block 2: Live Telemetry Feeds */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
+            <Activity size={18} color="#929292" />
+            <div style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              <div style={{ fontSize: "0.58rem", letterSpacing: "0.18em", color: "#6D6D6A" }}>LIVE TELEMETRY</div>
+              <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.12em", color: "#D9D9D6" }}>
+                {String(liveTelemetryCount).padStart(2, "0")} AVAILABLE FEEDS
+              </div>
+            </div>
+          </div>
+
+          {/* Block 3: Total Geographic Index */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
             <BarChart3 size={18} color="#929292" />
             <div style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               <div style={{ fontSize: "0.58rem", letterSpacing: "0.18em", color: "#6D6D6A" }}>GEOSPATIAL INDEX</div>
-              <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.12em", color: "#F2F2F0" }}>
-                CONTINENTAL
+              <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.12em", color: "#B8B8B5" }}>
+                {totalEntities} TOTAL REGIONS
               </div>
             </div>
           </div>
 
-          {/* Block 3: Air Intelligence */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
-            <Activity size={18} color="#929292" />
-            <div style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              <div style={{ fontSize: "0.58rem", letterSpacing: "0.18em", color: "#6D6D6A" }}>AIR INTELLIGENCE</div>
-              <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.12em", color: "#F2F2F0" }}>
-                LIVE TELEMETRY
-              </div>
-            </div>
-          </div>
-
-          {/* Block 4: Our Mission */}
+          {/* Block 4: Scientific Provenance */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
             <Leaf size={18} color="#929292" />
             <div style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              <div style={{ fontSize: "0.58rem", letterSpacing: "0.18em", color: "#6D6D6A" }}>OUR MISSION</div>
-              <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.12em", color: "#F2F2F0" }}>
-                CLEANER AIR / BRIGHTER TOMORROWS
+              <div style={{ fontSize: "0.58rem", letterSpacing: "0.18em", color: "#6D6D6A" }}>DATA PROVENANCE</div>
+              <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.12em", color: "#B8B8B5" }}>
+                MODEL / TELEMETRY SEPARATION
               </div>
             </div>
           </div>

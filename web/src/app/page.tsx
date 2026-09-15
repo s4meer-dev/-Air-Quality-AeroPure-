@@ -145,51 +145,14 @@ export default function HomePage() {
     setCurrentAreaObj(null);
     setNavLevel("area");
     
+    // Scientifically rigorous: Never fabricate AeroPure predictions for unmonitored external domains
+    setPrediction(null);
+    setExplanation(null);
+    setTimeline([]);
+    setDrift(null);
+
+    // Fetch genuine live meteorological and air quality observation telemetry
     await fetchWeather(loc.lat, loc.lon);
-
-    try {
-      // Mock an Area object for the inputs since the model needs lat/lon/elevation/etc.
-      // We assume elevation=0 or something generic since we don't have it.
-      const pseudoArea: Area = {
-        slug: loc.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-        name: loc.name,
-        lat: loc.lat,
-        lon: loc.lon,
-        defaultRegimeHint: 0
-      };
-      
-      const baseInput = buildForecastInput(pseudoArea, 0);
-      const predRes = await aeropureClient.predict(baseInput);
-      setPrediction(predRes);
-
-      const expRes = await aeropureClient.explain(baseInput);
-      setExplanation(expRes);
-
-      const driftRes = await aeropureClient.drift();
-      setDrift(driftRes);
-
-      const tl = await Promise.all(
-        FORECAST_OFFSETS.map(async (offset) => {
-          const inp = buildForecastInput(pseudoArea, offset);
-          const r = await aeropureClient.predict(inp);
-          return {
-            hourOffset: offset,
-            predicted_aqi_proxy: r.predicted_aqi_proxy,
-            hazard_probability: r.hazard_probability,
-            hazardous: r.hazardous,
-            risk_category: r.risk_category,
-            label: `+${offset}h`,
-            time: new Date(Date.now() + offset * 3600000).toISOString()
-          };
-        })
-      );
-      setTimeline(tl);
-    } catch (err) {
-      console.error("AeroPure ML API Error for Live Location:", err);
-      setPrediction(null);
-      setExplanation(null);
-      setTimeline([]);
-    }
   }, [fetchWeather]);
 
   const handleContinentSelect = (continentId: string) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Droplets, Wind, Gauge, CloudSun, Activity, AlertCircle, RefreshCw } from "lucide-react";
+import { Droplets, Wind, Gauge, CloudSun, AlertCircle, RefreshCw } from "lucide-react";
 import { PredictResponse } from "@/lib/aeropure-client";
 
 interface WeatherData {
@@ -164,7 +164,7 @@ export default function DualSourcePanel({
                   letterSpacing: "0.08em",
                 }}
               >
-                XGBOOST INFERENCE
+                {prediction ? "XGBOOST INFERENCE" : "EXTERNAL TELEMETRY ONLY"}
               </span>
             </div>
 
@@ -215,9 +215,27 @@ export default function DualSourcePanel({
                 </div>
               </div>
             ) : (
-              <div style={{ padding: "1.5rem 0", textAlign: "center", color: "var(--silver)" }}>
-                <Activity size={24} color="var(--silver)" style={{ margin: "0 auto 0.5rem" }} />
-                <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.8rem" }}>GENERATING INFERENCE...</p>
+              <div style={{ padding: "1.4rem 0", textAlign: "center", color: "var(--silver)" }}>
+                <div style={{
+                  display: "inline-block",
+                  padding: "0.25rem 0.6rem",
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid var(--border-default)",
+                  borderRadius: 2,
+                  fontSize: "0.62rem",
+                  fontFamily: "JetBrains Mono, monospace",
+                  color: "var(--silver)",
+                  marginBottom: "0.75rem",
+                  letterSpacing: "0.12em"
+                }}>
+                  EXTERNAL GEOGRAPHIC DOMAIN
+                </div>
+                <p style={{ fontFamily: "Orbitron, sans-serif", fontSize: "1rem", color: "var(--air-white)", fontWeight: 700, marginBottom: "0.4rem" }}>
+                  AEROPURE MODEL INACTIVE
+                </p>
+                <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.68rem", color: "var(--steel)", maxWidth: "340px", margin: "0 auto", lineHeight: 1.5 }}>
+                  AeroPure ML prediction requires calibrated 113-feature inputs. Displaying verified live external reference telemetry below.
+                </p>
               </div>
             )}
           </div>
