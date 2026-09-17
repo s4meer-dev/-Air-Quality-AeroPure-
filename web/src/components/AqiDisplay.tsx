@@ -7,16 +7,26 @@ interface AqiDisplayProps {
 }
 
 function getRiskInfo(aqi: number): { tier: string; color: string; border: string; bg: string; isHazard: boolean } {
+  // Authoritative AeroPure project risk tiers (Threshold: 180.0)
+  if (aqi >= 250) {
+    return {
+      tier: "SEVERE",
+      color: "var(--air-white)",
+      border: "2px solid var(--air-white)",
+      bg: "rgba(255, 255, 255, 0.12)",
+      isHazard: true,
+    };
+  }
   if (aqi >= 180) {
     return {
-      tier: "HAZARDOUS",
+      tier: "HIGH",
       color: "var(--air-white)",
       border: "2px solid var(--air-white)",
       bg: "rgba(255, 255, 255, 0.08)",
       isHazard: true,
     };
   }
-  if (aqi >= 120) {
+  if (aqi >= 100) {
     return {
       tier: "ELEVATED",
       color: "var(--air-white)",
@@ -25,7 +35,7 @@ function getRiskInfo(aqi: number): { tier: string; color: string; border: string
       isHazard: false,
     };
   }
-  if (aqi >= 80) {
+  if (aqi >= 50) {
     return {
       tier: "MODERATE",
       color: "var(--cloud)",
@@ -35,7 +45,7 @@ function getRiskInfo(aqi: number): { tier: string; color: string; border: string
     };
   }
   return {
-    tier: "LOW POLLUTION",
+    tier: "LOW",
     color: "var(--mist)",
     border: "1px solid var(--border-subtle)",
     bg: "transparent",
@@ -43,7 +53,7 @@ function getRiskInfo(aqi: number): { tier: string; color: string; border: string
   };
 }
 
-export default function AqiDisplay({ value, label = "AQI Proxy", size = "xl" }: AqiDisplayProps) {
+export default function AqiDisplay({ value, label = "AEROPURE AQI PROXY", size = "xl" }: AqiDisplayProps) {
   const { tier, color, border, bg, isHazard } = getRiskInfo(value);
 
   const fontSize = size === "xl" ? "clamp(4.5rem, 12vw, 7rem)" : size === "lg" ? "3.5rem" : "2.2rem";

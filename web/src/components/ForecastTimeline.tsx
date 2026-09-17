@@ -97,7 +97,7 @@ export default function ForecastTimeline({ timeline }: Props) {
             stroke="#6D6D6A"
             strokeDasharray="4 4"
             label={{
-              value: "HAZARD THRESHOLD 180",
+              value: "AEROPURE ELEVATED THRESHOLD 180.0",
               position: "right",
               fill: "#D9D9D6",
               fontSize: 10,
@@ -135,7 +135,7 @@ export default function ForecastTimeline({ timeline }: Props) {
       <div style={{ display: "flex", gap: "1.5rem", marginTop: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
           <div style={{ width: 22, height: 2, background: "var(--air-white)" }} />
-          <span style={{ fontSize: "0.72rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)" }}>AQI PROXY TRAJECTORY</span>
+          <span style={{ fontSize: "0.72rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)" }}>AEROPURE PREDICTED AQI PROXY TRAJECTORY</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FFFFFF", boxShadow: "0 0 6px rgba(255,255,255,0.8)" }} />
@@ -143,7 +143,7 @@ export default function ForecastTimeline({ timeline }: Props) {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
           <div style={{ width: 16, height: 1, borderTop: "1px dashed #6D6D6A" }} />
-          <span style={{ fontSize: "0.72rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)" }}>CRITICAL LEVEL (180)</span>
+          <span style={{ fontSize: "0.72rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)" }}>AEROPURE ELEVATED THRESHOLD (180.0)</span>
         </div>
       </div>
     </div>

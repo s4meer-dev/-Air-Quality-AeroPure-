@@ -72,6 +72,11 @@ def test_api_predict(client):
     assert "dominant_current_pollutant" in data
     assert data["predicted_aqi_proxy"] > 0
     assert 0.0 <= data["hazard_probability"] <= 1.0
+    # Standardized fields
+    assert "aqi_proxy" in data
+    assert "aqi_proxy_category" in data
+    assert data["hazard_threshold"] == 180.0
+    assert data["hazard_status"] in ["ELEVATED HAZARD", "NOMINAL"]
 
 
 def test_api_explain(client):

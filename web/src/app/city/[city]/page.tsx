@@ -156,7 +156,7 @@ export default async function CityPage({ params }: Props) {
             <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-strong)", borderRadius: 4, padding: "1.2rem" }}>
               <span style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "var(--air-white)", letterSpacing: "0.08em" }}>HIGHEST AIR POLLUTION ZONE</span>
               <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginTop: "0.3rem", color: "var(--air-white)" }}>{worstArea?.areaName}</h3>
-              <p style={{ color: "var(--air-white)", fontWeight: 700, fontSize: "1.4rem", marginTop: "0.2rem" }}>{worstArea?.aqi.toFixed(1)} AQI Proxy</p>
+              <p style={{ color: "var(--air-white)", fontWeight: 700, fontSize: "1.4rem", marginTop: "0.2rem" }}>{worstArea?.aqi.toFixed(1)} Predicted AQI Proxy</p>
               <Link href={`/city/${city.slug}/${worstArea?.areaSlug}`} style={{ fontSize: "0.78rem", color: "var(--cloud)", textDecoration: "underline", marginTop: "0.5rem", display: "inline-block" }}>
                 Inspect Locality Intelligence →
               </Link>
@@ -165,7 +165,7 @@ export default async function CityPage({ params }: Props) {
             <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-default)", borderRadius: 4, padding: "1.2rem" }}>
               <span style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em" }}>LOWEST AIR POLLUTION ZONE</span>
               <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginTop: "0.3rem", color: "var(--cloud)" }}>{bestArea?.areaName}</h3>
-              <p style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1.4rem", marginTop: "0.2rem" }}>{bestArea?.aqi.toFixed(1)} AQI Proxy</p>
+              <p style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "1.4rem", marginTop: "0.2rem" }}>{bestArea?.aqi.toFixed(1)} Predicted AQI Proxy</p>
               <Link href={`/city/${city.slug}/${bestArea?.areaSlug}`} style={{ fontSize: "0.78rem", color: "var(--cloud)", textDecoration: "underline", marginTop: "0.5rem", display: "inline-block" }}>
                 Inspect Locality Intelligence →
               </Link>

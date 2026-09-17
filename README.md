@@ -36,18 +36,31 @@ Three candidate datasets were audited on disk:
 
 ## 3. Pollutant-Based AQI Proxy Methodology
 
-### Important Regulatory Disclosure
-Archive 1 (`AirQuality.csv`) contains continuous concentrations of gaseous criteria contaminants (`CO`, `NO2`, `C6H6`, `NOx`) and metal-oxide sensors, but does not contain direct PM2.5 or PM10 particulate readings.
-Therefore, our calculated index is strictly designated as a **"Pollutant-Based Air Quality Index Proxy"** (AQI Proxy) using standard piecewise linear interpolation:
+### Important Regulatory & Methodological Disclosure
+AeroPure produces a pollutant-based AQI proxy because the primary training dataset does not contain direct PM2.5 / PM10 measurements required to claim an official composite AQI.
+Therefore, the project's calculated value is strictly designated as:
+**AEROPURE AQI PROXY** or **POLLUTANT-BASED AIR QUALITY INDEX PROXY**.
+
+It must **never** be described as "Official AQI", "Government AQI", "CPCB AQI", or "EPA AQI".
+No PM2.5 or PM10 values were fabricated or estimated.
+
+The proxy is based on available gaseous criteria pollutants using piecewise linear subindex interpolation:
+- **Carbon Monoxide (`CO(GT)`):** measured in $\text{mg/m}^3$
+- **Nitrogen Dioxide (`NO2(GT)`):** measured in $\mu\text{g/m}^3$
+- **Benzene (`C6H6(GT)`):** measured in $\mu\text{g/m}^3$
 
 $$I_p = \frac{I_{hi} - I_{lo}}{BP_{hi} - BP_{lo}} \times (C_p - BP_{lo}) + I_{lo}$$
 
 $$current\_air\_quality\_index = \max\left(I_{CO}, I_{NO2}, I_{C6H6}\right)$$
 
-- **No PM2.5 or PM10 values were fabricated or estimated.**
-- **Supervised Targets:**
-  - **Regression Target (`next_day_air_quality_index`):** Target at time $t$ is strictly $AQI_{proxy}(t + 24\text{ hours})$ constructed via explicit timestamp mapping.
-  - **Classification Target (`hazardous_air_day`):** Binary indicator ($1$ if $next\_day\_air\_quality\_index \ge 180.0$, else $0$). Threshold $180.0$ represents the **75th percentile** of the real observational distribution (upper quartile capturing acute pollution episodes: 24.3% positive class balance).
+### Project Elevated-Pollution Threshold (180.0)
+- The **180.0** threshold is **project-defined** (~75th percentile of observational distributions capturing upper-quartile acute episodes) and must **not** be described as a universal regulatory AQI threshold.
+- **Classification Target (`hazardous_air_day`):** Binary indicator ($1$ if $next\_day\_air\_quality\_index \ge 180.0$, else $0$).
+- **Regression Target (`next_day_air_quality_index`):** Target at observation time $t$ is strictly $AQI_{proxy}(t + 24\text{ hours})$ constructed via explicit timestamp mapping.
+
+### Separation of External Telemetry
+- External live air-quality telemetry (e.g., OpenWeather API) is strictly separated from AeroPure's model output.
+- External telemetry is never averaged, numerically merged, or used to substitute AeroPure machine learning predictions.
 
 ---
 

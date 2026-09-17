@@ -254,7 +254,7 @@ export default function DualSourcePanel({
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
             <span style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "var(--silver)", letterSpacing: "0.1em" }}>
-              WORLD AQI INDEX (EXTERNAL REFERENCE TELEMETRY)
+              EXTERNAL AIR-QUALITY TELEMETRY (OPENWEATHER)
             </span>
             <span style={{ fontSize: "0.64rem", fontFamily: "JetBrains Mono, monospace", color: "var(--steel)" }}>SOURCE: OPENWEATHER AIR POLLUTION API</span>
           </div>
@@ -275,7 +275,7 @@ export default function DualSourcePanel({
           </div>
 
           <p style={{ fontSize: "0.66rem", fontFamily: "JetBrains Mono, monospace", color: "var(--steel)", marginTop: "0.6rem" }}>
-            * Contextual reference data. Not used as raw input for the trained AeroPure model.
+            * Contextual external telemetry. Completely separate from AeroPure ML predictions and never averaged or merged.
           </p>
         </div>
       )}

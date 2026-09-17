@@ -32,11 +32,16 @@ class PredictResponse(BaseModel):
     predicted_aqi_proxy: float = Field(..., description="Forecasted next-day (+24h) AQI proxy")
     hazard_probability: float = Field(..., description="Probability of exceeding the hazard threshold (>=180)")
     hazardous: bool = Field(..., description="Binary hazardous warning flag")
-    risk_category: str = Field(..., description="Qualitative risk tier: Low, Moderate, Elevated, Hazardous")
+    risk_category: str = Field(..., description="Qualitative risk tier: Low, Moderate, Elevated, High, Severe")
     pollution_regime: str = Field(..., description="Discovered operational pollution regime at observation time")
     dominant_current_pollutant: str = Field(..., description="Primary pollutant driving the current index")
     current_aqi_proxy: float = Field(..., description="Current index proxy at observation time t")
     model_version: str = Field(..., description="Production model release version")
+    # Standardized explicit fields for API consistency (Point 15)
+    aqi_proxy: float = Field(..., description="Standardized predicted AQI proxy value")
+    aqi_proxy_category: str = Field(..., description="Standardized AQI proxy qualitative category")
+    hazard_threshold: float = Field(180.0, description="Project-defined elevated-pollution threshold (180.0)")
+    hazard_status: str = Field(..., description="Elevated pollution status (ELEVATED HAZARD or NOMINAL)")
 
 
 class FeatureContribution(BaseModel):

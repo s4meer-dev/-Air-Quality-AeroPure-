@@ -22,7 +22,9 @@ from api.schemas import (
     ObservationInput, PredictResponse, ExplainResponse,
     FeatureContribution, HealthResponse, MetricsResponse, DriftResponse
 )
-from src.aqi import calculate_sub_index, BREAKPOINTS_CO, BREAKPOINTS_NO2, BREAKPOINTS_C6H6
+from src.aqi import (
+    calculate_observation_aqi_proxy, get_aqi_risk_category, PROJECT_HAZARD_THRESHOLD
+)
 
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -100,15 +102,13 @@ class PredictionService:
         feature_names = self.preprocessing["feature_names"]
         medians = self.preprocessing.get("feature_medians", {})
 
-        # Compute current sub-indices
-        i_co = calculate_sub_index(inp.co, BREAKPOINTS_CO)
-        i_no2 = calculate_sub_index(inp.no2, BREAKPOINTS_NO2)
-        i_c6h6 = calculate_sub_index(inp.c6h6, BREAKPOINTS_C6H6)
-        current_aqi = max(i_co, i_no2, i_c6h6)
-
-        sub_map = {"i_co": ("CO", i_co), "i_no2": ("NO2", i_no2), "i_c6h6": ("C6H6", i_c6h6)}
-        dominant_pol = max(sub_map.keys(), key=lambda k: sub_map[k][1])
-        dominant_name = sub_map[dominant_pol][0]
+        # Compute authoritative current sub-indices & composite proxy via src.aqi
+        current_aqi, dominant_name, sub_indices = calculate_observation_aqi_proxy(
+            inp.co, inp.no2, inp.c6h6
+        )
+        i_co = sub_indices["i_co"]
+        i_no2 = sub_indices["i_no2"]
+        i_c6h6 = sub_indices["i_c6h6"]
 
         # Initialize full feature row from baseline medians
         row_dict = {f: medians.get(f, 0.0) for f in feature_names}
@@ -195,18 +195,11 @@ class PredictionService:
 
         # Predict classification
         prob = float(self.classifier.predict_proba(df_scaled)[0, 1])
-        prob = round(prob, 2)
-        hazardous = bool(prob >= 0.50 or pred_aqi >= 180.0)
+        hazardous = bool(prob >= 0.50 or pred_aqi >= PROJECT_HAZARD_THRESHOLD)
 
-        # Risk tier
-        if pred_aqi < 100.0:
-            risk = "Low"
-        elif pred_aqi < 180.0:
-            risk = "Moderate"
-        elif pred_aqi < 250.0:
-            risk = "Elevated Hazardous"
-        else:
-            risk = "Severe Hazardous"
+        # Authoritative project risk tier classification
+        risk = get_aqi_risk_category(pred_aqi)
+        hazard_status = "ELEVATED HAZARD" if hazardous else "NOMINAL"
 
         regime = self.determine_regime(inp, meta["current_aqi_proxy"])
 
@@ -222,7 +215,11 @@ class PredictionService:
             pollution_regime=regime,
             dominant_current_pollutant=meta["dominant_pollutant"],
             current_aqi_proxy=meta["current_aqi_proxy"],
-            model_version=self.registry.get("model_version", "1.0.0")
+            model_version=self.registry.get("model_version", "1.0.0"),
+            aqi_proxy=pred_aqi,
+            aqi_proxy_category=risk,
+            hazard_threshold=PROJECT_HAZARD_THRESHOLD,
+            hazard_status=hazard_status
         )
 
     def explain(self, inp: ObservationInput) -> ExplainResponse:
@@ -230,7 +227,7 @@ class PredictionService:
         df_scaled, meta = self.preprocess_input(inp)
         pred_aqi = float(self.regressor.predict(df_scaled)[0])
         prob = float(self.classifier.predict_proba(df_scaled)[0, 1])
-        hazardous = bool(prob >= 0.50 or pred_aqi >= 180.0)
+        hazardous = bool(prob >= 0.50 or pred_aqi >= PROJECT_HAZARD_THRESHOLD)
 
         feature_names = list(df_scaled.columns)
         scaled_vals = df_scaled.iloc[0].values
@@ -291,9 +288,9 @@ class PredictionService:
         # Scientific cautious explanation text
         top_driver = top_pos[0].feature if top_pos else "ambient background variability"
         summary = (
-            f"Forecasted next-day AQI proxy of {pred_aqi:.1f} is primarily driven by elevated values "
-            f"in {top_driver} relative to baseline historical distributions. "
-            f"Temperature and relative humidity conditions indicate {meta['dominant_pollutant']} dispersion constraints."
+            f"Forecasted next-day AQI proxy of {pred_aqi:.1f} reflects top positive model contributions "
+            f"from {top_driver} relative to baseline historical distributions. "
+            f"SHAP values quantify directional model feature contributions, not physical atmospheric causality."
         )
 
         return ExplainResponse(

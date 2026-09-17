@@ -28,7 +28,7 @@ export default function AreaCompare({ city, cards }: Props) {
   return (
     <div>
       <p className="section-label" style={{ marginBottom: "1rem" }}>
-        GEOSPATIAL COMPARISON — {city.name.toUpperCase()}
+        GEOSPATIAL COMPARISON — AEROPURE PREDICTED AQI PROXY — {city.name.toUpperCase()}
       </p>
       <div
         style={{
@@ -81,14 +81,19 @@ export default function AreaCompare({ city, cards }: Props) {
                   <TrendIcon size={14} color={isWorst ? "var(--air-white)" : "var(--silver)"} />
                 </div>
 
-                <p style={{
-                  fontFamily: "Orbitron, sans-serif",
-                  fontSize: "2.2rem", fontWeight: 900,
-                  color: "var(--air-white)", lineHeight: 1, margin: "0.5rem 0 0.3rem",
-                  textShadow: "0 0 20px rgba(255,255,255,0.2)",
-                }}>
-                  {card.aqi.toFixed(0)}
-                </p>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "0.4rem", margin: "0.5rem 0 0.3rem" }}>
+                  <p style={{
+                    fontFamily: "Orbitron, sans-serif",
+                    fontSize: "2.2rem", fontWeight: 900,
+                    color: "var(--air-white)", lineHeight: 1,
+                    textShadow: "0 0 20px rgba(255,255,255,0.2)",
+                  }}>
+                    {card.aqi.toFixed(0)}
+                  </p>
+                  <span style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)" }}>
+                    AQI PROXY
+                  </span>
+                </div>
 
                 <p style={{ fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: isWorst ? "var(--air-white)" : "var(--silver)", letterSpacing: "0.08em" }}>
                   {card.riskCategory.toUpperCase()}

@@ -212,7 +212,7 @@ export default function WhatIfSimulator() {
               <strong>AeroPure Architecture (113-Feature XGBoost):</strong>
             </p>
             <p>
-              AeroPure evaluates current conditions together with historical temporal and rolling features. Changing one environmental variable therefore changes the prediction without completely replacing the surrounding atmospheric context.
+              AeroPure evaluates current observations together with historical temporal and rolling lag features. Changing one environmental variable demonstrates predictive model sensitivity, not causal physical intervention.
             </p>
           </div>
         )}
@@ -266,7 +266,7 @@ export default function WhatIfSimulator() {
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem" }}>
             <div>
-              <p className="section-label">PREDICTED AQI PROXY</p>
+              <p className="section-label">SCENARIO AEROPURE AQI PROXY</p>
               <p style={{
                 fontFamily: "Orbitron, sans-serif",
                 fontSize: "2.6rem", fontWeight: 900,
@@ -274,17 +274,32 @@ export default function WhatIfSimulator() {
                 textShadow: "0 0 25px rgba(255,255,255,0.3)",
                 lineHeight: 1,
               }}>{result.predicted_aqi_proxy.toFixed(1)}</p>
-              {result.current_aqi_proxy !== undefined && (
-                <p style={{ 
-                  fontSize: "0.74rem", fontFamily: "JetBrains Mono, monospace", 
-                  color: "var(--silver)", marginTop: "0.5rem",
-                  fontWeight: 600
+            </div>
+            {result.current_aqi_proxy !== undefined && (
+              <div>
+                <p className="section-label">BASELINE AEROPURE AQI PROXY</p>
+                <p style={{
+                  fontFamily: "Orbitron, sans-serif",
+                  fontSize: "2.6rem", fontWeight: 900,
+                  color: "var(--cloud)",
+                  lineHeight: 1,
+                }}>{result.current_aqi_proxy.toFixed(1)}</p>
+              </div>
+            )}
+            {result.current_aqi_proxy !== undefined && (
+              <div>
+                <p className="section-label">CHANGE (Δ AQI PROXY)</p>
+                <p style={{
+                  fontFamily: "Orbitron, sans-serif",
+                  fontSize: "2.6rem", fontWeight: 900,
+                  color: "var(--air-white)",
+                  lineHeight: 1,
                 }}>
                   {result.predicted_aqi_proxy > result.current_aqi_proxy ? "+" : ""}
-                  {(result.predicted_aqi_proxy - result.current_aqi_proxy).toFixed(1)} vs current
+                  {(result.predicted_aqi_proxy - result.current_aqi_proxy).toFixed(1)}
                 </p>
-              )}
-            </div>
+              </div>
+            )}
             <div>
               <p className="section-label">HAZARD PROBABILITY</p>
               <p style={{
@@ -304,6 +319,17 @@ export default function WhatIfSimulator() {
               </p>
             </div>
           </div>
+          <p style={{
+            fontSize: "0.72rem",
+            fontFamily: "JetBrains Mono, monospace",
+            color: "var(--steel)",
+            marginTop: "1.2rem",
+            paddingTop: "0.8rem",
+            borderTop: "1px solid var(--charcoal)",
+            lineHeight: 1.5,
+          }}>
+            * Methodological Notice: The What-If result represents predictive model sensitivity, NOT physical atmospheric causal intervention.
+          </p>
         </div>
       )}
 

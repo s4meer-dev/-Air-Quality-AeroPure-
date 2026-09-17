@@ -45,6 +45,11 @@ export interface PredictResponse {
   dominant_current_pollutant: string;
   current_aqi_proxy: number;
   model_version: string;
+  // Standardized explicit fields (Point 15)
+  aqi_proxy?: number;
+  aqi_proxy_category?: string;
+  hazard_threshold?: number;
+  hazard_status?: string;
 }
 
 export interface FeatureContribution {

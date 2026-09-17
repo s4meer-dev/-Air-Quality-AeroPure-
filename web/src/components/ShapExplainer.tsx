@@ -83,7 +83,7 @@ export default function ShapExplainer({ positiveContributors, negativeContributo
 
   return (
     <div id="explainability">
-      <p className="section-label" style={{ marginBottom: "0.8rem" }}>MODEL CONTRIBUTION / DIRECTIONAL INFLUENCE (SHAP)</p>
+      <p className="section-label" style={{ marginBottom: "0.8rem" }}>MODEL FEATURE CONTRIBUTION (SHAP DIRECTIONAL ATTRIBUTION)</p>
 
       <div
         style={{
