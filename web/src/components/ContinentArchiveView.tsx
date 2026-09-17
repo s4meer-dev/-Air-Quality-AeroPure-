@@ -55,42 +55,54 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     coordinates: "54.5260° N\n105.2551° W",
     quote: '"Jet-stream tracking from arctic borders to gulf shores."',
     editorialTags: ["PACIFIC BASINS", "BOREAL", "GREAT PLAINS", "JET STREAM", "RESEARCH"],
-    reliefMap: "/stamps/geo_north-america.jpg",
+    reliefMap: "/continents/north_america_map_relief.jpg",
     wildlifeVisual: "/continents/north_america_ambient.jpg",
     polaroidPhoto: "/stamps/north-america.jpg",
     polaroidCaption: ["NORTH AMERICA", "BOREAL & PACIFIC", "JET STREAM"],
     rows: [
       [
-        { name: "CANADA", id: "canada", status: "aeropure-active", image: "/stamps/geo_north-america.jpg" },
-        { name: "UNITED STATES", id: "united-states", status: "aeropure-active", image: "/stamps/north-america.jpg" },
+        { name: "CANADA", id: "canada", status: "aeropure-active", image: "/continents/north_america_ambient.jpg" },
+        { name: "UNITED STATES", id: "united-states", status: "aeropure-active", image: "/regions/golden_gate_fog.jpg" },
         { name: "MEXICO", status: "live-telemetry", lat: 23.6345, lon: -102.5528, countryCode: "MX" },
-        { name: "CUBA", status: "live-telemetry", lat: 21.5218, lon: -77.7812, countryCode: "CU" },
-        { name: "GUATEMALA", status: "live-telemetry", lat: 15.7835, lon: -90.2308, countryCode: "GT" },
       ],
       [
+        { name: "CUBA", status: "live-telemetry", lat: 21.5218, lon: -77.7812, countryCode: "CU" },
+        { name: "GUATEMALA", status: "live-telemetry", lat: 15.7835, lon: -90.2308, countryCode: "GT" },
         { name: "PANAMA", status: "live-telemetry", lat: 8.538, lon: -80.7821, countryCode: "PA" },
         { name: "COSTA RICA", status: "live-telemetry", lat: 9.7489, lon: -83.7534, countryCode: "CR" },
+      ],
+      [
         { name: "JAMAICA", status: "live-telemetry", lat: 18.1096, lon: -77.2975, countryCode: "JM" },
         { name: "HONDURAS", status: "live-telemetry", lat: 15.2, lon: -86.2419, countryCode: "HN" },
         { name: "DOMINICAN REP", status: "live-telemetry", lat: 18.7357, lon: -70.1627, countryCode: "DO" },
-        { name: "BAHAMAS", status: "live-telemetry", lat: 25.0343, lon: -77.3963, countryCode: "BS" },
       ],
       [
-        { name: "BELIZE", status: "live-telemetry", lat: 17.1899, lon: -88.4976, countryCode: "BZ" },
-        { name: "EL SALVADOR", status: "live-telemetry", lat: 13.7942, lon: -88.8965, countryCode: "SV" },
-        { name: "NICARAGUA", status: "live-telemetry", lat: 12.8654, lon: -85.2072, countryCode: "NI" },
-        { name: "HAITI", status: "live-telemetry", lat: 18.9712, lon: -72.2852, countryCode: "HT" },
-        { name: "TRINIDAD", status: "live-telemetry", lat: 10.6918, lon: -61.2225, countryCode: "TT" },
-        { name: "BARBADOS", status: "live-telemetry", lat: 13.1939, lon: -59.5432, countryCode: "BB" },
+        { name: "ALL COUNTRIES", isAction: true, status: "coming-soon" },
       ],
-      [
-        { name: "SAINT LUCIA", status: "live-telemetry", lat: 13.9094, lon: -60.9789, countryCode: "LC" },
-        { name: "GRENADA", status: "live-telemetry", lat: 12.1165, lon: -61.679, countryCode: "GD" },
-        { name: "ANTIGUA", status: "live-telemetry", lat: 17.0608, lon: -61.7964, countryCode: "AG" },
-        { name: "DOMINICA", status: "live-telemetry", lat: 15.415, lon: -61.371, countryCode: "DM" },
-        { name: "GREENLAND", status: "coming-soon" },
-        { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
-      ],
+    ],
+    directoryCountries: [
+      { name: "CANADA", id: "canada", status: "aeropure-active" },
+      { name: "UNITED STATES", id: "united-states", status: "aeropure-active" },
+      { name: "MEXICO", status: "live-telemetry", lat: 23.6345, lon: -102.5528, code: "MX" },
+      { name: "CUBA", status: "live-telemetry", lat: 21.5218, lon: -77.7812, code: "CU" },
+      { name: "GUATEMALA", status: "live-telemetry", lat: 15.7835, lon: -90.2308, code: "GT" },
+      { name: "PANAMA", status: "live-telemetry", lat: 8.538, lon: -80.7821, code: "PA" },
+      { name: "COSTA RICA", status: "live-telemetry", lat: 9.7489, lon: -83.7534, code: "CR" },
+      { name: "JAMAICA", status: "live-telemetry", lat: 18.1096, lon: -77.2975, code: "JM" },
+      { name: "HONDURAS", status: "live-telemetry", lat: 15.2, lon: -86.2419, code: "HN" },
+      { name: "DOMINICAN REP", status: "live-telemetry", lat: 18.7357, lon: -70.1627, code: "DO" },
+      { name: "BAHAMAS", status: "live-telemetry", lat: 25.0343, lon: -77.3963, code: "BS" },
+      { name: "BELIZE", status: "live-telemetry", lat: 17.1899, lon: -88.4976, code: "BZ" },
+      { name: "EL SALVADOR", status: "live-telemetry", lat: 13.7942, lon: -88.8965, code: "SV" },
+      { name: "NICARAGUA", status: "live-telemetry", lat: 12.8654, lon: -85.2072, code: "NI" },
+      { name: "HAITI", status: "live-telemetry", lat: 18.9712, lon: -72.2852, code: "HT" },
+      { name: "TRINIDAD", status: "live-telemetry", lat: 10.6918, lon: -61.2225, code: "TT" },
+      { name: "BARBADOS", status: "live-telemetry", lat: 13.1939, lon: -59.5432, code: "BB" },
+      { name: "SAINT LUCIA", status: "live-telemetry", lat: 13.9094, lon: -60.9789, code: "LC" },
+      { name: "GRENADA", status: "live-telemetry", lat: 12.1165, lon: -61.679, code: "GD" },
+      { name: "ANTIGUA", status: "live-telemetry", lat: 17.0608, lon: -61.7964, code: "AG" },
+      { name: "DOMINICA", status: "live-telemetry", lat: 15.415, lon: -61.371, code: "DM" },
+      { name: "GREENLAND", status: "coming-soon" },
     ],
   },
   africa: {
@@ -137,6 +149,31 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
         { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
       ],
     ],
+    directoryCountries: [
+      { name: "EGYPT", id: "egypt", status: "aeropure-active" },
+      { name: "SOUTH AFRICA", id: "south-africa", status: "aeropure-active" },
+      { name: "MOROCCO", status: "live-telemetry", lat: 31.7917, lon: -7.0926, code: "MA" },
+      { name: "ALGERIA", status: "live-telemetry", lat: 28.0339, lon: 1.6596, code: "DZ" },
+      { name: "TUNISIA", status: "live-telemetry", lat: 33.8869, lon: 9.5375, code: "TN" },
+      { name: "LIBYA", status: "live-telemetry", lat: 26.3351, lon: 17.2283, code: "LY" },
+      { name: "NIGERIA", status: "live-telemetry", lat: 9.082, lon: 8.6753, code: "NG" },
+      { name: "KENYA", status: "live-telemetry", lat: -0.0236, lon: 37.9062, code: "KE" },
+      { name: "GHANA", status: "live-telemetry", lat: 7.9465, lon: -1.0232, code: "GH" },
+      { name: "ETHIOPIA", status: "live-telemetry", lat: 9.145, lon: 40.4897, code: "ET" },
+      { name: "TANZANIA", status: "live-telemetry", lat: -6.369, lon: 34.8888, code: "TZ" },
+      { name: "UGANDA", status: "live-telemetry", lat: 1.3733, lon: 32.2903, code: "UG" },
+      { name: "SENEGAL", status: "live-telemetry", lat: 14.4974, lon: -14.4524, code: "SN" },
+      { name: "RWANDA", status: "live-telemetry", lat: -1.9403, lon: 29.8739, code: "RW" },
+      { name: "IVORY COAST", status: "live-telemetry", lat: 7.54, lon: -5.5471, code: "CI" },
+      { name: "CAMEROON", status: "live-telemetry", lat: 7.3697, lon: 12.3547, code: "CM" },
+      { name: "ANGOLA", status: "live-telemetry", lat: -11.2027, lon: 17.8739, code: "AO" },
+      { name: "ZAMBIA", status: "live-telemetry", lat: -13.1339, lon: 27.8493, code: "ZM" },
+      { name: "ZIMBABWE", status: "live-telemetry", lat: -19.0154, lon: 29.1549, code: "ZW" },
+      { name: "BOTSWANA", status: "live-telemetry", lat: -22.3285, lon: 24.6849, code: "BW" },
+      { name: "NAMIBIA", status: "live-telemetry", lat: -22.9576, lon: 18.4904, code: "NA" },
+      { name: "MOZAMBIQUE", status: "live-telemetry", lat: -18.6657, lon: 35.5296, code: "MZ" },
+      { name: "MADAGASCAR", status: "coming-soon" },
+    ],
   },
   europe: {
     id: "europe",
@@ -145,41 +182,51 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     coordinates: "54.5260° N\n15.2551° E",
     quote: '"Pioneering continental standards for atmospheric clarity."',
     editorialTags: ["ALPINE WINDS", "MARITIME", "CORRIDORS", "EMISSION CAPS", "ARCHIVE"],
-    reliefMap: "/stamps/geo_europe.jpg",
-    wildlifeVisual: "/continents/europe_ambient.jpg",
+    reliefMap: "/continents/europe_ambient.jpg",
     polaroidPhoto: "/stamps/europe.jpg",
     polaroidCaption: ["EUROPE", "ALPINE BASINS", "CLEAN HORIZONS"],
     rows: [
       [
+        { name: "UNITED KINGDOM", id: "united-kingdom", status: "aeropure-active", image: "/continents/europe_ambient.jpg" },
+        { name: "FRANCE", id: "france", status: "aeropure-active", image: "/stamps/europe.jpg" },
+        { name: "GERMANY", id: "germany", status: "aeropure-active", image: "/stamps/geo_europe.jpg" },
+      ],
+      [
         { name: "IRELAND", status: "live-telemetry", lat: 53.1424, lon: -7.6921, countryCode: "IE" },
-        { name: "UNITED KINGDOM", id: "united-kingdom", status: "aeropure-active" },
-        { name: "FRANCE", id: "france", status: "aeropure-active" },
-        { name: "GERMANY", id: "germany", status: "aeropure-active" },
+        { name: "SPAIN", status: "live-telemetry", lat: 40.4637, lon: -3.7492, countryCode: "ES" },
+        { name: "ITALY", status: "live-telemetry", lat: 41.8719, lon: 12.5674, countryCode: "IT" },
         { name: "POLAND", status: "live-telemetry", lat: 51.9194, lon: 19.1451, countryCode: "PL" },
       ],
       [
-        { name: "PORTUGAL", status: "live-telemetry", lat: 39.3999, lon: -8.2245, countryCode: "PT" },
-        { name: "SPAIN", status: "live-telemetry", lat: 40.4637, lon: -3.7492, countryCode: "ES" },
-        { name: "ITALY", status: "live-telemetry", lat: 41.8719, lon: 12.5674, countryCode: "IT" },
-        { name: "SWITZERLAND", status: "live-telemetry", lat: 46.8182, lon: 8.2275, countryCode: "CH" },
-        { name: "AUSTRIA", status: "live-telemetry", lat: 47.5162, lon: 14.5501, countryCode: "AT" },
         { name: "NETHERLANDS", status: "live-telemetry", lat: 52.1326, lon: 5.2913, countryCode: "NL" },
-      ],
-      [
-        { name: "NORWAY", status: "live-telemetry", lat: 60.472, lon: 8.4689, countryCode: "NO" },
         { name: "SWEDEN", status: "live-telemetry", lat: 60.1282, lon: 18.6435, countryCode: "SE" },
-        { name: "FINLAND", status: "live-telemetry", lat: 61.9241, lon: 25.7482, countryCode: "FI" },
-        { name: "DENMARK", status: "live-telemetry", lat: 56.2639, lon: 9.5018, countryCode: "DK" },
-        { name: "BELGIUM", status: "live-telemetry", lat: 50.5039, lon: 4.4699, countryCode: "BE" },
-        { name: "CZECHIA", status: "live-telemetry", lat: 49.8175, lon: 15.473, countryCode: "CZ" },
+        { name: "NORWAY", status: "live-telemetry", lat: 60.472, lon: 8.4689, countryCode: "NO" },
       ],
       [
-        { name: "GREECE", status: "live-telemetry", lat: 39.0742, lon: 21.8243, countryCode: "GR" },
-        { name: "ROMANIA", status: "live-telemetry", lat: 45.9432, lon: 24.9668, countryCode: "RO" },
-        { name: "HUNGARY", status: "live-telemetry", lat: 47.1625, lon: 19.5033, countryCode: "HU" },
-        { name: "SVALBARD", status: "coming-soon" },
-        { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
+        { name: "ALL COUNTRIES", isAction: true, status: "coming-soon" },
       ],
+    ],
+    directoryCountries: [
+      { name: "GERMANY", id: "germany", status: "aeropure-active" },
+      { name: "UNITED KINGDOM", id: "united-kingdom", status: "aeropure-active" },
+      { name: "FRANCE", id: "france", status: "aeropure-active" },
+      { name: "IRELAND", status: "live-telemetry", lat: 53.1424, lon: -7.6921, code: "IE" },
+      { name: "SPAIN", status: "live-telemetry", lat: 40.4637, lon: -3.7492, code: "ES" },
+      { name: "ITALY", status: "live-telemetry", lat: 41.8719, lon: 12.5674, code: "IT" },
+      { name: "POLAND", status: "live-telemetry", lat: 51.9194, lon: 19.1451, code: "PL" },
+      { name: "NETHERLANDS", status: "live-telemetry", lat: 52.1326, lon: 5.2913, code: "NL" },
+      { name: "SWEDEN", status: "live-telemetry", lat: 60.1282, lon: 18.6435, code: "SE" },
+      { name: "NORWAY", status: "live-telemetry", lat: 60.472, lon: 8.4689, code: "NO" },
+      { name: "SWITZERLAND", status: "live-telemetry", lat: 46.8182, lon: 8.2275, code: "CH" },
+      { name: "AUSTRIA", status: "live-telemetry", lat: 47.5162, lon: 14.5501, code: "AT" },
+      { name: "BELGIUM", status: "live-telemetry", lat: 50.5039, lon: 4.4699, code: "BE" },
+      { name: "PORTUGAL", status: "live-telemetry", lat: 39.3999, lon: -8.2245, code: "PT" },
+      { name: "GREECE", status: "live-telemetry", lat: 39.0742, lon: 21.8243, code: "GR" },
+      { name: "DENMARK", status: "live-telemetry", lat: 56.2639, lon: 9.5018, code: "DK" },
+      { name: "FINLAND", status: "live-telemetry", lat: 61.9241, lon: 25.7482, code: "FI" },
+      { name: "CZECHIA", status: "live-telemetry", lat: 49.8175, lon: 15.473, code: "CZ" },
+      { name: "HUNGARY", status: "live-telemetry", lat: 47.1625, lon: 19.5033, code: "HU" },
+      { name: "ICELAND", status: "coming-soon" },
     ],
   },
   asia: {
@@ -189,41 +236,49 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     coordinates: "34.0479° N\n100.6197° E",
     quote: '"Atmospheric resilience across historic trade corridors."',
     editorialTags: ["MEGACITIES", "MONSOONS", "INDUSTRY", "CLEAN HORIZONS", "TOMORROW"],
-    reliefMap: "/stamps/geo_asia.jpg",
-    wildlifeVisual: "/continents/asia_ambient.jpg",
+    reliefMap: "/continents/asia_ambient.jpg",
     polaroidPhoto: "/stamps/asia.jpg",
     polaroidCaption: ["ASIA", "HIMALAYAN SHIELD", "MONSOON BELT"],
     rows: [
       [
+        { name: "INDIA", id: "india", status: "aeropure-active", image: "/continents/asia_ambient.jpg" },
+        { name: "UAE", id: "uae", status: "aeropure-active", image: "/stamps/asia.jpg" },
+        { name: "JAPAN", id: "japan", status: "aeropure-active", image: "/stamps/geo_asia.jpg" },
+      ],
+      [
         { name: "SAUDI ARABIA", status: "live-telemetry", lat: 23.8859, lon: 45.0792, countryCode: "SA" },
-        { name: "UAE", id: "uae", status: "aeropure-active" },
-        { name: "INDIA", id: "india", status: "aeropure-active" },
         { name: "SINGAPORE", id: "singapore", status: "aeropure-active" },
-        { name: "JAPAN", id: "japan", status: "aeropure-active" },
-      ],
-      [
-        { name: "TURKEY", status: "live-telemetry", lat: 38.9637, lon: 35.2433, countryCode: "TR" },
-        { name: "IRAN", status: "live-telemetry", lat: 32.4279, lon: 53.688, countryCode: "IR" },
-        { name: "KAZAKHSTAN", status: "live-telemetry", lat: 48.0196, lon: 66.9237, countryCode: "KZ" },
-        { name: "CHINA", status: "live-telemetry", lat: 35.8617, lon: 104.1954, countryCode: "CN" },
         { name: "SOUTH KOREA", status: "live-telemetry", lat: 35.9078, lon: 127.7669, countryCode: "KR" },
+        { name: "CHINA", status: "live-telemetry", lat: 35.8617, lon: 104.1954, countryCode: "CN" },
+      ],
+      [
         { name: "VIETNAM", status: "live-telemetry", lat: 14.0583, lon: 108.2772, countryCode: "VN" },
-      ],
-      [
-        { name: "PAKISTAN", status: "live-telemetry", lat: 30.3753, lon: 69.3451, countryCode: "PK" },
-        { name: "BANGLADESH", status: "live-telemetry", lat: 23.685, lon: 90.3563, countryCode: "BD" },
         { name: "THAILAND", status: "live-telemetry", lat: 15.87, lon: 100.9925, countryCode: "TH" },
-        { name: "MALAYSIA", status: "live-telemetry", lat: 4.2105, lon: 101.9758, countryCode: "MY" },
-        { name: "INDONESIA", status: "live-telemetry", lat: -0.7893, lon: 113.9213, countryCode: "ID" },
-        { name: "PHILIPPINES", status: "live-telemetry", lat: 12.8797, lon: 121.774, countryCode: "PH" },
+        { name: "TURKEY", status: "live-telemetry", lat: 38.9637, lon: 35.2433, countryCode: "TR" },
       ],
       [
-        { name: "SRI LANKA", status: "live-telemetry", lat: 7.8731, lon: 80.7718, countryCode: "LK" },
-        { name: "NEPAL", status: "live-telemetry", lat: 28.3949, lon: 84.124, countryCode: "NP" },
-        { name: "QATAR", status: "live-telemetry", lat: 25.3548, lon: 51.1839, countryCode: "QA" },
-        { name: "TAIWAN", status: "live-telemetry", lat: 23.6978, lon: 120.9605, countryCode: "TW" },
-        { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
+        { name: "ALL COUNTRIES", isAction: true, status: "coming-soon" },
       ],
+    ],
+    directoryCountries: [
+      { name: "INDIA", id: "india", status: "aeropure-active" },
+      { name: "JAPAN", id: "japan", status: "aeropure-active" },
+      { name: "UAE", id: "uae", status: "aeropure-active" },
+      { name: "SINGAPORE", id: "singapore", status: "aeropure-active" },
+      { name: "SAUDI ARABIA", status: "live-telemetry", lat: 23.8859, lon: 45.0792, code: "SA" },
+      { name: "SOUTH KOREA", status: "live-telemetry", lat: 35.9078, lon: 127.7669, code: "KR" },
+      { name: "CHINA", status: "live-telemetry", lat: 35.8617, lon: 104.1954, code: "CN" },
+      { name: "VIETNAM", status: "live-telemetry", lat: 14.0583, lon: 108.2772, code: "VN" },
+      { name: "THAILAND", status: "live-telemetry", lat: 15.87, lon: 100.9925, code: "TH" },
+      { name: "TURKEY", status: "live-telemetry", lat: 38.9637, lon: 35.2433, code: "TR" },
+      { name: "INDONESIA", status: "live-telemetry", lat: -0.7893, lon: 113.9213, code: "ID" },
+      { name: "MALAYSIA", status: "live-telemetry", lat: 4.2105, lon: 101.9758, code: "MY" },
+      { name: "PHILIPPINES", status: "live-telemetry", lat: 12.8797, lon: 121.774, code: "PH" },
+      { name: "QATAR", status: "live-telemetry", lat: 25.3548, lon: 51.1839, code: "QA" },
+      { name: "KUWAIT", status: "live-telemetry", lat: 29.3117, lon: 47.4818, code: "KW" },
+      { name: "ISRAEL", status: "live-telemetry", lat: 31.0461, lon: 34.8516, code: "IL" },
+      { name: "TAIWAN", status: "live-telemetry", lat: 23.6978, lon: 120.9605, code: "TW" },
+      { name: "MONGOLIA", status: "coming-soon" },
     ],
   },
   "south-america": {
@@ -233,14 +288,13 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     coordinates: "8.7832° S\n55.4915° W",
     quote: '"Protecting planetary respiration across the Amazon basin."',
     editorialTags: ["AMAZON BASIN", "ANDEAN HEIGHTS", "OXYGEN SINKS", "PURITY", "ARCHIVE"],
-    reliefMap: "/stamps/geo_south-america.jpg",
-    wildlifeVisual: "/continents/south_america_ambient.jpg",
+    reliefMap: "/continents/south_america_ambient.jpg",
     polaroidPhoto: "/stamps/south-america.jpg",
     polaroidCaption: ["SOUTH AMERICA", "AMAZON BASIN", "OXYGEN SINK"],
     rows: [
       [
         { name: "COLOMBIA", status: "live-telemetry", lat: 4.5709, lon: -74.2973, countryCode: "CO" },
-        { name: "BRAZIL", id: "brazil", status: "aeropure-active" },
+        { name: "BRAZIL", id: "brazil", status: "aeropure-active", image: "/continents/south_america_ambient.jpg" },
         { name: "ARGENTINA", status: "live-telemetry", lat: -38.4161, lon: -63.6167, countryCode: "AR" },
       ],
       [
@@ -253,8 +307,24 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
         { name: "VENEZUELA", status: "live-telemetry", lat: 6.4238, lon: -66.5897, countryCode: "VE" },
         { name: "PARAGUAY", status: "live-telemetry", lat: -23.4425, lon: -58.4438, countryCode: "PY" },
         { name: "BOLIVIA", status: "live-telemetry", lat: -16.2902, lon: -63.5887, countryCode: "BO" },
-        { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
       ],
+      [
+        { name: "ALL COUNTRIES", isAction: true, status: "coming-soon" },
+      ],
+    ],
+    directoryCountries: [
+      { name: "BRAZIL", id: "brazil", status: "aeropure-active" },
+      { name: "ARGENTINA", status: "live-telemetry", lat: -38.4161, lon: -63.6167, code: "AR" },
+      { name: "COLOMBIA", status: "live-telemetry", lat: 4.5709, lon: -74.2973, code: "CO" },
+      { name: "CHILE", status: "live-telemetry", lat: -35.6751, lon: -71.543, code: "CL" },
+      { name: "PERU", status: "live-telemetry", lat: -9.19, lon: -75.0152, code: "PE" },
+      { name: "ECUADOR", status: "live-telemetry", lat: -1.8312, lon: -78.1834, code: "EC" },
+      { name: "URUGUAY", status: "live-telemetry", lat: -32.5228, lon: -55.7658, code: "UY" },
+      { name: "VENEZUELA", status: "live-telemetry", lat: 6.4238, lon: -66.5897, code: "VE" },
+      { name: "PARAGUAY", status: "live-telemetry", lat: -23.4425, lon: -58.4438, code: "PY" },
+      { name: "BOLIVIA", status: "live-telemetry", lat: -16.2902, lon: -63.5887, code: "BO" },
+      { name: "GUYANA", status: "live-telemetry", lat: 4.8604, lon: -58.9302, code: "GY" },
+      { name: "SURINAME", status: "coming-soon" },
     ],
   },
   oceania: {
@@ -264,13 +334,12 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     coordinates: "22.7359° S\n140.0188° E",
     quote: '"Uninterrupted maritime baseline over the Southern Ocean."',
     editorialTags: ["MARITIME", "REEF BASINS", "WESTERLIES", "CLEAN SEAS", "ISLAND NET"],
-    reliefMap: "/stamps/geo_oceania.jpg",
-    wildlifeVisual: "/continents/oceania_ambient.jpg",
+    reliefMap: "/continents/oceania_ambient.jpg",
     polaroidPhoto: "/stamps/oceania.jpg",
     polaroidCaption: ["OCEANIA", "SOUTHERN OCEAN", "CLEAN SEAS"],
     rows: [
       [
-        { name: "AUSTRALIA", id: "australia", status: "aeropure-active" },
+        { name: "AUSTRALIA", id: "australia", status: "aeropure-active", image: "/continents/oceania_ambient.jpg" },
         { name: "NEW ZEALAND", status: "live-telemetry", lat: -40.9006, lon: 174.886, countryCode: "NZ" },
         { name: "FIJI", status: "live-telemetry", lat: -17.7134, lon: 178.065, countryCode: "FJ" },
       ],
@@ -278,8 +347,21 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
         { name: "PAPUA NEW GUINEA", status: "live-telemetry", lat: -6.315, lon: 143.9555, countryCode: "PG" },
         { name: "SOLOMON ISLANDS", status: "live-telemetry", lat: -9.6457, lon: 160.1562, countryCode: "SB" },
         { name: "SAMOA", status: "live-telemetry", lat: -13.759, lon: -172.1046, countryCode: "WS" },
-        { name: "MORE COUNTRIES", isAction: true, status: "coming-soon" },
       ],
+      [
+        { name: "ALL COUNTRIES", isAction: true, status: "coming-soon" },
+      ],
+    ],
+    directoryCountries: [
+      { name: "AUSTRALIA", id: "australia", status: "aeropure-active" },
+      { name: "NEW ZEALAND", status: "live-telemetry", lat: -40.9006, lon: 174.886, code: "NZ" },
+      { name: "FIJI", status: "live-telemetry", lat: -17.7134, lon: 178.065, code: "FJ" },
+      { name: "PAPUA NEW GUINEA", status: "live-telemetry", lat: -6.315, lon: 143.9555, code: "PG" },
+      { name: "SOLOMON ISLANDS", status: "live-telemetry", lat: -9.6457, lon: 160.1562, code: "SB" },
+      { name: "SAMOA", status: "live-telemetry", lat: -13.759, lon: -172.1046, code: "WS" },
+      { name: "VANUATU", status: "live-telemetry", lat: -15.3767, lon: 166.9592, code: "VU" },
+      { name: "TONGA", status: "live-telemetry", lat: -21.1789, lon: -175.1982, code: "TO" },
+      { name: "MICRONESIA", status: "coming-soon" },
     ],
   },
   antarctica: {
@@ -289,13 +371,12 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     coordinates: "82.8628° S\n135.0000° E",
     quote: '"The absolute global zero baseline for atmospheric chemistry."',
     editorialTags: ["CRYOSPHERE", "ZERO BASELINE", "POLAR VORTEX", "PRISTINE", "ARCHIVE"],
-    reliefMap: "/stamps/geo_antarctica.jpg",
-    wildlifeVisual: "/continents/antarctica_wildlife.jpg",
+    reliefMap: "/continents/antarctica_wildlife.jpg",
     polaroidPhoto: "/stamps/antarctica.jpg",
     polaroidCaption: ["ANTARCTICA", "POLAR VORTEX", "ZERO BASELINE"],
     rows: [
       [
-        { name: "ANTARCTICA RES.", id: "antarctica-terr", status: "aeropure-active" },
+        { name: "ANTARCTICA RES.", id: "antarctica-terr", status: "aeropure-active", image: "/continents/antarctica_wildlife.jpg" },
         { name: "MCMURDO BASE", status: "live-telemetry", lat: -77.8419, lon: 166.6863, countryCode: "AQ" },
         { name: "VOSTOK STATION", status: "live-telemetry", lat: -78.4644, lon: 106.8373, countryCode: "AQ" },
       ],
@@ -303,6 +384,13 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
         { name: "AMUNDSEN-SCOTT", status: "live-telemetry", lat: -90.0, lon: 0.0, countryCode: "AQ" },
         { name: "CONCORDIA BASE", status: "coming-soon" },
       ],
+    ],
+    directoryCountries: [
+      { name: "ANTARCTICA RESERVE", id: "antarctica-terr", status: "aeropure-active" },
+      { name: "MCMURDO STATION", status: "live-telemetry", lat: -77.8419, lon: 166.6863, code: "AQ" },
+      { name: "VOSTOK STATION", status: "live-telemetry", lat: -78.4644, lon: 106.8373, code: "AQ" },
+      { name: "AMUNDSEN-SCOTT", status: "live-telemetry", lat: -90.0, lon: 0.0, code: "AQ" },
+      { name: "CONCORDIA BASE", status: "coming-soon" },
     ],
   },
 };
@@ -457,12 +545,10 @@ export default function ContinentArchiveView({
 
   // ── DENSITY & RESPONSIVE GEOMETRY ──
   const densityClass = useMemo(() => {
-    const rowCount = config.rows.length;
-    const maxRowLen = Math.max(...config.rows.map((r) => r.length), 0);
-    if (rowCount >= 4 || maxRowLen >= 6) return "network-density-high";
-    if (rowCount === 3) return "network-density-medium";
-    return "network-density-compact";
-  }, [config.rows]);
+    if (config.id === "africa") return "network-density-africa";
+    if (config.id === "oceania" || config.id === "antarctica") return "network-density-compact";
+    return "network-density-standard";
+  }, [config.id]);
 
   // ── RESPONSIVE CONTINENT TITLE TYPOGRAPHY (NEVER CUT OFF) ──
   const renderContinentTitle = () => {
@@ -526,9 +612,8 @@ export default function ContinentArchiveView({
             maxWidth: "100%",
           }}
         >
-          <span>{line1}</span>
-          <br />
-          <span>{line2}</span>
+          <span style={{ display: "block", whiteSpace: "nowrap" }}>{line1}</span>
+          <span style={{ display: "block", whiteSpace: "nowrap" }}>{line2}</span>
         </span>
       );
     }
@@ -548,6 +633,7 @@ export default function ContinentArchiveView({
           display: "block",
           textAlign: "center",
           maxWidth: "100%",
+          whiteSpace: "nowrap",
         }}
       >
         {name}
@@ -601,8 +687,9 @@ export default function ContinentArchiveView({
 
         .continent-search-container {
           position: relative;
-          width: 340px;
+          width: clamp(280px, 24vw, 360px);
           max-width: 100%;
+          box-sizing: border-box;
         }
 
         .continent-stage {
@@ -624,7 +711,7 @@ export default function ContinentArchiveView({
           position: absolute;
           left: 3.5rem;
           top: 1.5rem;
-          width: clamp(280px, 24vw, 360px);
+          width: clamp(340px, 30vw, 480px);
           z-index: 10;
           display: flex;
           flex-direction: column;
@@ -634,54 +721,65 @@ export default function ContinentArchiveView({
 
         .continent-title {
           font-family: 'Orbitron', -apple-system, sans-serif;
-          font-size: clamp(2.8rem, 4.2vw, 4.4rem);
+          font-size: clamp(3.2rem, 4.6vw, 5.0rem);
           font-weight: 900;
-          letter-spacing: 0.06em;
+          letter-spacing: 0.05em;
           color: #F2F2F0;
-          line-height: 0.95;
+          line-height: 0.94;
           margin: 0 0 0.85rem 0;
           text-shadow: 0 2px 25px rgba(0, 0, 0, 0.9);
           background: linear-gradient(180deg, #FFFFFF 20%, #B8B8B5 75%, #6D6D6A 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
-          word-break: normal;
+          word-break: keep-all;
           overflow: visible;
           white-space: normal;
         }
 
         .continent-title-two-line {
-          font-size: clamp(2.3rem, 3.5vw, 3.6rem);
+          font-size: clamp(2.5rem, 3.8vw, 4.0rem);
           line-height: 0.92;
         }
 
         .continent-title-two-line .title-line {
           display: block;
+          white-space: nowrap !important;
+          word-break: keep-all !important;
+          overflow: visible !important;
         }
 
         .continent-title-antarctica {
-          font-size: clamp(1.85rem, 2.65vw, 2.95rem);
+          font-size: clamp(2.0rem, 2.9vw, 3.2rem);
           letter-spacing: 0.035em;
           line-height: 1;
         }
 
+        .continent-title-antarctica .title-line {
+          display: block;
+          white-space: nowrap !important;
+          word-break: keep-all !important;
+          overflow: visible !important;
+        }
+
         .continent-title .title-line {
           display: block;
-          overflow: visible;
+          white-space: nowrap !important;
+          word-break: keep-all !important;
+          overflow: visible !important;
         }
 
         .continent-relief-anchor {
           position: absolute;
           top: 50%;
           left: 54%;
-          transform: translate(-50%, -52%);
-          width: 780px;
-          max-width: 85vw;
-          height: 680px;
+          transform: translate(-50%, -50%);
+          width: clamp(720px, 62vw, 960px);
+          height: clamp(620px, 52vw, 840px);
           pointer-events: none;
           z-index: 1;
-          opacity: 0.36;
-          mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, rgba(0, 0, 0, 1) 35%, rgba(0, 0, 0, 0.6) 65%, rgba(0, 0, 0, 0) 100%);
-          -webkit-mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, rgba(0, 0, 0, 1) 35%, rgba(0, 0, 0, 0.6) 65%, rgba(0, 0, 0, 0) 100%);
+          opacity: 0.44;
+          mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0.7) 70%, rgba(0, 0, 0, 0) 100%);
+          -webkit-mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0.7) 70%, rgba(0, 0, 0, 0) 100%);
         }
 
         .continent-wildlife-elem {
@@ -719,52 +817,52 @@ export default function ContinentArchiveView({
           margin-top: 0.5rem;
         }
 
-        /* High Density (Africa, Asia, Europe, North America) */
-        .network-density-high .hex-item {
-          width: 106px;
-          height: 120px;
+        /* Africa (5, 6, 6, 6) */
+        .network-density-africa .hex-item {
+          width: 104px;
+          height: 118px;
           position: relative;
           transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .network-density-high .hex-row {
+        .network-density-africa .hex-row {
           display: flex;
           justify-content: center;
           gap: 7px;
           margin-top: -24px;
         }
-        .network-density-high .hex-row:first-child {
+        .network-density-africa .hex-row:first-child {
           margin-top: 0;
         }
 
-        /* Medium Density (South America) */
-        .network-density-medium .hex-item {
-          width: 114px;
-          height: 128px;
+        /* Standard: North America, Europe, Asia, South America (3, 4, 3, 1) */
+        .network-density-standard .hex-item {
+          width: 132px;
+          height: 152px;
           position: relative;
           transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .network-density-medium .hex-row {
+        .network-density-standard .hex-row {
           display: flex;
           justify-content: center;
-          gap: 8px;
-          margin-top: -26px;
+          gap: 10px;
+          margin-top: -33px;
         }
-        .network-density-medium .hex-row:first-child {
+        .network-density-standard .hex-row:first-child {
           margin-top: 0;
         }
 
-        /* Compact Density (Oceania, Antarctica) */
+        /* Compact: Oceania (3, 3, 1), Antarctica (3, 2) */
         .network-density-compact .hex-item {
-          width: 124px;
-          height: 140px;
+          width: 140px;
+          height: 162px;
           position: relative;
           transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .network-density-compact .hex-row {
           display: flex;
           justify-content: center;
-          gap: 10px;
-          margin-top: -28px;
+          gap: 12px;
+          margin-top: -36px;
         }
         .network-density-compact .hex-row:first-child {
           margin-top: 0;
@@ -798,51 +896,50 @@ export default function ContinentArchiveView({
           }
           .continent-left-col {
             left: 2.2rem;
-            width: clamp(260px, 22vw, 310px);
+            width: clamp(290px, 26vw, 380px);
             top: 1.2rem;
           }
           .continent-title {
-            font-size: clamp(2.4rem, 3.6vw, 3.6rem);
+            font-size: clamp(2.8rem, 4.0vw, 4.2rem);
           }
           .continent-title-two-line {
-            font-size: clamp(2.1rem, 3.2vw, 3.2rem);
+            font-size: clamp(2.2rem, 3.4vw, 3.4rem);
           }
           .continent-title-antarctica {
-            font-size: clamp(1.75rem, 2.4vw, 2.5rem);
-            letter-spacing: 0.03em;
+            font-size: clamp(1.8rem, 2.5vw, 2.7rem);
           }
           .continent-right-col {
             right: 2.2rem;
             top: 2.8rem;
           }
           .continent-relief-anchor {
-            width: 650px;
-            height: 560px;
-            opacity: 0.32;
+            width: 680px;
+            height: 580px;
+            opacity: 0.38;
           }
-          .network-density-high .hex-item {
+          .network-density-africa .hex-item {
             width: 92px;
-            height: 104px;
+            height: 105px;
           }
-          .network-density-high .hex-row {
+          .network-density-africa .hex-row {
             gap: 6px;
             margin-top: -21px;
           }
-          .network-density-medium .hex-item {
-            width: 100px;
-            height: 112px;
+          .network-density-standard .hex-item {
+            width: 116px;
+            height: 133px;
           }
-          .network-density-medium .hex-row {
-            gap: 7px;
-            margin-top: -23px;
+          .network-density-standard .hex-row {
+            gap: 8px;
+            margin-top: -28px;
           }
           .network-density-compact .hex-item {
-            width: 110px;
-            height: 124px;
+            width: 124px;
+            height: 142px;
           }
           .network-density-compact .hex-row {
-            gap: 8px;
-            margin-top: -25px;
+            gap: 10px;
+            margin-top: -30px;
           }
           .continent-wildlife-elem {
             width: 250px;
@@ -863,22 +960,21 @@ export default function ContinentArchiveView({
             padding: 0.7rem 1.5rem 0.3rem 1.5rem;
           }
           .continent-search-container {
-            width: 270px;
+            width: 260px;
           }
           .continent-left-col {
             left: 1.5rem;
-            width: clamp(220px, 20vw, 260px);
+            width: clamp(240px, 23vw, 300px);
             top: 1rem;
           }
           .continent-title {
-            font-size: clamp(2.0rem, 3.0vw, 2.7rem);
+            font-size: clamp(2.2rem, 3.2vw, 3.0rem);
           }
           .continent-title-two-line {
-            font-size: clamp(1.75rem, 2.6vw, 2.4rem);
+            font-size: clamp(1.85rem, 2.7vw, 2.5rem);
           }
           .continent-title-antarctica {
-            font-size: clamp(1.5rem, 2.2vw, 2.1rem);
-            letter-spacing: 0.025em;
+            font-size: clamp(1.55rem, 2.2vw, 2.2rem);
           }
           .continent-right-col {
             right: 1.5rem;
@@ -888,29 +984,29 @@ export default function ContinentArchiveView({
             height: 450px;
             opacity: 0.28;
           }
-          .network-density-high .hex-item {
-            width: 82px;
+          .network-density-africa .hex-item {
+            width: 80px;
             height: 92px;
           }
-          .network-density-high .hex-row {
+          .network-density-africa .hex-row {
             gap: 5px;
             margin-top: -18px;
           }
-          .network-density-medium .hex-item {
-            width: 90px;
-            height: 102px;
+          .network-density-standard .hex-item {
+            width: 98px;
+            height: 112px;
           }
-          .network-density-medium .hex-row {
-            gap: 6px;
-            margin-top: -20px;
+          .network-density-standard .hex-row {
+            gap: 7px;
+            margin-top: -24px;
           }
           .network-density-compact .hex-item {
-            width: 98px;
-            height: 110px;
+            width: 106px;
+            height: 122px;
           }
           .network-density-compact .hex-row {
-            gap: 7px;
-            margin-top: -22px;
+            gap: 8px;
+            margin-top: -26px;
           }
           .continent-wildlife-elem {
             width: 200px;
@@ -981,14 +1077,14 @@ export default function ContinentArchiveView({
             left: 50%;
             opacity: 0.22;
           }
-          .network-density-high .hex-item,
-          .network-density-medium .hex-item,
+          .network-density-africa .hex-item,
+          .network-density-standard .hex-item,
           .network-density-compact .hex-item {
             width: 74px;
             height: 84px;
           }
-          .network-density-high .hex-row,
-          .network-density-medium .hex-row,
+          .network-density-africa .hex-row,
+          .network-density-standard .hex-row,
           .network-density-compact .hex-row {
             gap: 4px;
             margin-top: -16px;
@@ -1606,12 +1702,12 @@ export default function ContinentArchiveView({
                 const outerBg = isAeropure 
                   ? "#FFFFFF" 
                   : isLive 
-                  ? "#6D6D6A" 
+                  ? "#454542" 
                   : isAction 
                   ? "#41413F" 
                   : "#242423";
 
-                const shellPadding = isAeropure ? "1.5px" : "1px";
+                const shellPadding = isAeropure ? "1.8px" : "1px";
 
                 const innerBg = isAeropure 
                   ? "#161616" 
@@ -1628,7 +1724,7 @@ export default function ContinentArchiveView({
                   : "#6D6D6A";
 
                 const badgeLabel = isAeropure 
-                  ? "AEROPURE ACTIVE" 
+                  ? "ACTIVE" 
                   : isLive 
                   ? "LIVE TELEMETRY" 
                   : "COMING SOON";
@@ -1654,9 +1750,9 @@ export default function ContinentArchiveView({
                     style={{
                       cursor: isAeropure || isLive || isAction ? "pointer" : "default",
                       filter: isAeropure
-                        ? "drop-shadow(0 4px 16px rgba(255, 255, 255, 0.18))"
+                        ? "drop-shadow(0 4px 18px rgba(255, 255, 255, 0.22)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8))"
                         : isLive
-                        ? "drop-shadow(0 3px 10px rgba(0, 0, 0, 0.8))"
+                        ? "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7))"
                         : "drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6))",
                     }}
                     onMouseEnter={(e) => {
@@ -1748,45 +1844,60 @@ export default function ContinentArchiveView({
                           }}
                         >
                           {isAction ? (
-                            <>
-                              <Plus size={15} color="#B8B8B5" style={{ marginBottom: "3px" }} />
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Plus size={16} color="#B8B8B5" style={{ marginBottom: "3px" }} />
                               <span
                                 style={{
                                   fontFamily: "'JetBrains Mono', monospace",
-                                  fontSize: "0.56rem",
+                                  fontSize: "0.54rem",
                                   fontWeight: 700,
                                   letterSpacing: "0.08em",
                                   color: "#F2F2F0",
                                   lineHeight: 1.2,
+                                  whiteSpace: "nowrap",
                                 }}
                               >
-                                ALL
-                                <br />
-                                COUNTRIES
+                                {node.name.includes(" ") ? (
+                                  <>
+                                    <span style={{ display: "block" }}>{node.name.split(" ")[0]}</span>
+                                    <span style={{ display: "block" }}>{node.name.split(" ").slice(1).join(" ")}</span>
+                                  </>
+                                ) : (
+                                  node.name
+                                )}
                               </span>
-                            </>
+                            </div>
                           ) : (
                             <>
                               {renderCountryName(node.name, isAeropure, nameColor)}
                               <span
                                 style={{
                                   fontFamily: "'JetBrains Mono', monospace",
-                                  fontSize: isAeropure ? "0.46rem" : "0.44rem",
+                                  fontSize: isAeropure ? "0.46rem" : "0.42rem",
                                   fontWeight: isAeropure ? 800 : 600,
-                                  letterSpacing: "0.1em",
-                                  color: isAeropure ? "#FFFFFF" : isLive ? "#D9D9D6" : "#525250",
+                                  letterSpacing: "0.12em",
+                                  color: isAeropure ? "#FFFFFF" : isLive ? "#D9D9D6" : "#6D6D6A",
                                   backgroundColor: isAeropure 
-                                    ? "rgba(255, 255, 255, 0.2)" 
+                                    ? "rgba(255, 255, 255, 0.18)" 
                                     : isLive 
-                                    ? "rgba(255, 255, 255, 0.07)" 
+                                    ? "rgba(255, 255, 255, 0.05)" 
                                     : "transparent",
-                                  padding: isAeropure || isLive ? "1px 5px" : "0",
-                                  borderRadius: "1px",
+                                  padding: isAeropure ? "2px 7px" : isLive ? "1px 5px" : "0",
+                                  borderRadius: "2px",
                                   border: isAeropure 
-                                    ? "1px solid rgba(255, 255, 255, 0.45)" 
+                                    ? "1px solid rgba(255, 255, 255, 0.6)" 
                                     : isLive 
-                                    ? "1px solid #6D6D6A" 
+                                    ? "1px solid #454542" 
                                     : "none",
+                                  marginTop: "3px",
+                                  textShadow: isAeropure ? "0 0 10px rgba(255, 255, 255, 0.4)" : "none",
                                 }}
                               >
                                 {badgeLabel}
@@ -1988,10 +2099,10 @@ export default function ContinentArchiveView({
                   gap: "0.85rem",
                 }}
               >
-                {config.rows
-                  .flat()
-                  .filter((n) => n.status === "live-telemetry" && !n.isAction)
-                  .map((node, idx) => (
+                {(config.directoryCountries && config.directoryCountries.length > 0
+                  ? config.directoryCountries.filter((c) => c.status !== "aeropure-active")
+                  : config.rows.flat().filter((n) => n.status === "live-telemetry" && !n.isAction)
+                ).map((node, idx) => (
                     <div
                       key={`modal-live-${idx}`}
                       onClick={() => {
@@ -2001,7 +2112,7 @@ export default function ContinentArchiveView({
                             name: node.name,
                             lat: node.lat,
                             lon: node.lon,
-                            country: node.countryCode || node.name,
+                            country: ("code" in node && node.code) || ("countryCode" in node && node.countryCode) || node.name,
                           });
                         }
                       }}
