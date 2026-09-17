@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import StampScrapbook from "@/components/StampScrapbook";
 import ContinentArchiveView from "@/components/ContinentArchiveView";
+import RegionArchiveView from "@/components/RegionArchiveView";
 import HoneycombSelector from "@/components/HoneycombSelector";
 import AeroMap from "@/components/AeroMap";
 import DualSourcePanel from "@/components/DualSourcePanel";
@@ -195,28 +196,58 @@ export default function HomePage() {
   };
 
   const renderBreadcrumbs = () => {
-    const crumbs = ["EARTH"];
-    if (selectedContinent) crumbs.push(selectedContinent.name.toUpperCase());
-    if (selectedCountry && navLevel !== "earth" && navLevel !== "continent") crumbs.push(selectedCountry.name.toUpperCase());
-    if (selectedState && (navLevel === "state" || navLevel === "city" || navLevel === "area")) crumbs.push(selectedState.name.toUpperCase());
-    if (selectedCity && (navLevel === "city" || navLevel === "area")) crumbs.push(selectedCity.name.toUpperCase());
-    if (currentAreaObj && navLevel === "area") crumbs.push(currentAreaObj.name.toUpperCase());
-    if (liveLocation && navLevel === "area") crumbs.push(liveLocation.name.toUpperCase());
+    const crumbs: { label: string; action?: () => void }[] = [
+      { label: "EARTH", action: () => setNavLevel("earth") }
+    ];
+    if (selectedContinent) {
+      crumbs.push({ label: selectedContinent.name.toUpperCase(), action: () => setNavLevel("continent") });
+    }
+    if (selectedCountry && navLevel !== "earth" && navLevel !== "continent") {
+      crumbs.push({ label: selectedCountry.name.toUpperCase(), action: () => setNavLevel("country") });
+    }
+    if (selectedState && (navLevel === "state" || navLevel === "city" || navLevel === "area")) {
+      crumbs.push({ label: selectedState.name.toUpperCase(), action: () => setNavLevel("state") });
+    }
+    if (selectedCity && (navLevel === "city" || navLevel === "area")) {
+      crumbs.push({ label: selectedCity.name.toUpperCase(), action: () => setNavLevel("city") });
+    }
+    if (currentAreaObj && navLevel === "area") {
+      crumbs.push({ label: currentAreaObj.name.toUpperCase() });
+    }
+    if (liveLocation && navLevel === "area") {
+      crumbs.push({ label: liveLocation.name.toUpperCase() });
+    }
     
     return (
-      <div style={{ padding: "1rem 2rem", fontSize: "0.7rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)", letterSpacing: "0.1em", borderBottom: "1px solid var(--charcoal)" }}>
-        {crumbs.join(" / ")}
+      <div style={{ padding: "1rem 2rem", fontSize: "0.7rem", fontFamily: "JetBrains Mono, monospace", color: "var(--silver)", letterSpacing: "0.1em", borderBottom: "1px solid var(--charcoal)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        {crumbs.map((c, i) => (
+          <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+            {c.action ? (
+              <span
+                onClick={c.action}
+                style={{ cursor: "pointer", color: i === crumbs.length - 1 ? "var(--air-white)" : "var(--silver)", transition: "color 0.2s" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--air-white)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = i === crumbs.length - 1 ? "var(--air-white)" : "var(--silver)")}
+              >
+                {c.label}
+              </span>
+            ) : (
+              <span style={{ color: "var(--air-white)", fontWeight: 700 }}>{c.label}</span>
+            )}
+            {i < crumbs.length - 1 && <span style={{ color: "var(--charcoal)" }}>/</span>}
+          </span>
+        ))}
       </div>
     );
   };
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {navLevel !== "earth" && navLevel !== "continent" && <Navbar />}
+      {navLevel !== "earth" && navLevel !== "continent" && navLevel !== "country" && <Navbar />}
 
       <main style={{ flex: 1 }}>
-        {navLevel !== "earth" && navLevel !== "continent" && renderBreadcrumbs()}
-        {navLevel !== "earth" && navLevel !== "continent" && navLevel !== "area" && <LiveGlobalSearch onSelectLiveLocation={handleLiveLocationSelection} />}
+        {navLevel !== "earth" && navLevel !== "continent" && navLevel !== "country" && renderBreadcrumbs()}
+        {navLevel !== "earth" && navLevel !== "continent" && navLevel !== "country" && navLevel !== "area" && <LiveGlobalSearch onSelectLiveLocation={handleLiveLocationSelection} />}
 
         {/* GEOGRAPHIC INTELLIGENCE NAVIGATION */}
         {navLevel === "earth" && (
@@ -233,12 +264,14 @@ export default function HomePage() {
         )}
 
         {navLevel === "country" && selectedCountry && (
-          <HoneycombSelector 
-            title={`REGIONS IN ${selectedCountry.name.toUpperCase()}`} 
-            regions={STATES.filter(s => s.countryId === selectedCountry.id).map(s => ({
-              id: s.id, name: s.name.toUpperCase(), status: "active"
-            }))}
-            onSelect={handleStateSelect}
+          <RegionArchiveView 
+            country={selectedCountry}
+            continent={selectedContinent}
+            regions={STATES.filter(s => s.countryId === selectedCountry.id)}
+            onSelectRegion={handleStateSelect}
+            onBackToContinent={() => setNavLevel("continent")}
+            onBackToEarth={() => setNavLevel("earth")}
+            onSelectLiveLocation={handleLiveLocationSelection}
           />
         )}
 
