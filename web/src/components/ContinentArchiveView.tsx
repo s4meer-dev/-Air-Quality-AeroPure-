@@ -56,6 +56,9 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     quote: '"Jet-stream tracking from arctic borders to gulf shores."',
     editorialTags: ["PACIFIC BASINS", "BOREAL", "GREAT PLAINS", "JET STREAM", "RESEARCH"],
     reliefMap: "/stamps/geo_north-america.jpg",
+    wildlifeVisual: "/continents/north_america_ambient.jpg",
+    polaroidPhoto: "/stamps/north-america.jpg",
+    polaroidCaption: ["NORTH AMERICA", "BOREAL & PACIFIC", "JET STREAM"],
     rows: [
       [
         { name: "CANADA", id: "canada", status: "aeropure-active", image: "/stamps/geo_north-america.jpg" },
@@ -143,6 +146,9 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     quote: '"Pioneering continental standards for atmospheric clarity."',
     editorialTags: ["ALPINE WINDS", "MARITIME", "CORRIDORS", "EMISSION CAPS", "ARCHIVE"],
     reliefMap: "/stamps/geo_europe.jpg",
+    wildlifeVisual: "/continents/europe_ambient.jpg",
+    polaroidPhoto: "/stamps/europe.jpg",
+    polaroidCaption: ["EUROPE", "ALPINE BASINS", "CLEAN HORIZONS"],
     rows: [
       [
         { name: "IRELAND", status: "live-telemetry", lat: 53.1424, lon: -7.6921, countryCode: "IE" },
@@ -184,6 +190,9 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     quote: '"Atmospheric resilience across historic trade corridors."',
     editorialTags: ["MEGACITIES", "MONSOONS", "INDUSTRY", "CLEAN HORIZONS", "TOMORROW"],
     reliefMap: "/stamps/geo_asia.jpg",
+    wildlifeVisual: "/continents/asia_ambient.jpg",
+    polaroidPhoto: "/stamps/asia.jpg",
+    polaroidCaption: ["ASIA", "HIMALAYAN SHIELD", "MONSOON BELT"],
     rows: [
       [
         { name: "SAUDI ARABIA", status: "live-telemetry", lat: 23.8859, lon: 45.0792, countryCode: "SA" },
@@ -225,6 +234,9 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     quote: '"Protecting planetary respiration across the Amazon basin."',
     editorialTags: ["AMAZON BASIN", "ANDEAN HEIGHTS", "OXYGEN SINKS", "PURITY", "ARCHIVE"],
     reliefMap: "/stamps/geo_south-america.jpg",
+    wildlifeVisual: "/continents/south_america_ambient.jpg",
+    polaroidPhoto: "/stamps/south-america.jpg",
+    polaroidCaption: ["SOUTH AMERICA", "AMAZON BASIN", "OXYGEN SINK"],
     rows: [
       [
         { name: "COLOMBIA", status: "live-telemetry", lat: 4.5709, lon: -74.2973, countryCode: "CO" },
@@ -253,6 +265,9 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     quote: '"Uninterrupted maritime baseline over the Southern Ocean."',
     editorialTags: ["MARITIME", "REEF BASINS", "WESTERLIES", "CLEAN SEAS", "ISLAND NET"],
     reliefMap: "/stamps/geo_oceania.jpg",
+    wildlifeVisual: "/continents/oceania_ambient.jpg",
+    polaroidPhoto: "/stamps/oceania.jpg",
+    polaroidCaption: ["OCEANIA", "SOUTHERN OCEAN", "CLEAN SEAS"],
     rows: [
       [
         { name: "AUSTRALIA", id: "australia", status: "aeropure-active" },
@@ -275,6 +290,9 @@ const CONTINENT_CONFIGS: Record<string, ContinentConfig> = {
     quote: '"The absolute global zero baseline for atmospheric chemistry."',
     editorialTags: ["CRYOSPHERE", "ZERO BASELINE", "POLAR VORTEX", "PRISTINE", "ARCHIVE"],
     reliefMap: "/stamps/geo_antarctica.jpg",
+    wildlifeVisual: "/continents/antarctica_wildlife.jpg",
+    polaroidPhoto: "/stamps/antarctica.jpg",
+    polaroidCaption: ["ANTARCTICA", "POLAR VORTEX", "ZERO BASELINE"],
     rows: [
       [
         { name: "ANTARCTICA RES.", id: "antarctica-terr", status: "aeropure-active" },
@@ -437,6 +455,106 @@ export default function ContinentArchiveView({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // ── DENSITY & RESPONSIVE GEOMETRY ──
+  const densityClass = useMemo(() => {
+    const rowCount = config.rows.length;
+    const maxRowLen = Math.max(...config.rows.map((r) => r.length), 0);
+    if (rowCount >= 4 || maxRowLen >= 6) return "network-density-high";
+    if (rowCount === 3) return "network-density-medium";
+    return "network-density-compact";
+  }, [config.rows]);
+
+  // ── RESPONSIVE CONTINENT TITLE TYPOGRAPHY (NEVER CUT OFF) ──
+  const renderContinentTitle = () => {
+    const name = config.name.toUpperCase();
+    if (name === "NORTH AMERICA") {
+      return (
+        <h1 className="continent-title continent-title-two-line">
+          <span className="title-line">NORTH</span>
+          <span className="title-line">AMERICA</span>
+        </h1>
+      );
+    }
+    if (name === "SOUTH AMERICA") {
+      return (
+        <h1 className="continent-title continent-title-two-line">
+          <span className="title-line">SOUTH</span>
+          <span className="title-line">AMERICA</span>
+        </h1>
+      );
+    }
+    if (name === "ANTARCTICA") {
+      return (
+        <h1 className="continent-title continent-title-antarctica">
+          <span className="title-line">ANTARCTICA</span>
+        </h1>
+      );
+    }
+    return (
+      <h1 className="continent-title">
+        <span className="title-line">{name}</span>
+      </h1>
+    );
+  };
+
+  // ── RESPONSIVE COUNTRY NAME FIT (NEVER TRUNCATE OR OVERFLOW) ──
+  const renderCountryName = (name: string, isAeropure: boolean, nameColor: string) => {
+    const words = name.trim().split(/\s+/);
+    if (words.length >= 2) {
+      let line1 = words[0];
+      let line2 = words.slice(1).join(" ");
+      if (words.length === 3) {
+        line1 = words.slice(0, 2).join(" ");
+        line2 = words[2];
+      } else if (words.length > 3) {
+        line1 = words.slice(0, Math.ceil(words.length / 2)).join(" ");
+        line2 = words.slice(Math.ceil(words.length / 2)).join(" ");
+      }
+      return (
+        <span
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.50rem",
+            fontWeight: 800,
+            letterSpacing: "0.03em",
+            color: nameColor,
+            lineHeight: 1.15,
+            textShadow: isAeropure ? "0 2px 8px rgba(0, 0, 0, 1)" : "none",
+            marginBottom: "2px",
+            display: "block",
+            textAlign: "center",
+            maxWidth: "100%",
+          }}
+        >
+          <span>{line1}</span>
+          <br />
+          <span>{line2}</span>
+        </span>
+      );
+    }
+
+    const fontSize = name.length > 10 ? "0.48rem" : name.length > 7 ? "0.54rem" : "0.62rem";
+    return (
+      <span
+        style={{
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize,
+          fontWeight: 800,
+          letterSpacing: "0.04em",
+          color: nameColor,
+          lineHeight: 1.2,
+          textShadow: isAeropure ? "0 2px 8px rgba(0, 0, 0, 1)" : "none",
+          marginBottom: "2px",
+          display: "block",
+          textAlign: "center",
+          maxWidth: "100%",
+        }}
+      >
+        {name}
+      </span>
+    );
+  };
+
   return (
     <div
       style={{
@@ -454,6 +572,39 @@ export default function ContinentArchiveView({
     >
       {/* ── RESPONSIVE COMPOSITION STYLES ── */}
       <style>{`
+        .continent-header {
+          position: relative;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1.1rem 3.5rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          background-color: rgba(7, 7, 7, 0.9);
+          backdrop-filter: blur(12px);
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .continent-sub-header {
+          position: relative;
+          z-index: 15;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.85rem 3.5rem 0.35rem 3.5rem;
+          flex-wrap: wrap;
+          gap: 1rem;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .continent-search-container {
+          position: relative;
+          width: 340px;
+          max-width: 100%;
+        }
+
         .continent-stage {
           position: relative;
           flex: 1;
@@ -461,27 +612,31 @@ export default function ContinentArchiveView({
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 1.5rem 2rem 3rem 2rem;
+          padding: 1rem 2rem 2rem 2rem;
           z-index: 5;
-          min-height: 640px;
+          min-height: 580px;
+          width: 100%;
+          box-sizing: border-box;
+          overflow: visible;
         }
 
         .continent-left-col {
           position: absolute;
           left: 3.5rem;
-          top: 2rem;
-          width: 340px;
+          top: 1.5rem;
+          width: clamp(280px, 24vw, 360px);
           z-index: 10;
           display: flex;
           flex-direction: column;
           pointer-events: auto;
+          overflow: visible;
         }
 
         .continent-title {
           font-family: 'Orbitron', -apple-system, sans-serif;
-          font-size: clamp(3.2rem, 4.5vw, 4.8rem);
+          font-size: clamp(2.8rem, 4.2vw, 4.4rem);
           font-weight: 900;
-          letter-spacing: 0.08em;
+          letter-spacing: 0.06em;
           color: #F2F2F0;
           line-height: 0.95;
           margin: 0 0 0.85rem 0;
@@ -489,25 +644,63 @@ export default function ContinentArchiveView({
           background: linear-gradient(180deg, #FFFFFF 20%, #B8B8B5 75%, #6D6D6A 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
+          word-break: normal;
+          overflow: visible;
+          white-space: normal;
+        }
+
+        .continent-title-two-line {
+          font-size: clamp(2.3rem, 3.5vw, 3.6rem);
+          line-height: 0.92;
+        }
+
+        .continent-title-two-line .title-line {
+          display: block;
+        }
+
+        .continent-title-antarctica {
+          font-size: clamp(1.85rem, 2.65vw, 2.95rem);
+          letter-spacing: 0.035em;
+          line-height: 1;
+        }
+
+        .continent-title .title-line {
+          display: block;
+          overflow: visible;
+        }
+
+        .continent-relief-anchor {
+          position: absolute;
+          top: 50%;
+          left: 54%;
+          transform: translate(-50%, -52%);
+          width: 780px;
+          max-width: 85vw;
+          height: 680px;
+          pointer-events: none;
+          z-index: 1;
+          opacity: 0.36;
+          mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, rgba(0, 0, 0, 1) 35%, rgba(0, 0, 0, 0.6) 65%, rgba(0, 0, 0, 0) 100%);
+          -webkit-mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, rgba(0, 0, 0, 1) 35%, rgba(0, 0, 0, 0.6) 65%, rgba(0, 0, 0, 0) 100%);
         }
 
         .continent-wildlife-elem {
           position: absolute;
           left: -10px;
           bottom: 0px;
-          width: 360px;
-          height: 340px;
+          width: 320px;
+          height: 300px;
           pointer-events: none;
           z-index: 8;
-          opacity: 0.85;
-          mask-image: linear-gradient(to top, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%), linear-gradient(to right, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
-          -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%), linear-gradient(to right, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
+          opacity: 0.8;
+          mask-image: linear-gradient(to top, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 100%), linear-gradient(to right, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 100%);
+          -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 100%), linear-gradient(to right, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 100%);
         }
 
         .continent-right-col {
           position: absolute;
           right: 3.5rem;
-          top: 4.5rem;
+          top: 3.5rem;
           z-index: 10;
           display: flex;
           flex-direction: column;
@@ -516,75 +709,233 @@ export default function ContinentArchiveView({
           pointer-events: auto;
         }
 
-        .hex-item {
-          width: 116px;
-          height: 130px;
+        /* ── NETWORK DENSITY SYSTEM (ADAPTIVE GEOMETRY) ── */
+        .continent-network-container {
+          position: relative;
+          z-index: 12;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-top: 0.5rem;
+        }
+
+        /* High Density (Africa, Asia, Europe, North America) */
+        .network-density-high .hex-item {
+          width: 106px;
+          height: 120px;
           position: relative;
           transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        .network-density-high .hex-row {
+          display: flex;
+          justify-content: center;
+          gap: 7px;
+          margin-top: -24px;
+        }
+        .network-density-high .hex-row:first-child {
+          margin-top: 0;
+        }
 
-        .hex-row {
+        /* Medium Density (South America) */
+        .network-density-medium .hex-item {
+          width: 114px;
+          height: 128px;
+          position: relative;
+          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .network-density-medium .hex-row {
           display: flex;
           justify-content: center;
           gap: 8px;
           margin-top: -26px;
         }
-        .hex-row:first-child {
+        .network-density-medium .hex-row:first-child {
           margin-top: 0;
         }
 
-        /* ── 1440x900 & 1366x768 OPTIMIZATIONS ── */
+        /* Compact Density (Oceania, Antarctica) */
+        .network-density-compact .hex-item {
+          width: 124px;
+          height: 140px;
+          position: relative;
+          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .network-density-compact .hex-row {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          margin-top: -28px;
+        }
+        .network-density-compact .hex-row:first-child {
+          margin-top: 0;
+        }
+
+        .continent-footer {
+          position: relative;
+          z-index: 20;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          background-color: #070707;
+          padding: 1.1rem 3.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 1.5rem;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        /* ── 1480px / 1440x900 / 1366x768 OPTIMIZATIONS ── */
         @media (max-width: 1480px) {
+          .continent-header {
+            padding: 1rem 2.2rem;
+          }
+          .continent-sub-header {
+            padding: 0.75rem 2.2rem 0.35rem 2.2rem;
+          }
+          .continent-search-container {
+            width: 300px;
+          }
           .continent-left-col {
             left: 2.2rem;
-            width: 290px;
-            top: 1.5rem;
+            width: clamp(260px, 22vw, 310px);
+            top: 1.2rem;
           }
           .continent-title {
-            font-size: clamp(2.8rem, 3.8vw, 3.8rem);
+            font-size: clamp(2.4rem, 3.6vw, 3.6rem);
+          }
+          .continent-title-two-line {
+            font-size: clamp(2.1rem, 3.2vw, 3.2rem);
+          }
+          .continent-title-antarctica {
+            font-size: clamp(1.75rem, 2.4vw, 2.5rem);
+            letter-spacing: 0.03em;
           }
           .continent-right-col {
             right: 2.2rem;
-            top: 3.5rem;
+            top: 2.8rem;
           }
-          .hex-item {
-            width: 104px;
-            height: 116px;
+          .continent-relief-anchor {
+            width: 650px;
+            height: 560px;
+            opacity: 0.32;
           }
-          .hex-row {
+          .network-density-high .hex-item {
+            width: 92px;
+            height: 104px;
+          }
+          .network-density-high .hex-row {
             gap: 6px;
-            margin-top: -22px;
+            margin-top: -21px;
+          }
+          .network-density-medium .hex-item {
+            width: 100px;
+            height: 112px;
+          }
+          .network-density-medium .hex-row {
+            gap: 7px;
+            margin-top: -23px;
+          }
+          .network-density-compact .hex-item {
+            width: 110px;
+            height: 124px;
+          }
+          .network-density-compact .hex-row {
+            gap: 8px;
+            margin-top: -25px;
           }
           .continent-wildlife-elem {
-            width: 280px;
-            height: 280px;
-            opacity: 0.65;
+            width: 250px;
+            height: 250px;
+            opacity: 0.6;
+          }
+          .continent-footer {
+            padding: 1rem 2.2rem;
           }
         }
 
+        /* ── TABLET / 1220px BREAKPOINT ── */
         @media (max-width: 1220px) {
+          .continent-header {
+            padding: 0.9rem 1.5rem;
+          }
+          .continent-sub-header {
+            padding: 0.7rem 1.5rem 0.3rem 1.5rem;
+          }
+          .continent-search-container {
+            width: 270px;
+          }
           .continent-left-col {
             left: 1.5rem;
-            width: 250px;
+            width: clamp(220px, 20vw, 260px);
+            top: 1rem;
+          }
+          .continent-title {
+            font-size: clamp(2.0rem, 3.0vw, 2.7rem);
+          }
+          .continent-title-two-line {
+            font-size: clamp(1.75rem, 2.6vw, 2.4rem);
+          }
+          .continent-title-antarctica {
+            font-size: clamp(1.5rem, 2.2vw, 2.1rem);
+            letter-spacing: 0.025em;
           }
           .continent-right-col {
             right: 1.5rem;
           }
-          .hex-item {
-            width: 92px;
-            height: 104px;
+          .continent-relief-anchor {
+            width: 520px;
+            height: 450px;
+            opacity: 0.28;
           }
-          .hex-row {
+          .network-density-high .hex-item {
+            width: 82px;
+            height: 92px;
+          }
+          .network-density-high .hex-row {
             gap: 5px;
-            margin-top: -19px;
+            margin-top: -18px;
+          }
+          .network-density-medium .hex-item {
+            width: 90px;
+            height: 102px;
+          }
+          .network-density-medium .hex-row {
+            gap: 6px;
+            margin-top: -20px;
+          }
+          .network-density-compact .hex-item {
+            width: 98px;
+            height: 110px;
+          }
+          .network-density-compact .hex-row {
+            gap: 7px;
+            margin-top: -22px;
           }
           .continent-wildlife-elem {
-            display: none;
+            width: 200px;
+            height: 200px;
+            opacity: 0.45;
+          }
+          .continent-footer {
+            padding: 0.9rem 1.5rem;
           }
         }
 
-        /* ── MOBILE REFLOW SPECIFICATION (<= 860px) ── */
+        /* ── MOBILE REFLOW (<= 860px) ── */
         @media (max-width: 860px) {
+          .continent-header {
+            padding: 0.8rem 1.25rem;
+          }
+          .continent-sub-header {
+            padding: 0.7rem 1.25rem;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+          }
+          .continent-search-container {
+            width: 100%;
+          }
           .continent-stage {
             display: flex;
             flex-direction: column;
@@ -603,6 +954,16 @@ export default function ContinentArchiveView({
             align-items: center;
             margin-bottom: 2rem;
           }
+          .continent-title {
+            font-size: clamp(2.4rem, 8vw, 3.4rem);
+          }
+          .continent-title-two-line {
+            font-size: clamp(2.0rem, 7vw, 2.8rem);
+          }
+          .continent-title-antarctica {
+            font-size: clamp(1.7rem, 6vw, 2.3rem);
+            letter-spacing: 0.03em;
+          }
           .continent-right-col {
             position: relative;
             right: auto;
@@ -613,13 +974,33 @@ export default function ContinentArchiveView({
             text-align: center;
             margin-top: 2rem;
           }
-          .hex-item {
-            width: 78px;
-            height: 88px;
+          .continent-relief-anchor {
+            width: 90vw;
+            height: 380px;
+            top: 45%;
+            left: 50%;
+            opacity: 0.22;
           }
-          .hex-row {
+          .network-density-high .hex-item,
+          .network-density-medium .hex-item,
+          .network-density-compact .hex-item {
+            width: 74px;
+            height: 84px;
+          }
+          .network-density-high .hex-row,
+          .network-density-medium .hex-row,
+          .network-density-compact .hex-row {
             gap: 4px;
-            margin-top: -15px;
+            margin-top: -16px;
+          }
+          .continent-wildlife-elem {
+            display: none !important;
+          }
+          .continent-footer {
+            padding: 1.2rem 1.25rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
           }
           .hidden-mobile {
             display: none !important;
@@ -651,13 +1032,8 @@ export default function ContinentArchiveView({
 
       {/* ── TOP NAVIGATION BAR ── */}
       <header
+        className="continent-header"
         style={{
-          position: "relative",
-          zIndex: 20,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "1.2rem 3rem",
           borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
           backgroundColor: "rgba(7, 7, 7, 0.9)",
           backdropFilter: "blur(12px)",
@@ -774,18 +1150,7 @@ export default function ContinentArchiveView({
       </header>
 
       {/* ── BREADCRUMB & COMPACT SEARCH BAR SUB-HEADER ── */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 15,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "1rem 3.5rem 0.5rem 3.5rem",
-          flexWrap: "wrap",
-          gap: "1rem",
-        }}
-      >
+      <div className="continent-sub-header">
         {/* Breadcrumb Left */}
         <div
           style={{
@@ -817,11 +1182,7 @@ export default function ContinentArchiveView({
         {/* Compact Search Bar Right */}
         <div
           ref={searchContainerRef}
-          style={{
-            position: "relative",
-            width: "360px",
-            maxWidth: "100%",
-          }}
+          className="continent-search-container"
         >
           <div
             style={{
@@ -1002,24 +1363,7 @@ export default function ContinentArchiveView({
       {/* ── MAIN CONTINENTAL STAGE ── */}
       <div className="continent-stage">
         {/* 1. CENTRAL TOPOGRAPHIC RELIEF MAP BACKGROUND ANCHOR */}
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "54%",
-            transform: "translate(-50%, -52%)",
-            width: "820px",
-            maxWidth: "90vw",
-            height: "720px",
-            pointerEvents: "none",
-            zIndex: 1,
-            opacity: 0.38,
-            maskImage:
-              "radial-gradient(ellipse 65% 65% at 50% 50%, rgba(0, 0, 0, 1) 35%, rgba(0, 0, 0, 0.6) 65%, rgba(0, 0, 0, 0) 100%)",
-            WebkitMaskImage:
-              "radial-gradient(ellipse 65% 65% at 50% 50%, rgba(0, 0, 0, 1) 35%, rgba(0, 0, 0, 0.6) 65%, rgba(0, 0, 0, 0) 100%)",
-          }}
-        >
+        <div className="continent-relief-anchor">
           <Image
             src={config.reliefMap}
             alt={`${config.name} Relief Archive`}
@@ -1065,7 +1409,7 @@ export default function ContinentArchiveView({
           </div>
 
           {/* Continent Title */}
-          <h1 className="continent-title">{config.name}</h1>
+          {renderContinentTitle()}
 
           {/* Subtitle */}
           <div
@@ -1250,16 +1594,7 @@ export default function ContinentArchiveView({
         </div>
 
         {/* 5. THE CENTERPIECE: SYMMETRICAL INTERLOCKING COUNTRY HONEYCOMB NETWORK */}
-        <div
-          style={{
-            position: "relative",
-            zIndex: 12,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            marginTop: "1rem",
-          }}
-        >
+        <div className={`continent-network-container ${densityClass}`}>
           {config.rows.map((row, rowIdx) => (
             <div key={`hex-row-${rowIdx}`} className="hex-row">
               {row.map((node, nodeIdx) => {
@@ -1432,20 +1767,7 @@ export default function ContinentArchiveView({
                             </>
                           ) : (
                             <>
-                              <span
-                                style={{
-                                  fontFamily: "'JetBrains Mono', monospace",
-                                  fontSize: node.name.length > 10 ? "0.52rem" : "0.62rem",
-                                  fontWeight: 800,
-                                  letterSpacing: "0.05em",
-                                  color: nameColor,
-                                  lineHeight: 1.2,
-                                  textShadow: isAeropure ? "0 2px 8px rgba(0, 0, 0, 1)" : "none",
-                                  marginBottom: "3px",
-                                }}
-                              >
-                                {node.name}
-                              </span>
+                              {renderCountryName(node.name, isAeropure, nameColor)}
                               <span
                                 style={{
                                   fontFamily: "'JetBrains Mono', monospace",
@@ -1736,17 +2058,10 @@ export default function ContinentArchiveView({
 
       {/* ── BOTTOM INFORMATION & TELEMETRY STRIP ── */}
       <footer
+        className="continent-footer"
         style={{
-          position: "relative",
-          zIndex: 20,
           borderTop: "1px solid rgba(255, 255, 255, 0.08)",
           backgroundColor: "#070707",
-          padding: "1.2rem 3.5rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "1.5rem",
         }}
       >
         {/* Leftmost Global Counter */}
