@@ -1,3 +1,7 @@
+> **Historical document (AeroPure v1.0.0).** The figures below were produced before the v2.0.0 data-integrity
+> fixes (causal imputation, observed-only targets, purged splits, train/serve feature parity) and are
+> **superseded by [README.md](README.md)**. They are kept for project history only.
+
 # AeroPure — Forensic Machine Learning Integrity Audit Report
 
 **Date of Audit:** September 11, 2026  
