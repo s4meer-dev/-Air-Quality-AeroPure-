@@ -247,11 +247,12 @@ def evaluate_and_plot_calibration(
     raw_probs: np.ndarray,
     model_name: str,
     output_path: str,
-    calibrated_probs: Optional[np.ndarray] = None
+    calibrated_probs: Optional[np.ndarray] = None,
+    comparison_label: str = "Calibrated"
 ) -> Dict[str, float]:
     """
     Generates calibration reliability curve and calculates Brier score.
-    Compares raw probabilities against calibrated probabilities where available.
+    Compares raw probabilities against a second probability set (`comparison_label`) where available.
     """
     prob_true_raw, prob_pred_raw = calibration_curve(y_true, raw_probs, n_bins=10)
     brier_raw = float(brier_score_loss(y_true, raw_probs))
@@ -264,7 +265,7 @@ def evaluate_and_plot_calibration(
     if calibrated_probs is not None:
         prob_true_cal, prob_pred_cal = calibration_curve(y_true, calibrated_probs, n_bins=10)
         brier_cal = float(brier_score_loss(y_true, calibrated_probs))
-        ax.plot(prob_pred_cal, prob_true_cal, "o-", color="#2ca02c", label=f"Calibrated (Brier={brier_cal:.4f})")
+        ax.plot(prob_pred_cal, prob_true_cal, "o-", color="#2ca02c", label=f"{comparison_label} (Brier={brier_cal:.4f})")
         
     ax.set_xlabel("Mean Predicted Probability")
     ax.set_ylabel("Empirical Fraction of Positives")

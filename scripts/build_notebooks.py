@@ -474,12 +474,12 @@ else:
     md_cell("""### 2. Training Champion XGBoost Regressor & Classifier"""),
     code_cell("""if "X_train" in locals():
     xgb_reg, xgb_reg_metrics, xgb_reg_preds, xgb_reg_imp = train_xgboost_regressor(
-        X_train, y_train_reg, X_test, y_test_reg, n_estimators=250, learning_rate=0.05, max_depth=5
+        X_train, y_train_reg, X_test, y_test_reg
     )
     print("XGBoost Regressor Metrics:", xgb_reg_metrics)
     
     xgb_clf, xgb_clf_metrics, xgb_clf_preds, xgb_clf_probs, xgb_clf_cm, xgb_clf_imp = train_xgboost_classifier(
-        X_train, y_train_clf, X_test, y_test_clf, n_estimators=250, learning_rate=0.05, max_depth=5
+        X_train, y_train_clf, X_test, y_test_clf
     )
     print("XGBoost Classifier Metrics:", xgb_clf_metrics)"""),
     md_cell("""### 3. Comprehensive Model Benchmark Across Weeks 3–8

@@ -137,3 +137,51 @@ def test_create_targets_timestamp_alignment():
 
     # Tail rows (last 24 hours) have no ground-truth future target
     assert np.isnan(targets_df.loc[49, "next_day_air_quality_index"])
+
+
+def test_observation_proxy_all_missing_is_nan_not_fabricated_zero():
+    """No valid pollutant must not produce a fake 0.0 index with an arbitrary 'CO' driver."""
+    composite, dominant, _ = calculate_observation_aqi_proxy(None, None, None)
+    assert np.isnan(composite)
+    assert dominant == "None"
+
+    composite, dominant, _ = calculate_observation_aqi_proxy(-200.0, np.nan, None)
+    assert np.isnan(composite)
+    assert dominant == "None"
+
+
+def test_risk_category_unknown_for_nan():
+    """NaN must not fall through every comparison and be reported as 'Severe'."""
+    assert get_aqi_risk_category(float("nan")) == "Unknown"
+
+
+def test_require_all_pollutants_rejects_partial_rows():
+    """A max over a subset of pollutants understates the index, so partial rows are NaN when requested."""
+    df = pd.DataFrame({
+        "CO(GT)": [2.0, 2.0],
+        "NO2(GT)": [100.0, np.nan],
+        "C6H6(GT)": [5.0, 5.0],
+    })
+    strict = calculate_pollutant_index_proxy(df, require_all_pollutants=True)
+    assert not np.isnan(strict.loc[0, "current_air_quality_index"])
+    assert np.isnan(strict.loc[1, "current_air_quality_index"])
+
+    lenient = calculate_pollutant_index_proxy(df)
+    assert not np.isnan(lenient.loc[1, "current_air_quality_index"])
+
+
+def test_create_targets_never_uses_imputed_hours_as_ground_truth():
+    """Targets pointing at an hour that was imputed (criteria_observed == 0) must be NaN."""
+    dates = pd.date_range("2004-03-10 00:00:00", periods=50, freq="h")
+    observed = np.ones(50, dtype=int)
+    observed[30] = 0  # hour 30 was carried forward, not measured
+    df = pd.DataFrame({
+        "datetime": dates,
+        "current_air_quality_index": np.arange(50, dtype=float),
+        "criteria_observed": observed,
+    })
+    out = create_targets(df, lead_time_hours=24)
+
+    assert np.isnan(out.loc[6, "next_day_air_quality_index"])   # 6 + 24 = 30 -> imputed -> no label
+    assert np.isnan(out.loc[6, "hazardous_air_day"])
+    assert out.loc[7, "next_day_air_quality_index"] == 31.0      # neighbours are unaffected

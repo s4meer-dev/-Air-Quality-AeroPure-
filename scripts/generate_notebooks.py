@@ -65,7 +65,7 @@ def generate_all_notebooks():
             "import seaborn as sns\n\n"
             "# Add project root\n"
             "sys.path.insert(0, os.path.abspath('..'))\n"
-            "from src.clustering import run_week9_clustering, CLUSTER_FEATURE_COLS, REGIME_MAPPING\n\n"
+            "from src.clustering import run_week9_clustering, CLUSTER_FEATURE_COLS, REGIME_NAMES_BY_AQI_RANK\n\n"
             "sns.set_theme(style='whitegrid')"
         ),
         make_markdown_cell(

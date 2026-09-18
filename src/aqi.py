@@ -86,7 +86,7 @@ def calculate_sub_index(conc: float, breakpoints: List[Tuple[float, float, float
       • Continuous interpolation across discretization gaps between (BP_Hi[k-1], BP_Lo[k]).
       • Extrapolation above highest breakpoint capped at 500.0.
     """
-    if conc is None or pd.isna(conc) or np.isnan(conc) or conc < 0.0 or conc == SENTINEL_MISSING_VALUE:
+    if conc is None or pd.isna(conc) or conc < 0.0 or conc == SENTINEL_MISSING_VALUE:
         return 0.0
 
     for i, (bp_lo, bp_hi, i_lo, i_hi) in enumerate(breakpoints):
@@ -123,12 +123,22 @@ def calculate_observation_aqi_proxy(
     i_co = calculate_sub_index(co, BREAKPOINTS_CO) if co is not None else 0.0
     i_no2 = calculate_sub_index(no2, BREAKPOINTS_NO2) if no2 is not None else 0.0
     i_c6h6 = calculate_sub_index(c6h6, BREAKPOINTS_C6H6) if c6h6 is not None else 0.0
+    sub_indices = {"i_co": i_co, "i_no2": i_no2, "i_c6h6": i_c6h6}
+
+    # If no pollutant carries a valid reading, do not fabricate a 0.0 index or an arbitrary "CO" driver.
+    if not any(_is_valid_concentration(c) for c in (co, no2, c6h6)):
+        return float("nan"), "None", sub_indices
 
     sub_map = {"CO": i_co, "NO2": i_no2, "C6H6": i_c6h6}
     dominant = max(sub_map.keys(), key=lambda k: sub_map[k])
     composite = max(i_co, i_no2, i_c6h6)
 
-    return composite, dominant, {"i_co": i_co, "i_no2": i_no2, "i_c6h6": i_c6h6}
+    return composite, dominant, sub_indices
+
+
+def _is_valid_concentration(conc: Optional[float]) -> bool:
+    """True when a concentration is a finite, non-negative, non-sentinel measurement."""
+    return conc is not None and bool(np.isfinite(conc)) and conc >= 0.0
 
 
 def get_aqi_risk_category(aqi_val: float) -> str:
@@ -139,7 +149,10 @@ def get_aqi_risk_category(aqi_val: float) -> str:
       • Elevated: 100.0 <= aqi < 180.0
       • High:     180.0 <= aqi < 250.0 (Exceeds project elevated-pollution threshold 180.0)
       • Severe:   aqi >= 250.0        (Severe multi-pollutant accumulation)
+      • Unknown:  aqi is NaN (no valid measurement)
     """
+    if aqi_val is None or pd.isna(aqi_val):
+        return "Unknown"
     if aqi_val < 50.0:
         return "Low"
     elif aqi_val < 100.0:
@@ -152,15 +165,21 @@ def get_aqi_risk_category(aqi_val: float) -> str:
         return "Severe"
 
 
-def calculate_pollutant_index_proxy(df: pd.DataFrame) -> pd.DataFrame:
+def calculate_pollutant_index_proxy(
+    df: pd.DataFrame,
+    require_all_pollutants: bool = False
+) -> pd.DataFrame:
     """
     Computes sub-indices for available criteria pollutants and the composite AQI proxy:
     - i_co: sub-index from CO(GT) (mg/m³)
     - i_no2: sub-index from NO2(GT) (µg/m³)
     - i_c6h6: sub-index from C6H6(GT) (µg/m³)
     Composite current_air_quality_index = max(i_co, i_no2, i_c6h6)
-    
+
     Preserves NaN when all criteria pollutant observations are missing or sentinel -200.
+    With require_all_pollutants=True, the composite is NaN unless CO, NO2 and C6H6 are all
+    valid measurements: a max over a subset systematically understates the index (NO2 alone
+    drives ~76% of observed hours), so partial rows must not be treated as ground truth.
     """
     data = df.copy()
 
@@ -184,10 +203,15 @@ def calculate_pollutant_index_proxy(df: pd.DataFrame) -> pd.DataFrame:
     # Identify rows where all available criteria pollutants are missing, negative, or sentinel -200
     criteria_cols = [c for c in ["CO(GT)", "NO2(GT)", "C6H6(GT)"] if c in data.columns]
     if criteria_cols:
-        all_missing_mask = pd.Series(True, index=data.index)
-        for c in criteria_cols:
-            is_valid = data[c].notna() & (data[c] != SENTINEL_MISSING_VALUE) & (data[c] >= 0.0)
-            all_missing_mask = all_missing_mask & (~is_valid)
+        valid_flags = pd.DataFrame({
+            c: data[c].notna() & (data[c] != SENTINEL_MISSING_VALUE) & (data[c] >= 0.0)
+            for c in criteria_cols
+        })
+        if require_all_pollutants:
+            # Every criteria pollutant must be present (a missing column counts as missing)
+            all_missing_mask = ~valid_flags.all(axis=1) if len(criteria_cols) == 3 else pd.Series(True, index=data.index)
+        else:
+            all_missing_mask = ~valid_flags.any(axis=1)
     else:
         all_missing_mask = pd.Series(True, index=data.index)
 
@@ -208,7 +232,8 @@ def calculate_pollutant_index_proxy(df: pd.DataFrame) -> pd.DataFrame:
 def create_targets(
     df: pd.DataFrame,
     lead_time_hours: int = 24,
-    hazard_threshold: float = PROJECT_HAZARD_THRESHOLD
+    hazard_threshold: float = PROJECT_HAZARD_THRESHOLD,
+    observed_col: str = "criteria_observed"
 ) -> pd.DataFrame:
     """
     Constructs leakage-safe targets using explicit timestamp alignment:
@@ -219,20 +244,29 @@ def create_targets(
        -> CLASSIFICATION TARGET.
        Threshold 180.0 corresponds to the project-defined elevated-pollution / hazardous threshold
        (~75th percentile of the real observational dataset).
+
+    If `observed_col` is present (1 where CO, NO2 and C6H6 were all actually measured that hour),
+    targets are built ONLY from genuinely observed hours. Hours whose pollutant values were carried
+    forward by imputation yield NaN targets, so models are never trained or scored on fabricated
+    ground truth.
     """
     data = df.copy()
 
     if "current_air_quality_index" not in data.columns:
         data = calculate_pollutant_index_proxy(data)
 
+    truth = data["current_air_quality_index"]
+    if observed_col in data.columns:
+        truth = truth.where(data[observed_col] == 1)
+
     if "datetime" in data.columns:
         # Explicit timestamp-indexed lookup:
         # Guarantees that target(t) is strictly AQI_proxy at t + 24 hours
-        target_lookup = data.set_index("datetime")["current_air_quality_index"].to_dict()
+        target_lookup = truth.set_axis(data["datetime"]).to_dict()
         target_times = data["datetime"] + pd.Timedelta(hours=lead_time_hours)
         data["next_day_air_quality_index"] = target_times.map(target_lookup)
     else:
-        data["next_day_air_quality_index"] = data["current_air_quality_index"].shift(-lead_time_hours)
+        data["next_day_air_quality_index"] = truth.shift(-lead_time_hours)
 
     # Classification flag (NaN targets preserve NaN before dropping)
     data["hazardous_air_day"] = np.where(

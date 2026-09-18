@@ -16,6 +16,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from src.feature_engineering import NON_FEATURE_COLUMNS
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
@@ -88,14 +90,9 @@ def evaluate_dataset_drift(
     Flags features requiring monitoring or triggering retraining alerts.
     """
     if feature_cols is None:
-        exclude_cols = [
-            "Date", "Time", "datetime",
-            "next_day_air_quality_index", "hazardous_air_day",
-            "dominant_pollutant", "i_co", "i_no2", "i_c6h6"
-        ]
         feature_cols = [
             c for c in reference_df.columns
-            if c not in exclude_cols and pd.api.types.is_numeric_dtype(reference_df[c]) and c in incoming_df.columns
+            if c not in NON_FEATURE_COLUMNS and pd.api.types.is_numeric_dtype(reference_df[c]) and c in incoming_df.columns
         ]
 
     psi_by_feature = {}

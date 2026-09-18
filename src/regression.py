@@ -20,6 +20,23 @@ from xgboost import XGBRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
+# Champion XGBoost regressor hyperparameters, chosen by random search scored with expanding-window
+# time-series CV (24h purge gap) on the training split only (see src/tuning.py, scripts/tune_champion.py).
+# Shallow trees, a low learning rate, aggressive column subsampling and strong child-weight/L1/L2
+# regularisation beat the earlier hand-set config (depth 5, lr 0.05) on CV RMSE and held-out RMSE.
+CHAMPION_XGB_REGRESSOR_PARAMS: Dict[str, Any] = {
+    "n_estimators": 250,
+    "learning_rate": 0.02,
+    "max_depth": 4,
+    "min_child_weight": 20,
+    "subsample": 0.8,
+    "colsample_bytree": 0.3,
+    "reg_alpha": 1.0,
+    "reg_lambda": 5.0,
+    "gamma": 0.0,
+}
+
+
 def evaluate_regression(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
     """Computes standard regression evaluation metrics: MAE, MSE, RMSE, R²."""
     mae = mean_absolute_error(y_true, y_pred)
@@ -75,7 +92,7 @@ def train_lasso_regression(
     alpha: float = 0.5
 ) -> Tuple[Lasso, Dict[str, float], np.ndarray, pd.Series]:
     """Trains Lasso Regression (L1 penalty) for feature selection and sparsity."""
-    model = Lasso(alpha=alpha, random_state=42, max_iter=2000)
+    model = Lasso(alpha=alpha, random_state=42, max_iter=20000)
     model.fit(X_train, y_train)
     preds = model.predict(X_test)
     metrics = evaluate_regression(y_test, preds)
@@ -144,34 +161,48 @@ def train_xgboost_regressor(
     y_train: pd.Series,
     X_test: pd.DataFrame,
     y_test: pd.Series,
-    n_estimators: int = 250,
-    learning_rate: float = 0.05,
-    max_depth: int = 5,
-    subsample: float = 0.8,
-    colsample_bytree: float = 0.8,
-    reg_alpha: float = 0.1,
-    reg_lambda: float = 1.0
+    **overrides: Any
 ) -> Tuple[XGBRegressor, Dict[str, float], np.ndarray, pd.Series]:
-    """Trains XGBRegressor as the Week 8 champion regression model."""
-    model = XGBRegressor(
-        n_estimators=n_estimators,
-        learning_rate=learning_rate,
-        max_depth=max_depth,
-        subsample=subsample,
-        colsample_bytree=colsample_bytree,
-        reg_alpha=reg_alpha,
-        reg_lambda=reg_lambda,
-        random_state=42,
-        n_jobs=-1
-    )
-    # Fit with validation evaluation
-    model.fit(
-        X_train, y_train,
-        eval_set=[(X_train, y_train), (X_test, y_test)],
-        verbose=False
-    )
+    """
+    Trains XGBRegressor as the champion regression model.
+
+    Defaults to CHAMPION_XGB_REGRESSOR_PARAMS; any keyword overrides them. The test split is used
+    only to score the fitted model: it is never passed to `fit`, so it cannot influence training,
+    early stopping or model selection.
+    """
+    params = {**CHAMPION_XGB_REGRESSOR_PARAMS, **overrides}
+    model = XGBRegressor(**params, random_state=42, n_jobs=-1)
+    model.fit(X_train, y_train, verbose=False)
     preds = model.predict(X_test)
     metrics = evaluate_regression(y_test, preds)
 
     importances = pd.Series(model.feature_importances_, index=X_train.columns).sort_values(ascending=False)
     return model, metrics, preds, importances
+
+
+def regression_baselines(
+    train_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    target_col: str = "next_day_air_quality_index",
+    current_col: str = "current_air_quality_index"
+) -> Dict[str, Tuple[Dict[str, float], np.ndarray]]:
+    """
+    Naive reference forecasts every learned model must beat to justify its complexity.
+    All are computed from training data or current observations only (no test leakage).
+      - Persistence: tomorrow's AQI = the AQI right now (same hour, one day earlier than the target).
+      - Hour-of-day climatology: mean target for that hour of day, estimated on the training split.
+      - Training mean: constant prediction.
+    """
+    y_test = test_df[target_col].values
+    out: Dict[str, Tuple[Dict[str, float], np.ndarray]] = {}
+
+    persistence = test_df[current_col].values
+    out["Baseline: Persistence (AQI now)"] = (evaluate_regression(y_test, persistence), persistence)
+
+    hourly_mean = train_df.groupby("hour")[target_col].mean()
+    climatology = test_df["hour"].map(hourly_mean).fillna(train_df[target_col].mean()).values
+    out["Baseline: Hour-of-day Climatology"] = (evaluate_regression(y_test, climatology), climatology)
+
+    constant = np.full(len(test_df), float(train_df[target_col].mean()))
+    out["Baseline: Training Mean"] = (evaluate_regression(y_test, constant), constant)
+    return out

@@ -14,6 +14,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import shap
 
+from src.aqi import PROJECT_HAZARD_THRESHOLD
+
 
 def compute_shap_explanations(
     model,
@@ -101,7 +103,7 @@ def explain_individual_prediction(
 
 def generate_natural_language_explanation(
     attrib_dict: Dict[str, Any],
-    hazard_threshold: float = 250.0
+    hazard_threshold: float = PROJECT_HAZARD_THRESHOLD
 ) -> str:
     """
     Synthesizes real mathematical SHAP contributions into an interpretable civic warning narrative.
@@ -114,7 +116,7 @@ def generate_natural_language_explanation(
     status = "HAZARDOUS" if pred_val >= hazard_threshold else "NON-HAZARDOUS"
     narrative = [
         f"Forecast AQI is predicted at {pred_val:.1f} (Status: {status}).",
-        f"The regional baseline historical mean is {base_val:.1f} AQI points.",
+        f"The model's baseline (average) forecast is {base_val:.1f} AQI points.",
         "Key atmospheric and pollutant drivers impacting tomorrow's air quality:"
     ]
 
@@ -131,7 +133,7 @@ def generate_natural_language_explanation(
 
     if status == "HAZARDOUS":
         narrative.append(
-            "CIVIC HEALTH ADVISORY: Stagnant conditions and elevated particulate persistence pose severe health hazards tomorrow. Vulnerable groups, elderly, and children should limit outdoor exposure."
+            "CIVIC HEALTH ADVISORY: Tomorrow's pollutant-based AQI proxy is forecast above the project elevated-pollution threshold, driven by gaseous pollutants (CO, NO2, benzene). Vulnerable groups, elderly, and children should consider limiting outdoor exposure."
         )
     else:
         narrative.append(

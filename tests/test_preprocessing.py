@@ -33,3 +33,55 @@ def test_clean_dataset():
     # NMHC(GT) should be dropped due to >90% missingness
     assert "NMHC(GT)" not in cleaned.columns
     assert len(cleaned) > 9000
+
+
+def _raw_frame(co_values, extra_rows=0):
+    """Minimal raw-format frame (Date/Time strings + sensors) with the given CO(GT) series."""
+    n = len(co_values)
+    stamps = pd.date_range("2004-03-10 18:00:00", periods=n, freq="h")
+    return pd.DataFrame({
+        "Date": stamps.strftime("%d/%m/%Y"),
+        "Time": stamps.strftime("%H.%M.%S"),
+        "CO(GT)": co_values,
+        "NO2(GT)": [100.0] * n,
+        "C6H6(GT)": [5.0] * n,
+        "T": [15.0] * n,
+    })
+
+
+def test_clean_dataset_never_backfills_from_the_future():
+    """Leading gaps must stay NaN: back-filling would copy a FUTURE measurement into the past."""
+    raw = _raw_frame([-200.0, -200.0, 2.0, 2.5, -200.0, 3.0])
+    cleaned, _ = clean_dataset(raw)
+
+    assert cleaned["CO(GT)"].iloc[:2].isna().all()                        # no bfill from row 2
+    assert cleaned["CO(GT)"].iloc[4] == cleaned["CO(GT)"].iloc[3]         # ffill from the past is fine
+    assert cleaned["CO(GT)"].iloc[3] == pytest.approx(2.5, abs=0.01)      # (winsorised at most marginally)
+
+
+def test_clean_dataset_flags_imputed_hours_and_staleness():
+    raw = _raw_frame([1.0, -200.0, -200.0, 2.0])
+    cleaned, log = clean_dataset(raw)
+
+    assert list(cleaned["criteria_observed"]) == [1, 0, 0, 1]
+    assert list(cleaned["co_stale_hours"]) == [0, 1, 2, 0]
+    assert log["imputation"].startswith("causal")
+
+
+def test_clean_dataset_clip_uses_reference_window_only():
+    """Winsorisation limits must come from the leading 80%, not from the held-out tail."""
+    values = [1.0 + (i % 2) * 0.5 for i in range(80)] + [40.0] * 20   # tail spike
+    cleaned, log = clean_dataset(_raw_frame(values))
+
+    assert log["upper_clip_thresholds"]["CO(GT)"] <= 1.5
+    assert cleaned["CO(GT)"].max() <= 1.5                              # spike clipped to the training-window limit
+
+
+def test_clean_dataset_gap_free_hourly_grid():
+    """Missing timestamps become explicit rows so positional lags always mean 'k hours ago'."""
+    raw = _raw_frame([1.0, 1.0, 1.0, 1.0])
+    raw = raw.drop(index=2).reset_index(drop=True)                     # drop one hour
+    cleaned, _ = clean_dataset(raw)
+
+    assert len(cleaned) == 4
+    assert (cleaned["datetime"].diff().dropna() == pd.Timedelta(hours=1)).all()

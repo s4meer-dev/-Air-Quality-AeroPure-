@@ -28,6 +28,9 @@ from sklearn.cluster import KMeans, DBSCAN
 from sklearn.metrics import silhouette_score, mean_squared_error, mean_absolute_error, r2_score
 import xgboost as xgb
 
+from src.feature_engineering import get_feature_columns
+from src.regression import CHAMPION_XGB_REGRESSOR_PARAMS
+
 
 # Selected physical/sensor criteria features measured at time t
 CLUSTER_FEATURE_COLS = [
@@ -36,12 +39,40 @@ CLUSTER_FEATURE_COLS = [
     "T", "RH", "AH", "current_air_quality_index"
 ]
 
-# Regime names mapped after statistical profiling (verified against empirical distributions)
-REGIME_MAPPING = {
-    0: "Moderate / Warm Photochemical Regime",
-    1: "Low Pollution / Clean Dispersion Regime",
-    2: "Severe Stagnant Inversion / High Emission Regime"
+# Regime names, ordered from cleanest to most polluted. K-Means cluster ids are arbitrary (they depend
+# on initialisation and data order), so names are assigned by ranking each cluster's mean AQI proxy
+# rather than by a hardcoded id -> name table. The downstream UI keys off these exact strings.
+REGIME_NAMES_BY_AQI_RANK = [
+    "Low Pollution / Clean Dispersion Regime",
+    "Moderate / Warm Photochemical Regime",
+    "Severe Stagnant Inversion / High Emission Regime",
+]
+REGIME_COLORS = {
+    "Low Pollution / Clean Dispersion Regime": "#2ca02c",
+    "Moderate / Warm Photochemical Regime": "#1f77b4",
+    "Severe Stagnant Inversion / High Emission Regime": "#d62728",
 }
+STALENESS_COLUMNS = ["co_stale_hours", "no2_stale_hours", "sensor_stale_hours"]
+
+
+def derive_regime_mapping(
+    df: pd.DataFrame,
+    labels: np.ndarray,
+    aqi_col: str = "current_air_quality_index"
+) -> Dict[int, str]:
+    """Names each cluster by the rank of its mean AQI proxy (lowest = clean, highest = severe)."""
+    ranked = df.groupby(np.asarray(labels))[aqi_col].mean().sort_values()
+    if len(ranked) != len(REGIME_NAMES_BY_AQI_RANK):
+        return {int(c): f"Regime {int(c)}" for c in ranked.index}
+    return {int(c): REGIME_NAMES_BY_AQI_RANK[rank] for rank, c in enumerate(ranked.index)}
+
+
+def select_fresh_rows(df: pd.DataFrame) -> pd.DataFrame:
+    """Rows where every sensor group reported this hour (no carried-forward imputed values)."""
+    present = [c for c in STALENESS_COLUMNS if c in df.columns]
+    if not present:
+        return df
+    return df[(df[present] == 0).all(axis=1)]
 
 
 def prepare_clustering_features(
@@ -113,7 +144,8 @@ def fit_dbscan(
 def profile_clusters(
     df: pd.DataFrame,
     labels: np.ndarray,
-    features: List[str]
+    features: List[str],
+    regime_mapping: Dict[int, str]
 ) -> pd.DataFrame:
     """
     Computes statistical profiles (mean, median, count, percentage)
@@ -131,7 +163,7 @@ def profile_clusters(
     for c in counts.index:
         rec = {
             "cluster": c,
-            "regime_name": REGIME_MAPPING.get(c, f"Regime_{c}"),
+            "regime_name": regime_mapping.get(int(c), f"Regime_{c}"),
             "count": int(counts[c]),
             "percentage": round(counts[c] / total_samples * 100, 2)
         }
@@ -153,6 +185,7 @@ def plot_clustering_figures(
     inertias: Dict[int, float],
     silhouettes: Dict[int, float],
     profile_df: pd.DataFrame,
+    regime_mapping: Dict[int, str],
     output_dir: str = "outputs/figures"
 ):
     """Generates all Week 9 visualizations for PCA, K-Means, DBSCAN, and Regime Profiles."""
@@ -204,11 +237,11 @@ def plot_clustering_figures(
     
     # 3. PCA 2D K-Means Cluster Projection
     fig, ax = plt.subplots(figsize=(9, 7), dpi=150)
-    palette = ["#2ca02c", "#1f77b4", "#d62728"]
-    for c in range(3):
+    for c in sorted(regime_mapping):
         idx = kmeans_labels == c
-        label_name = f"Cluster {c}: {REGIME_MAPPING.get(c, 'Regime')}"
-        ax.scatter(X_pca[idx, 0], X_pca[idx, 1], s=12, alpha=0.5, label=label_name, color=palette[c])
+        name = regime_mapping[c]
+        ax.scatter(X_pca[idx, 0], X_pca[idx, 1], s=12, alpha=0.5, label=f"Cluster {c}: {name}",
+                   color=REGIME_COLORS.get(name, "#7f7f7f"))
     ax.set_xlabel(f"PC1 ({var_ratio[0]*100:.1f}% Variance)")
     ax.set_ylabel(f"PC2 ({var_ratio[1]*100:.1f}% Variance)")
     ax.set_title("AeroPure Discovered Pollution Regimes (PCA Projection)")
@@ -235,7 +268,7 @@ def plot_clustering_figures(
     # 5. Cluster Profiles Bar Plot
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
     key_pollutants = ["CO(GT)_mean", "NO2(GT)_mean", "current_air_quality_index_mean"]
-    labels = [REGIME_MAPPING[c] for c in profile_df["cluster"]]
+    labels = [regime_mapping[int(c)] for c in profile_df["cluster"]]
     x = np.arange(len(labels))
     width = 0.25
     
@@ -265,18 +298,17 @@ def run_regime_forecasting_experiment(
     improves next-day (t+24) supervised forecasting performance.
     STRICT LEAKAGE SAFE: Cluster model is fit strictly on Training period features.
     """
-    exclude_cols = [
-        "Date", "Time", "datetime",
-        "next_day_air_quality_index", "hazardous_air_day",
-        "dominant_pollutant", "i_co", "i_no2", "i_c6h6"
-    ]
-    feat_cols = [c for c in df.columns if c not in exclude_cols and pd.api.types.is_numeric_dtype(df[c]) and not c.startswith("regime_")]
-    
+    feat_cols = [c for c in get_feature_columns(df) if not c.startswith("regime_")]
+
     n = len(df)
     split_idx = int(n * train_ratio)
     train_df = df.iloc[:split_idx].copy()
     test_df = df.iloc[split_idx:].copy()
-    
+    # Purge training rows whose 24h-ahead label sits next to the test period (see prepare_time_series_splits)
+    if "datetime" in df.columns and len(test_df) > 0:
+        cutoff = pd.to_datetime(test_df["datetime"].iloc[0]) - pd.Timedelta(hours=24)
+        train_df = train_df[pd.to_datetime(train_df["datetime"]) <= cutoff]
+
     cluster_features = [c for c in CLUSTER_FEATURE_COLS if c in train_df.columns]
     
     # Fit cluster pipeline ONLY on training split
@@ -297,10 +329,7 @@ def run_regime_forecasting_experiment(
     y_te_reg = test_df[target_col]
     
     # 1. Base Model (no cluster feature)
-    xgb_base = xgb.XGBRegressor(
-        n_estimators=100, max_depth=5, learning_rate=0.08,
-        subsample=0.8, colsample_bytree=0.8, random_state=42
-    )
+    xgb_base = xgb.XGBRegressor(**CHAMPION_XGB_REGRESSOR_PARAMS, random_state=42)
     xgb_base.fit(X_tr_scaled, y_tr_reg)
     preds_base = xgb_base.predict(X_te_scaled)
     rmse_base = float(np.sqrt(mean_squared_error(y_te_reg, preds_base)))
@@ -314,10 +343,7 @@ def run_regime_forecasting_experiment(
         X_tr_aug[f"regime_{c}"] = (train_clusters == c).astype(float)
         X_te_aug[f"regime_{c}"] = (test_clusters == c).astype(float)
         
-    xgb_aug = xgb.XGBRegressor(
-        n_estimators=100, max_depth=5, learning_rate=0.08,
-        subsample=0.8, colsample_bytree=0.8, random_state=42
-    )
+    xgb_aug = xgb.XGBRegressor(**CHAMPION_XGB_REGRESSOR_PARAMS, random_state=42)
     xgb_aug.fit(X_tr_aug, y_tr_reg)
     preds_aug = xgb_aug.predict(X_te_aug)
     rmse_aug = float(np.sqrt(mean_squared_error(y_te_reg, preds_aug)))
@@ -358,8 +384,12 @@ def run_week9_clustering(
     print("WEEK 9: UNSUPERVISED POLLUTION REGIME DISCOVERY")
     print("=" * 75)
     
-    df = pd.read_csv(data_path)
-    print(f"  [OK] Loaded dataset for clustering: {df.shape[0]} samples")
+    df_all = pd.read_csv(data_path)
+    # Regimes describe real atmospheric states, so fit only on hours where every sensor group actually
+    # reported (carried-forward imputed values would otherwise smear the cluster geometry).
+    df = select_fresh_rows(df_all).reset_index(drop=True)
+    print(f"  [OK] Loaded dataset for clustering: {df.shape[0]} freshly-measured samples "
+          f"(of {df_all.shape[0]} processed rows)")
     
     # 1. Feature Preparation & Scaling
     X_scaled, scaler, features = prepare_clustering_features(df)
@@ -386,8 +416,9 @@ def run_week9_clustering(
     dbscan, db_labels, n_db_clusters, n_noise = fit_dbscan(X_scaled, eps=2.0, min_samples=20)
     print(f"  [OK] DBSCAN identified {n_db_clusters} dense manifold, {n_noise} noise/anomalies ({n_noise/len(df)*100:.2f}%)")
     
-    # 6. Cluster Profiling
-    profile_df = profile_clusters(df, km_labels, features)
+    # 6. Cluster Profiling (names assigned by AQI rank, not by arbitrary K-Means ids)
+    regime_mapping = derive_regime_mapping(df, km_labels)
+    profile_df = profile_clusters(df, km_labels, features, regime_mapping)
     profile_path = os.path.join(metrics_dir, "cluster_regime_profiles.csv")
     profile_df.to_csv(profile_path, index=False)
     print(f"  [OK] Saved cluster regime statistics to '{profile_path}'")
@@ -400,13 +431,13 @@ def run_week9_clustering(
     # 7. Visualizations
     plot_clustering_figures(
         X_pca, km_labels, db_labels, var_ratio, cum_var,
-        inertias, silhouettes, profile_df, fig_dir
+        inertias, silhouettes, profile_df, regime_mapping, fig_dir
     )
     print(f"  [OK] Saved 5 clustering visualizations to '{fig_dir}'")
     
     # 8. Leakage-Safe Forecasting Integration Experiment
     print("\n  Evaluating impact of regime information on next-day forecasting...")
-    forecast_exp = run_regime_forecasting_experiment(df, features)
+    forecast_exp = run_regime_forecasting_experiment(df_all, features)
     comp_df = pd.DataFrame([
         {"model": "Base XGBoost", "rmse": forecast_exp["base_model"]["rmse"], "mae": forecast_exp["base_model"]["mae"], "r2": forecast_exp["base_model"]["r2"]},
         {"model": "XGBoost + Regime", "rmse": forecast_exp["augmented_model"]["rmse"], "mae": forecast_exp["augmented_model"]["mae"], "r2": forecast_exp["augmented_model"]["r2"]}
@@ -424,7 +455,7 @@ def run_week9_clustering(
         "kmeans": kmeans,
         "dbscan": dbscan,
         "feature_cols": features,
-        "regime_mapping": REGIME_MAPPING,
+        "regime_mapping": regime_mapping,
         "pca_variance_ratio": var_ratio[:5].tolist(),
         "pca_cumulative_variance": cum_var[:5].tolist(),
         "k_selected": k_selected,

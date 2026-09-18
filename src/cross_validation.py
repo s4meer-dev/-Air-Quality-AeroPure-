@@ -13,6 +13,9 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, LogisticRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, f1_score, roc_auc_score
 
+from src.regression import CHAMPION_XGB_REGRESSOR_PARAMS
+from src.tuning import CV_GAP_HOURS
+
 
 
 def evaluate_regression_timeseries_cv(
@@ -22,7 +25,7 @@ def evaluate_regression_timeseries_cv(
     n_splits: int = 5
 ) -> Dict[str, float]:
     """Runs TimeSeriesSplit cross validation for a regression model."""
-    tscv = TimeSeriesSplit(n_splits=n_splits)
+    tscv = TimeSeriesSplit(n_splits=n_splits, gap=CV_GAP_HOURS)
     maes, rmses, r2s = [], [], []
 
     for train_idx, test_idx in tscv.split(X):
@@ -57,22 +60,29 @@ def run_nested_timeseries_cv(
     Outer TimeSeriesSplit evaluates generalizability across expanding historical windows.
     Inner TimeSeriesSplit tunes hyperparameters strictly on the training folds.
     The outer fold remains completely unseen during inner hyperparameter selection.
+    Both levels purge a CV_GAP_HOURS gap between training and validation windows, and every
+    model is the champion configuration (only depth / learning rate are re-tuned per fold), so the
+    reported score describes the model that is actually deployed.
     """
     import xgboost as xgb
-    outer_tscv = TimeSeriesSplit(n_splits=n_outer_splits)
+    outer_tscv = TimeSeriesSplit(n_splits=n_outer_splits, gap=CV_GAP_HOURS)
     fold_records = []
     
-    # Grid for inner tuning
+    # Grid for inner tuning: neighbourhood of the champion's depth and learning rate
     param_grid = [
-        {"max_depth": 3, "learning_rate": 0.08},
-        {"max_depth": 5, "learning_rate": 0.08}
+        {"max_depth": depth, "learning_rate": lr}
+        for depth in (3, 4, 5)
+        for lr in (0.02, 0.05)
     ]
+
+    def make_model(params: Dict[str, Any]):
+        return xgb.XGBRegressor(**{**CHAMPION_XGB_REGRESSOR_PARAMS, **params}, random_state=42, n_jobs=-1)
 
     for fold, (out_tr_idx, out_val_idx) in enumerate(outer_tscv.split(X_train)):
         X_outer_tr, X_outer_val = X_train.iloc[out_tr_idx], X_train.iloc[out_val_idx]
         y_outer_tr, y_outer_val = y_train_reg.iloc[out_tr_idx], y_train_reg.iloc[out_val_idx]
 
-        inner_tscv = TimeSeriesSplit(n_splits=n_inner_splits)
+        inner_tscv = TimeSeriesSplit(n_splits=n_inner_splits, gap=CV_GAP_HOURS)
         best_params = None
         best_inner_rmse = float("inf")
 
@@ -81,7 +91,7 @@ def run_nested_timeseries_cv(
             for in_tr_idx, in_val_idx in inner_tscv.split(X_outer_tr):
                 X_in_tr, X_in_val = X_outer_tr.iloc[in_tr_idx], X_outer_tr.iloc[in_val_idx]
                 y_in_tr, y_in_val = y_outer_tr.iloc[in_tr_idx], y_outer_tr.iloc[in_val_idx]
-                m = xgb.XGBRegressor(n_estimators=60, random_state=42, n_jobs=-1, **params)
+                m = make_model(params)
                 m.fit(X_in_tr, y_in_tr)
                 p = m.predict(X_in_val)
                 inner_rmses.append(np.sqrt(mean_squared_error(y_in_val, p)))
@@ -91,7 +101,7 @@ def run_nested_timeseries_cv(
                 best_params = params
 
         # Fit best model on entire outer train fold
-        champ = xgb.XGBRegressor(n_estimators=100, random_state=42, n_jobs=-1, **best_params)
+        champ = make_model(best_params)
         champ.fit(X_outer_tr, y_outer_tr)
         val_preds = champ.predict(X_outer_val)
 
@@ -129,7 +139,7 @@ def evaluate_classification_timeseries_cv(
     n_splits: int = 5
 ) -> Dict[str, float]:
     """Runs TimeSeriesSplit cross validation for a classification model."""
-    tscv = TimeSeriesSplit(n_splits=n_splits)
+    tscv = TimeSeriesSplit(n_splits=n_splits, gap=CV_GAP_HOURS)
     f1s, aucs = [], []
 
     for train_idx, test_idx in tscv.split(X):
@@ -193,7 +203,7 @@ def tune_lasso_alpha(
     best_metrics = {}
 
     for a in alphas:
-        model = Lasso(alpha=a, random_state=42, max_iter=2000)
+        model = Lasso(alpha=a, random_state=42, max_iter=20000)
         res = evaluate_regression_timeseries_cv(model, X, y, n_splits=n_splits)
         if res["RMSE_mean"] < best_rmse:
             best_rmse = res["RMSE_mean"]
