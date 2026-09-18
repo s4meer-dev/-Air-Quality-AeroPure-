@@ -4,9 +4,10 @@
  * Maps each location's regime hint to a realistic ObservationInput derived
  * from the ACTUAL cluster_regime_profiles.csv mean statistics.
  *
- * Regime 0 → Moderate / Warm Photochemical  (CO≈1.81, NO2≈96.5, NOx≈162, C6H6≈9.96, T≈25.2, RH≈42)
- * Regime 1 → Low Pollution / Clean          (CO≈1.17, NO2≈90.2, NOx≈153, C6H6≈4.21, T≈12.9, RH≈52.9)
- * Regime 2 → Severe Stagnant Inversion      (CO≈3.92, NO2≈158,  NOx≈490, C6H6≈19.9, T≈16.8, RH≈52.5)
+ * Regime 0 → Moderate / Warm Photochemical  (CO≈1.91, NO2≈99.2, NOx≈164, C6H6≈10.1, T≈24.5, RH≈43)
+ * Regime 1 → Low Pollution / Clean          (CO≈1.18, NO2≈96.8, NOx≈163, C6H6≈4.5,  T≈12.0, RH≈51)
+ * Regime 2 → Severe Stagnant Inversion      (CO≈4.07, NO2≈163,  NOx≈517, C6H6≈20.0, T≈16.3, RH≈53)
+ * (Cluster means over freshly-measured hours; v2.0.0 clustering excludes carried-forward imputed rows.)
  *
  * These are model INPUTS, not claimed real-time city measurements.
  * All values sourced from validated cluster_regime_profiles.csv.
@@ -36,48 +37,48 @@ export interface ObservationInput {
 const REGIME_BASELINES: Record<0 | 1 | 2, Omit<ObservationInput, "hour" | "day_of_week" | "month">> = {
   0: {
     // Moderate / Warm Photochemical Regime
-    co: 1.81,
-    no2: 96.51,
-    c6h6: 9.96,
-    nox: 162.01,
-    temperature: 25.25,
-    relative_humidity: 41.95,
-    absolute_humidity: 1.25,
-    pt08_s1: 1090.9,
-    pt08_s2: 965.56,
-    pt08_s3: 793.79,
-    pt08_s4: 1595.2,
-    pt08_s5: 974.61,
+    co: 1.91,
+    no2: 99.19,
+    c6h6: 10.07,
+    nox: 164.36,
+    temperature: 24.48,
+    relative_humidity: 43.28,
+    absolute_humidity: 1.23,
+    pt08_s1: 1098.99,
+    pt08_s2: 970.18,
+    pt08_s3: 787.09,
+    pt08_s4: 1594.33,
+    pt08_s5: 993.02,
   },
   1: {
     // Low Pollution / Clean Dispersion Regime
-    co: 1.17,
-    no2: 90.17,
-    c6h6: 4.21,
-    nox: 153.79,
-    temperature: 12.91,
-    relative_humidity: 52.88,
-    absolute_humidity: 0.81,
-    pt08_s1: 933.9,
-    pt08_s2: 707.24,
-    pt08_s3: 1035.12,
-    pt08_s4: 1156.85,
-    pt08_s5: 736.99,
+    co: 1.18,
+    no2: 96.78,
+    c6h6: 4.54,
+    nox: 163.29,
+    temperature: 11.95,
+    relative_humidity: 51.34,
+    absolute_humidity: 0.73,
+    pt08_s1: 949.29,
+    pt08_s2: 724.84,
+    pt08_s3: 1007.12,
+    pt08_s4: 1120.35,
+    pt08_s5: 761.82,
   },
   2: {
     // Severe Stagnant Inversion / High Emission Regime
-    co: 3.92,
-    no2: 158.0,
-    c6h6: 19.93,
-    nox: 490.64,
-    temperature: 16.79,
-    relative_humidity: 52.47,
-    absolute_humidity: 1.0,
-    pt08_s1: 1385.09,
-    pt08_s2: 1279.63,
-    pt08_s3: 570.9,
-    pt08_s4: 1715.66,
-    pt08_s5: 1573.11,
+    co: 4.07,
+    no2: 163.27,
+    c6h6: 20.0,
+    nox: 517.24,
+    temperature: 16.32,
+    relative_humidity: 53.05,
+    absolute_humidity: 0.98,
+    pt08_s1: 1388.68,
+    pt08_s2: 1283.85,
+    pt08_s3: 560.57,
+    pt08_s4: 1708.3,
+    pt08_s5: 1578.66,
   },
 };
 

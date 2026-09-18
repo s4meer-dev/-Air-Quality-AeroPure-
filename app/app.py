@@ -356,7 +356,7 @@ with st.sidebar:
         '<div style="font-size:0.72rem; color:#9A9A9A; line-height:1.7;">'
         'Criteria sensors: CO · NO₂ · C₆H₆ · NOx · T · RH · AH<br>'
         '<span style="color:#333333;">━━━━━━━━━━━━━━━━━━━━━━</span><br>'
-        '<span style="color:#D4AF37; font-weight:600;">AeroPure v1.0.0</span> · Academic Release'
+        f'<span style="color:#D4AF37; font-weight:600;">AeroPure v{metrics_meta.model_version}</span> · Academic Release'
         '</div>',
         unsafe_allow_html=True
     )
@@ -388,15 +388,21 @@ with tabs[0]:
     if os.path.exists(test_preds_path):
         preds_df = pd.read_csv(test_preds_path)
         latest_row = preds_df.iloc[-1]
-        predicted_aqi = round(float(latest_row.get("pred_xgb_reg", 185.0)), 1)
-        actual_aqi = round(float(latest_row.get("actual_next_day_air_quality_index", 180.0)), 1)
-        hazard_prob = round(float(latest_row.get("prob_xgb_clf", 0.65)), 2)
+        predicted_aqi = round(float(latest_row["pred_xgb_reg"]), 1)
+        actual_aqi = round(float(latest_row["actual_next_day_air_quality_index"]), 1)
+        hazard_prob = round(float(latest_row.get("prob_hybrid_clf", latest_row["prob_xgb_clf"])), 2)
     else:
-        predicted_aqi = 184.7
-        actual_aqi = 180.2
-        hazard_prob = 0.71
+        st.warning(
+            "No held-out predictions found (`outputs/predictions/test_predictions.csv`). "
+            "Run `python run_project.py` to generate them. The figures below are placeholders, not model output."
+        )
+        predicted_aqi, actual_aqi, hazard_prob = 0.0, 0.0, 0.0
 
-    is_hazardous = hazard_prob >= 0.50 or predicted_aqi >= 180.0
+    # The alert fires at the decision threshold tuned on out-of-fold data (stored in the model registry).
+    alert_threshold = float(
+        service.registry.get("classification_model", {}).get("hazard_alert_threshold", 0.5)
+    )
+    is_hazardous = hazard_prob >= alert_threshold
 
     if is_hazardous:
         st.markdown(f"""
@@ -451,14 +457,16 @@ with tabs[0]:
             '<span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:#9A9A9A;">Hazard Probability</span>',
             unsafe_allow_html=True
         )
-        hp_color = "#D62828" if hazard_prob >= 0.5 else "#D4AF37"
-        delta_val = round((hazard_prob - 0.5) * 100, 1)
+        hp_color = "#D62828" if hazard_prob >= alert_threshold else "#D4AF37"
+        delta_val = round((hazard_prob - alert_threshold) * 100, 1)
+        brier_val = metrics_meta.classification_metrics.get("Brier")
+        brier_text = f"Held-out Brier Score: {brier_val:.4f}" if brier_val is not None else "Brier Score: n/a"
         st.markdown(
             f'<div style="font-family:Orbitron,sans-serif; font-size:2.8rem; font-weight:900; color:{hp_color}; line-height:1; margin:0.4rem 0;">'
             f'{int(hazard_prob*100)}%</div>'
-            f'<span style="font-size:0.75rem; color:#9A9A9A;">vs. 50% threshold: '
+            f'<span style="font-size:0.75rem; color:#9A9A9A;">vs. {alert_threshold*100:.0f}% alert threshold: '
             f'<span style="color:{hp_color}; font-weight:600;">{"+"+str(delta_val) if delta_val>0 else str(delta_val)}%</span></span><br>'
-            f'<span style="font-size:0.72rem; color:#9A9A9A;">Brier Score: 0.1726 · Calibrated</span>',
+            f'<span style="font-size:0.72rem; color:#9A9A9A;">{brier_text}</span>',
             unsafe_allow_html=True
         )
         st.markdown('</div>', unsafe_allow_html=True)
@@ -486,8 +494,8 @@ with tabs[0]:
             '<span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:#9A9A9A;">Production Champion</span>',
             unsafe_allow_html=True
         )
-        rmse_val = metrics_meta.regression_metrics.get('RMSE', 39.27)
-        f1_val = metrics_meta.classification_metrics.get('F1', 0.683)
+        rmse_val = metrics_meta.regression_metrics.get('RMSE', 'n/a')
+        f1_val = metrics_meta.classification_metrics.get('F1', 'n/a')
         feat_count = metrics_meta.feature_count
         st.markdown(
             f'<div style="font-size:0.84rem; line-height:2; margin-top:0.5rem;">'
@@ -495,8 +503,8 @@ with tabs[0]:
             f'<span style="color:#D4AF37; font-weight:700;">XGBoost</span>&nbsp;'
             f'<span style="color:#9A9A9A;">RMSE</span>&nbsp;'
             f'<span style="color:#E0C15A; font-weight:700;">{rmse_val}</span><br>'
-            f'<span style="color:#9A9A9A;">Classifier</span>&nbsp;'
-            f'<span style="color:#D4AF37; font-weight:700;">XGBoost</span>&nbsp;'
+            f'<span style="color:#9A9A9A;">Hazard model</span>&nbsp;'
+            f'<span style="color:#D4AF37; font-weight:700;">Hybrid</span>&nbsp;'
             f'<span style="color:#9A9A9A;">F1</span>&nbsp;'
             f'<span style="color:#E0C15A; font-weight:700;">{f1_val}</span><br>'
             f'<span style="color:#9A9A9A;">Features</span>&nbsp;'
@@ -570,7 +578,13 @@ with tabs[1]:
     with p_col3:
         p_var = os.path.join(OUTPUTS_DIR, "figures", "pca_variance_elbow.png")
         if os.path.exists(p_var):
-            st.image(p_var, caption="PCA Scree Plot & Cumulative Explained Variance (87.3% in first 3 PCs)", use_container_width=True)
+            pca_pct = None
+            clust_metrics_path = os.path.join(OUTPUTS_DIR, "metrics", "clustering_metrics.json")
+            if os.path.exists(clust_metrics_path):
+                with open(clust_metrics_path) as f:
+                    pca_pct = json.load(f).get("pca_explained_variance_first3")
+            pca_note = f" ({pca_pct*100:.1f}% in first 3 PCs)" if pca_pct is not None else ""
+            st.image(p_var, caption=f"PCA Scree Plot & Cumulative Explained Variance{pca_note}", use_container_width=True)
     with p_col4:
         p_km = os.path.join(OUTPUTS_DIR, "figures", "kmeans_silhouette_elbow.png")
         if os.path.exists(p_km):

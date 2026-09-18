@@ -22,7 +22,7 @@ function getRegimeStyle(regime: string): RegimeStyle {
     // LOW POLLUTION — Lighter / open composition
     return {
       glyph: "◇",
-      densityLabel: "OPEN TONAL COMPOSITION · LOW PARTICULATE DENSITY",
+      densityLabel: "OPEN TONAL COMPOSITION · LOW GASEOUS POLLUTANT LOAD",
       bg: "var(--bg-elevated)",
       border: "1px solid var(--border-strong)",
       stripe: "var(--silver)",
@@ -55,7 +55,7 @@ function getRegimeStyle(regime: string): RegimeStyle {
     stripe: "var(--steel)",
     textColor: "var(--cloud)",
     description:
-      "Warm atmospheric conditions drive photochemical reactions. Moderate ozone and particulate levels with partial daytime boundary mixing.",
+      "Warm atmospheric conditions favour photochemical activity. Moderate CO, NO2 and benzene levels with partial daytime boundary mixing.",
   };
 }
 

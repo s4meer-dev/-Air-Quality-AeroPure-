@@ -66,7 +66,7 @@ export default function HazardBanner({ hazardous, hazardProbability, predictedAq
             </p>
             <p style={{ fontSize: "0.82rem", fontFamily: "JetBrains Mono, monospace", color: "var(--cloud)", lineHeight: 1.6 }}>
               Actionable Advisory: Project-defined elevated-pollution threshold (AQI Proxy ≥ 180.0) exceeded.
-              Atmospheric stagnation trapped particulate matter. Reduced outdoor exposure and HVAC recirculation advised.
+              Atmospheric stagnation is trapping gaseous pollutants (CO, NO2, benzene). Reduced outdoor exposure and HVAC recirculation advised.
             </p>
           </div>
         </div>

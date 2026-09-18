@@ -8,8 +8,8 @@ from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
 
 
-class ObservationInput(BaseModel):
-    """Input payload representing atmospheric & sensor observations at time t."""
+class SensorReading(BaseModel):
+    """One hourly set of pollutant, sensor and weather readings."""
     co: float = Field(..., ge=0.0, le=50.0, description="Carbon Monoxide CO(GT) in mg/m³", examples=[2.5])
     no2: float = Field(..., ge=0.0, le=800.0, description="Nitrogen Dioxide NO2(GT) in µg/m³", examples=[120.0])
     c6h6: float = Field(..., ge=0.0, le=100.0, description="Benzene C6H6(GT) in µg/m³", examples=[10.5])
@@ -22,9 +22,24 @@ class ObservationInput(BaseModel):
     pt08_s3: Optional[float] = Field(800.0, ge=0.0, description="PT08.S3 NOx sensor response", examples=[810.0])
     pt08_s4: Optional[float] = Field(1400.0, ge=0.0, description="PT08.S4 NO2 sensor response", examples=[1420.0])
     pt08_s5: Optional[float] = Field(1000.0, ge=0.0, description="PT08.S5 O3 sensor response", examples=[980.0])
+
+
+class ObservationInput(SensorReading):
+    """
+    Input payload representing atmospheric & sensor observations at time t.
+
+    The model's lag/rolling features need recent history. If `history` is omitted the service assumes
+    conditions have been steady at the current reading (a persistence assumption). Supplying the
+    preceding hourly readings, oldest first, lets the model use the real recent trajectory; up to
+    168 hours are used.
+    """
     hour: Optional[int] = Field(12, ge=0, le=23, description="Hour of observation (0–23)", examples=[14])
     day_of_week: Optional[int] = Field(2, ge=0, le=6, description="Day of week (0=Mon, 6=Sun)", examples=[2])
     month: Optional[int] = Field(6, ge=1, le=12, description="Month of year (1–12)", examples=[6])
+    history: Optional[List[SensorReading]] = Field(
+        None, max_length=168,
+        description="Optional preceding hourly readings, oldest first, ending one hour before this observation."
+    )
 
 
 class PredictResponse(BaseModel):
@@ -42,6 +57,14 @@ class PredictResponse(BaseModel):
     aqi_proxy_category: str = Field(..., description="Standardized AQI proxy qualitative category")
     hazard_threshold: float = Field(180.0, description="Project-defined elevated-pollution threshold (180.0)")
     hazard_status: str = Field(..., description="Elevated pollution status (ELEVATED HAZARD or NOMINAL)")
+    hazard_alert_threshold: Optional[float] = Field(
+        None, description="Probability at or above which the hazard alert fires (tuned on out-of-fold data)"
+    )
+    predicted_aqi_low: Optional[float] = Field(None, description="Lower bound of the ~80% forecast interval")
+    predicted_aqi_high: Optional[float] = Field(None, description="Upper bound of the ~80% forecast interval")
+    history_hours_used: Optional[int] = Field(
+        None, description="Number of real preceding hourly readings supplied (0 = steady-state assumption)"
+    )
 
 
 class FeatureContribution(BaseModel):
@@ -61,7 +84,7 @@ class ExplainResponse(BaseModel):
     explanation_summary: str
     model_version: str
     base_expected_value: Optional[float] = Field(None, description="SHAP model expected base value")
-    shap_sum: Optional[float] = Field(None, description="Sum of all 113 SHAP feature attributions")
+    shap_sum: Optional[float] = Field(None, description="Sum of all SHAP feature attributions")
 
 
 class HealthResponse(BaseModel):
