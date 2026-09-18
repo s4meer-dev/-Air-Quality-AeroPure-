@@ -1,28 +1,28 @@
 {
-  "pca_explained_variance_first3": 0.8728,
+  "pca_explained_variance_first3": 0.9009,
   "k_selected": 3,
   "silhouette_scores": {
-    "2": 0.3366,
-    "3": 0.2261,
-    "4": 0.236,
-    "5": 0.2051,
-    "6": 0.2007
+    "2": 0.3387,
+    "3": 0.2409,
+    "4": 0.2384,
+    "5": 0.2189,
+    "6": 0.2181
   },
-  "dbscan_noise_points": 69,
-  "dbscan_noise_pct": 0.74,
+  "dbscan_noise_points": 34,
+  "dbscan_noise_pct": 0.56,
   "forecasting_experiment": {
     "base_model": {
-      "rmse": 39.068,
-      "mae": 30.522,
-      "r2": 0.5094
+      "rmse": 35.85,
+      "mae": 27.918,
+      "r2": 0.5195
     },
     "augmented_model": {
-      "rmse": 38.324,
-      "mae": 29.876,
-      "r2": 0.5279
+      "rmse": 35.898,
+      "mae": 28.066,
+      "r2": 0.5183
     },
-    "rmse_delta": -0.744,
-    "r2_delta": 0.0185,
-    "improvement": true
+    "rmse_delta": 0.048,
+    "r2_delta": -0.0013,
+    "improvement": false
   }
 }

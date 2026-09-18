@@ -2,9 +2,9 @@
   "dataset_name": "Archive 1 (AirQuality.csv)",
   "dataset_shape": [
     9357,
-    15
+    19
   ],
-  "num_features": 113,
+  "num_features": 129,
   "feature_names": [
     "CO(GT)",
     "PT08.S1(CO)",
@@ -18,23 +18,30 @@
     "T",
     "RH",
     "AH",
+    "co_stale_hours",
+    "no2_stale_hours",
+    "sensor_stale_hours",
     "current_air_quality_index",
     "hour",
-    "day",
     "day_of_week",
     "is_weekend",
     "month",
-    "day_of_year",
     "season",
     "sin_hour",
     "cos_hour",
     "sin_month",
     "cos_month",
+    "target_day_of_week",
+    "target_is_weekend",
     "current_air_quality_index_lag_1",
     "current_air_quality_index_lag_2",
     "current_air_quality_index_lag_3",
+    "current_air_quality_index_lag_6",
+    "current_air_quality_index_lag_12",
     "current_air_quality_index_lag_24",
     "current_air_quality_index_lag_48",
+    "current_air_quality_index_lag_72",
+    "current_air_quality_index_lag_144",
     "CO(GT)_lag_1",
     "CO(GT)_lag_2",
     "CO(GT)_lag_3",
@@ -116,93 +123,156 @@
     "RH_rolling_std_12h",
     "RH_rolling_mean_24h",
     "RH_rolling_std_24h",
+    "aqi_diff_1h",
+    "aqi_diff_3h",
+    "aqi_diff_24h",
+    "aqi_ewm_6h",
+    "aqi_ewm_24h",
+    "aqi_rolling_max_24h",
+    "aqi_rolling_min_24h",
+    "aqi_rolling_mean_72h",
+    "aqi_rolling_mean_168h",
     "vapor_pressure_proxy",
     "co_sensor_ratio",
     "no2_sensor_ratio"
   ],
-  "train_samples": 7466,
-  "test_samples": 1867,
+  "train_samples": 5409,
+  "test_samples": 1358,
   "hazard_threshold": 180.0,
+  "hazard_alert_threshold": 0.3,
+  "hazard_model_diagnostics": {
+    "oof_samples": 4505,
+    "oof_roc_auc": 0.8662,
+    "oof_brier": 0.1208,
+    "oof_f1_at_alert_threshold": 0.6243,
+    "residual_sigma": 40.064,
+    "alert_threshold": 0.3
+  },
+  "labelled_samples": 6788,
   "best_regression_model": "XGBoost",
-  "best_classification_model": "XGBoost",
+  "best_classification_model": "AeroPure Hybrid Hazard Model",
   "regression_leaderboard": [
     {
+      "Model": "Baseline: Persistence (AQI now)",
+      "MAE": 33.73,
+      "MSE": 1973.551,
+      "RMSE": 44.425,
+      "R2": 0.2622
+    },
+    {
+      "Model": "Baseline: Hour-of-day Climatology",
+      "MAE": 41.552,
+      "MSE": 2713.039,
+      "RMSE": 52.087,
+      "R2": -0.0142
+    },
+    {
+      "Model": "Baseline: Training Mean",
+      "MAE": 47.133,
+      "MSE": 3532.211,
+      "RMSE": 59.432,
+      "R2": -0.3204
+    },
+    {
       "Model": "Linear Regression (OLS)",
-      "MAE": 33.605,
-      "MSE": 1882.371,
-      "RMSE": 43.386,
-      "R2": 0.395
+      "MAE": 30.647,
+      "MSE": 1579.831,
+      "RMSE": 39.747,
+      "R2": 0.4094
     },
     {
       "Model": "Ridge Regression",
-      "MAE": 33.526,
-      "MSE": 1852.828,
-      "RMSE": 43.044,
-      "R2": 0.4045
+      "MAE": 30.514,
+      "MSE": 1572.744,
+      "RMSE": 39.658,
+      "R2": 0.4121
     },
     {
       "Model": "Lasso Regression",
-      "MAE": 32.156,
-      "MSE": 1725.42,
-      "RMSE": 41.538,
-      "R2": 0.4454
+      "MAE": 29.045,
+      "MSE": 1417.425,
+      "RMSE": 37.649,
+      "R2": 0.4701
     },
     {
       "Model": "Decision Tree",
-      "MAE": 36.721,
-      "MSE": 2391.627,
-      "RMSE": 48.904,
-      "R2": 0.2313
+      "MAE": 34.97,
+      "MSE": 2019.639,
+      "RMSE": 44.94,
+      "R2": 0.245
     },
     {
       "Model": "Random Forest",
-      "MAE": 32.405,
-      "MSE": 1755.18,
-      "RMSE": 41.895,
-      "R2": 0.4358
+      "MAE": 28.995,
+      "MSE": 1370.741,
+      "RMSE": 37.024,
+      "R2": 0.4876
     },
     {
       "Model": "XGBoost",
-      "MAE": 30.855,
-      "MSE": 1542.367,
-      "RMSE": 39.273,
-      "R2": 0.5042
+      "MAE": 27.918,
+      "MSE": 1285.234,
+      "RMSE": 35.85,
+      "R2": 0.5195
     }
   ],
   "classification_leaderboard": [
     {
       "Model": "Logistic Regression",
-      "Accuracy": 0.6781,
-      "Precision": 0.547,
-      "Recall": 0.7216,
-      "F1": 0.6223,
-      "ROC_AUC": 0.7684
+      "Accuracy": 0.6797,
+      "Precision": 0.5521,
+      "Recall": 0.8051,
+      "F1": 0.655,
+      "ROC_AUC": 0.777,
+      "PR_AUC": 0.6958,
+      "Brier": 0.2368,
+      "Decision_Threshold": 0.5
     },
     {
       "Model": "Decision Tree",
-      "Accuracy": 0.6727,
-      "Precision": 0.5409,
-      "Recall": 0.723,
-      "F1": 0.6188,
-      "ROC_AUC": 0.7682
+      "Accuracy": 0.673,
+      "Precision": 0.545,
+      "Recall": 0.8148,
+      "F1": 0.6531,
+      "ROC_AUC": 0.7432,
+      "PR_AUC": 0.6348,
+      "Brier": 0.2419,
+      "Decision_Threshold": 0.5
     },
     {
       "Model": "Random Forest",
-      "Accuracy": 0.7429,
-      "Precision": 0.625,
-      "Recall": 0.7507,
-      "F1": 0.6821,
-      "ROC_AUC": 0.8065
+      "Accuracy": 0.7268,
+      "Precision": 0.6123,
+      "Recall": 0.7544,
+      "F1": 0.676,
+      "ROC_AUC": 0.8145,
+      "PR_AUC": 0.7219,
+      "Brier": 0.1756,
+      "Decision_Threshold": 0.5
     },
     {
       "Model": "XGBoost",
-      "Accuracy": 0.7504,
-      "Precision": 0.6403,
-      "Recall": 0.7318,
-      "F1": 0.683,
-      "ROC_AUC": 0.8243
+      "Accuracy": 0.7533,
+      "Precision": 0.7697,
+      "Recall": 0.4951,
+      "F1": 0.6026,
+      "ROC_AUC": 0.839,
+      "PR_AUC": 0.7594,
+      "Brier": 0.1628,
+      "Decision_Threshold": 0.5
+    },
+    {
+      "Model": "AeroPure Hybrid Hazard Model",
+      "Accuracy": 0.7283,
+      "Precision": 0.5984,
+      "Recall": 0.8538,
+      "F1": 0.7036,
+      "ROC_AUC": 0.8497,
+      "PR_AUC": 0.7708,
+      "Brier": 0.1558,
+      "Decision_Threshold": 0.3
     }
   ],
-  "high_risk_narrative": "Forecast AQI is predicted at 281.9 (Status: HAZARDOUS).\nThe regional baseline historical mean is 134.3 AQI points.\nKey atmospheric and pollutant drivers impacting tomorrow's air quality:\n\u2022 current_air_quality_index (observed value: 2.94) elevates AQI by +39.74 points.\n\u2022 sin_hour (observed value: -1.37) elevates AQI by +17.69 points.\n\u2022 day_of_week (observed value: -1.51) elevates AQI by +15.67 points.\n\u2022 NO2(GT)_rolling_std_24h (observed value: 3.53) elevates AQI by +10.74 points.\n\u2022 day (observed value: 1.74) elevates AQI by +7.81 points.\nCIVIC HEALTH ADVISORY: Stagnant conditions and elevated particulate persistence pose severe health hazards tomorrow. Vulnerable groups, elderly, and children should limit outdoor exposure.",
-  "low_risk_narrative": "Forecast AQI is predicted at 66.4 (Status: NON-HAZARDOUS).\nThe regional baseline historical mean is 134.3 AQI points.\nKey atmospheric and pollutant drivers impacting tomorrow's air quality:\n\u2022 current_air_quality_index (observed value: -0.84) suppresses AQI by -17.46 points.\n\u2022 hour (observed value: -1.08) suppresses AQI by -17.41 points.\n\u2022 RH_lag_48 (observed value: 1.98) suppresses AQI by -3.91 points.\n\u2022 sin_hour (observed value: 1.22) suppresses AQI by -2.46 points.\n\u2022 PT08.S2(NMHC) (observed value: -1.09) suppresses AQI by -2.37 points.\nCIVIC HEALTH ADVISORY: Atmospheric dispersion and pollutant levels are projected within manageable thresholds."
+  "high_risk_narrative": "Forecast AQI is predicted at 249.2 (Status: HAZARDOUS).\nThe model's baseline (average) forecast is 136.8 AQI points.\nKey atmospheric and pollutant drivers impacting tomorrow's air quality:\n\u2022 current_air_quality_index_lag_144 (observed value: 1.61) elevates AQI by +18.29 points.\n\u2022 current_air_quality_index (observed value: 2.50) elevates AQI by +10.87 points.\n\u2022 sin_hour (observed value: -1.30) elevates AQI by +8.37 points.\n\u2022 PT08.S3(NOx)_lag_48 (observed value: -1.78) elevates AQI by +7.42 points.\n\u2022 PT08.S2(NMHC) (observed value: 2.35) elevates AQI by +5.05 points.\nCIVIC HEALTH ADVISORY: Tomorrow's pollutant-based AQI proxy is forecast above the project elevated-pollution threshold, driven by gaseous pollutants (CO, NO2, benzene). Vulnerable groups, elderly, and children should consider limiting outdoor exposure.",
+  "low_risk_narrative": "Forecast AQI is predicted at 68.6 (Status: NON-HAZARDOUS).\nThe model's baseline (average) forecast is 136.8 AQI points.\nKey atmospheric and pollutant drivers impacting tomorrow's air quality:\n\u2022 current_air_quality_index_lag_144 (observed value: -1.07) suppresses AQI by -16.50 points.\n\u2022 hour (observed value: -1.04) suppresses AQI by -12.62 points.\n\u2022 current_air_quality_index (observed value: -1.13) suppresses AQI by -8.12 points.\n\u2022 NO2(GT) (observed value: -1.13) suppresses AQI by -3.84 points.\n\u2022 current_air_quality_index_lag_1 (observed value: -1.37) suppresses AQI by -2.76 points.\nCIVIC HEALTH ADVISORY: Atmospheric dispersion and pollutant levels are projected within manageable thresholds."
 }

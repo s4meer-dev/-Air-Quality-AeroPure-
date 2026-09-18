@@ -1,12 +1,12 @@
 {
   "overall_drift_status": "Significant Drift",
-  "mean_psi": 0.6598,
+  "mean_psi": 0.5337,
   "retraining_flagged": true,
   "recommendation": "Flag for seasonal retraining review with governance safeguards.",
   "counts": {
     "total_features_evaluated": 11,
-    "stable": 5,
-    "monitor": 1,
+    "stable": 4,
+    "monitor": 2,
     "significant_drift": 5
   },
   "significant_drift_features": [

@@ -1,4 +1,6 @@
 Comparison,Wilcoxon_Statistic,Wilcoxon_p_value,Paired_t_Statistic,Paired_t_p_value,Statistically_Significant (p<0.05)
-XGBoost vs OLS,768927.0,9.8913e-06,-5.608,2.3470e-08,True
-XGBoost vs Ridge,763578.0,3.3333e-06,-5.587,2.6531e-08,True
-XGBoost vs Random Forest,795941.0,1.1142e-03,-3.782,1.6037e-04,True
+XGBoost vs OLS,384014.0,8.6762e-08,-6.179,8.5321e-10,True
+XGBoost vs Ridge,387478.0,3.1739e-07,-5.989,2.6923e-09,True
+XGBoost vs Lasso,419394.0,3.6753e-03,-3.145,1.6992e-03,True
+XGBoost vs Random Forest,389121.0,5.7584e-07,-5.39,8.3006e-08,True
+XGBoost vs Persistence,350361.0,1.5823e-14,-7.908,5.3753e-15,True
